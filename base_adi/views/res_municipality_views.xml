@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_municipality_view_form" model="ir.ui.view">
+        <field name="name">res.municipality.view.form</field>
+        <field name="model">res.municipality</field>
+        <field name="arch" type="xml">
+            <form string="Municipality" duplicate="0">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_show_places"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-map-signs">
+                            <field string="Places"
+                                   name="number_of_places"
+                                   widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group name="master_data">
+                        <group name="master_data_left">
+                            <field name="alphanum_code" string="Municipality"/>
+                            <field name="province_id"
+                                   string="Province"
+                                   options="{'no_quick_create':True,
+                                             'no_create_edit': True}"
+                                   readonly="context.get('default_province_id', False)"/>
+                        </group>
+                        <group name="master_data_right">
+                        </group>
+                    </group>
+                    <notebook name="slave_data_notebook" colspan="4">
+                        <page name="page_notes" string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="res_municipality_view_tree" model="ir.ui.view">
+        <field name="name">res.municipality.view.tree</field>
+        <field name="model">res.municipality</field>
+            <field name="arch" type="xml">
+            <tree class="o_base_adi_res_municipality"
+                  default_order="province_id, name">
+                <field name="province_id" string="Province"/>
+                <field name="alphanum_code" string="Municipality"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="res_municipality_view_search" model="ir.ui.view">
+        <field name="name">res.municipality.view.search</field>
+        <field name="model">res.municipality</field>
+        <field name="arch" type="xml">
+            <search string="Search municipalities">
+                <field name="alphanum_code" string="Municipality"/>
+                <group expand="0" string="Group By">
+                    <filter string="Region"
+                            name="grouped_region"
+                     context="{'group_by':'region_id'}"/>
+                    <filter string="Province"
+                            name="grouped_province"
+                     context="{'group_by':'province_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="res_municipality_action" model="ir.actions.act_window">
+        <field name="name">Municipalities</field>
+        <field name="res_model">res.municipality</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids"
+         eval="[(5, 0),
+                (0, 0, {'view_mode': 'tree',
+                        'view_id': ref('res_municipality_view_tree')}),
+                (0, 0, {'view_mode': 'form',
+                        'view_id': ref('res_municipality_view_form')})]"/>
+        <field name="search_view_id" ref="res_municipality_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new municipality
+            </p>
+            <p>
+                Manage municipalities.
+            </p>
+        </field>
+    </record>
+
+</odoo>

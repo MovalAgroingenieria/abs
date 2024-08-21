@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_province_view_form" model="ir.ui.view">
+        <field name="name">res.province.view.form</field>
+        <field name="model">res.province</field>
+        <field name="arch" type="xml">
+            <form string="Province" duplicate="0">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_show_municipalities"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-sitemap">
+                            <field string="Municipalities"
+                                   name="number_of_municipalities"
+                                   widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group name="master_data">
+                        <group name="master_data_left">
+                            <field name="alphanum_code" string="Province"/>
+                            <field name="region_id"
+                                   string="Region"
+                                   options="{'no_quick_create':True,
+                                             'no_create_edit': True}"
+                                   readonly="context.get('default_region_id', False)"/>
+                        </group>
+                        <group name="master_data_right">
+                        </group>
+                    </group>
+                    <notebook name="slave_data_notebook" colspan="4">
+                        <page name="page_notes" string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="res_province_view_tree" model="ir.ui.view">
+        <field name="name">res.province.view.tree</field>
+        <field name="model">res.province</field>
+            <field name="arch" type="xml">
+            <tree class="o_base_adi_res_province">
+                <field name="alphanum_code" string="Province"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="res_province_view_search" model="ir.ui.view">
+        <field name="name">res.province.view.search</field>
+        <field name="model">res.province</field>
+        <field name="arch" type="xml">
+            <search string="Search provinces">
+                <field name="alphanum_code" string="Province"/>
+                <field name="region_id" string="Region"/>
+                <group expand="0" string="Group By">
+                    <filter string="Region"
+                            name="grouped_region"
+                     context="{'group_by':'region_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="res_province_action" model="ir.actions.act_window">
+        <field name="name">Provinces</field>
+        <field name="res_model">res.province</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids"
+         eval="[(5, 0),
+                (0, 0, {'view_mode': 'tree',
+                        'view_id': ref('res_province_view_tree')}),
+                (0, 0, {'view_mode': 'form',
+                        'view_id': ref('res_province_view_form')})]"/>
+        <field name="search_view_id" ref="res_province_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new province
+            </p>
+            <p>
+                Manage provinces.
+            </p>
+        </field>
+    </record>
+
+</odoo>
