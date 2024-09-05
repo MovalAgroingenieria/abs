@@ -7,7 +7,7 @@ from odoo import models, fields, api, exceptions, _
 class ResMunicipality(models.Model):
     _name = 'res.municipality'
     _description = 'Municipality'
-    _inherit = 'simple.model'
+    _inherit = ['simple.model', 'polygon.model', ]
     _order = 'province_id, name'
 
     # Static variables inherited from "simple.model"

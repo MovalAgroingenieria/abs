@@ -11,6 +11,7 @@
     "category": "Hidden",
     "depends": [
         "base_gen",
+        "base_gis",
     ],
     "data": [
         "views/res_region_views.xml",

@@ -7,7 +7,7 @@ from odoo import fields, models, _
 class ResRegion(models.Model):
     _name = 'res.region'
     _description = 'Region'
-    _inherit = 'simple.model'
+    _inherit = ['simple.model', 'polygon.model', ]
 
     # Static variables inherited from "simple.model"
     _set_num_code = False
