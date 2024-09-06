@@ -19,6 +19,9 @@ class PolygonModel(models.AbstractModel):
     # Default size for WMS images.
     NORMAL_SIZE = 512
 
+    # Timeout for getmap requests.
+    OGC_TIMEOUT = 2
+
     # Linked GIS table ("wua_gis_parcel", for example).
     _gis_table = ''
 
@@ -359,7 +362,8 @@ class PolygonModel(models.AbstractModel):
                     request_ok = True
                     resp = None
                     try:
-                        resp = requests.get(url, stream=True)
+                        resp = requests.get(url, stream=True,
+                                            timeout=self.OGC_TIMEOUT)
                     except Exception:
                         request_ok = False
                     if request_ok and resp.status_code == 200:
