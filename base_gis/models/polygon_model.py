@@ -20,7 +20,7 @@ class PolygonModel(models.AbstractModel):
     NORMAL_SIZE = 512
 
     # Timeout for getmap requests.
-    OGC_TIMEOUT = 2
+    OGC_TIMEOUT = 5
 
     # Linked GIS table ("wua_gis_parcel", for example).
     _gis_table = ''
