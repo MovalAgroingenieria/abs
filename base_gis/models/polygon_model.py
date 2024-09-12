@@ -22,6 +22,9 @@ class PolygonModel(models.AbstractModel):
     # Timeout for getmap requests.
     OGC_TIMEOUT = 5
 
+    # Decimals for coordinates.
+    WITH_DECIMAL_COORDINATES = False
+
     # Linked GIS table ("wua_gis_parcel", for example).
     _gis_table = ''
 
@@ -55,6 +58,10 @@ class PolygonModel(models.AbstractModel):
     centroid_ewkt = fields.Char(
         string='EWKT Centroid',
         compute='_compute_centroid_ewkt',)
+
+    bounding_box_str = fields.Char(
+        string='Bounding box as string',
+        compute='_compute_bounding_box_str',)
 
     def _compute_mapped_to_polygon(self):
         geom_ok = self._geom_ok()
@@ -191,6 +198,28 @@ class PolygonModel(models.AbstractModel):
                     centroid_ewkt = query_results[0].get('st_asewkt')
             record.centroid_ewkt = centroid_ewkt
 
+    def _compute_bounding_box_str(self):
+        geom_ok = self._geom_ok()
+        lang_model = self.env['res.lang'].search(
+            [('code', '=', self.env.user.lang)])
+        precision = '%.0f'
+        if self.WITH_DECIMAL_COORDINATES:
+            precision = '%.6f'
+        for record in self:
+            bounding_box_str = ''
+            if geom_ok:
+                srid, bounding_box = record.extract_bounding_box(
+                    record.geom_ewkt, force_square_shape=False)
+                if srid and bounding_box and len(bounding_box) == 4:
+                    minx = lang_model.format(precision, bounding_box[0], True)
+                    miny = lang_model.format(precision, bounding_box[1], True)
+                    maxx = lang_model.format(precision, bounding_box[2], True)
+                    maxy = lang_model.format(precision, bounding_box[3], True)
+                    bounding_box_str = 'EPSG:' + srid + \
+                        ' (' + minx + ', ' + miny + ') - ' + \
+                        ' (' + maxx + ', ' + maxy + ')'
+            record.bounding_box_str = bounding_box_str
+
     def _geom_ok(self):
         resp = (self._gis_table != '' and self._geom_field != '' and
                 self._link_field != '')
@@ -221,7 +250,7 @@ class PolygonModel(models.AbstractModel):
         return srid, coordinates
 
     @api.model
-    def extract_bounding_box(self, geom_ewkt):
+    def extract_bounding_box(self, geom_ewkt, force_square_shape=True):
         bounding_box = []
         srid, coordinates = self.extract_coordinates(geom_ewkt)
         if coordinates:
@@ -262,6 +291,18 @@ class PolygonModel(models.AbstractModel):
                                 miny = y
                             if y > maxy:
                                 maxy = y
+                if force_square_shape:
+                    w = maxx - minx
+                    h = maxy - miny
+                    if w != h:
+                        if h > w:
+                            inc = round((h - w) / 2)
+                            minx = minx - inc
+                            maxx = maxx + inc
+                        else:
+                            inc = round((w - h) / 2)
+                            miny = miny - inc
+                            maxy = maxy + inc
                 bounding_box = [minx, miny, maxx, maxy]
         return srid, bounding_box
 
@@ -324,14 +365,15 @@ class PolygonModel(models.AbstractModel):
                          format='png',
                          zoom=1.2,
                          get_raw=False,
-                         filter=False):
+                         filter=False,
+                         force_square_shape=True):
         aerial_images = []
         # Number of layers passed
         number_of_layers = len(layers.split(',')) - 1
         for record in self:
             image = None
             srid, bounding_box = record.extract_bounding_box(
-                record.geom_ewkt)
+                record.geom_ewkt, force_square_shape=force_square_shape)
             if srid and bounding_box:
                 bounding_box_final, image_width_pixels, image_height_pixels = \
                     self.get_bbox_final(zoom, bounding_box,

@@ -9,10 +9,10 @@ class SimpleModel(models.AbstractModel):
     _description = 'Simple Model'
     _order = 'name'
 
-    # Size of "name" and "alphanum_code" field, in the model.
+    # Size of the "name" and "alphanum_code" fields, in the model.
     MAX_SIZE_NAME_FIELD = 50
 
-    # Size of fields of char type, in the model.
+    # Size of the fields of char type, in the model.
     MAX_SIZE_CHAR_FIELD = 255
 
     # Size of "name" and "alphanum_code" fields, in the form view.
