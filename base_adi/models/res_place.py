@@ -9,6 +9,7 @@ class ResPlace(models.Model):
     _description = 'Place'
     _inherit = 'simple.model'
     _order = 'region_id, province_id, name'
+    _rec_name = 'alphanum_code'
 
     # Static variables inherited from "simple.model"
     _set_num_code = False
