@@ -61,7 +61,7 @@
         <field name="name">res.region.view.search</field>
         <field name="model">res.region</field>
         <field name="arch" type="xml">
-            <search string="Search Regions">
+            <search string="Search regions">
                 <field name="alphanum_code" string="Region"/>
             </search>
         </field>
