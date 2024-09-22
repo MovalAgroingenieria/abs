@@ -1,0 +1,115 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* base_gen
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-09-21 11:26+0000\n"
+"PO-Revision-Date: 2024-09-21 11:26+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base_gen
+#: model:ir.model.constraint,message:base_gen.constraint_res_municipality_name_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_res_place_name_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_res_province_name_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_res_region_name_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_simple_model_name_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_ter_parcel_name_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_ter_parceltag_name_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_ter_profile_name_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_ter_property_name_not_null
+msgid "A valid code is required."
+msgstr "Es necesario asignar un código válido."
+
+#. module: base_gen
+#: model:ir.model.fields,field_description:base_gen.field_simple_model__alphanum_code
+msgid "Code (alphanumeric value)"
+msgstr "Código (como valor alfanumérico)"
+
+#. module: base_gen
+#: model:ir.model.fields,field_description:base_gen.field_simple_model__name
+msgid "Code (name)"
+msgstr "Código (como cadena normalizada)"
+
+#. module: base_gen
+#: model:ir.model.fields,field_description:base_gen.field_simple_model__num_code
+msgid "Code (numeric value)"
+msgstr "Código (como valor numérico)"
+
+#. module: base_gen
+#: model:ir.model,name:base_gen.model_common_image
+msgid "Common functions related to image management"
+msgstr ""
+
+#. module: base_gen
+#: model:ir.model,name:base_gen.model_common_log
+msgid "Common functions related to logging"
+msgstr ""
+
+#. module: base_gen
+#: model:ir.model.fields,field_description:base_gen.field_simple_model__description
+msgid "Description"
+msgstr "Descripción"
+
+#. module: base_gen
+#: model:ir.model.constraint,message:base_gen.constraint_res_place_name_unique
+#: model:ir.model.constraint,message:base_gen.constraint_res_province_name_unique
+#: model:ir.model.constraint,message:base_gen.constraint_res_region_name_unique
+#: model:ir.model.constraint,message:base_gen.constraint_simple_model_name_unique
+#: model:ir.model.constraint,message:base_gen.constraint_ter_parcel_name_unique
+#: model:ir.model.constraint,message:base_gen.constraint_ter_parceltag_name_unique
+#: model:ir.model.constraint,message:base_gen.constraint_ter_profile_name_unique
+#: model:ir.model.constraint,message:base_gen.constraint_ter_property_name_unique
+msgid "Existing Code."
+msgstr "Código repetido."
+
+#. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/simple_model.py:0
+#, python-format
+msgid "It is not possible insert blank spaces in the code."
+msgstr "El código no puede contener espacios en blanco."
+
+#. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/simple_model.py:0
+#, python-format
+msgid "Maximum number of characters allowed for te code: "
+msgstr "Número máximo de caracteres para un código: "
+
+#. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/simple_model.py:0
+#, python-format
+msgid "Minimum number of characters allowed for te code: "
+msgstr "Número mínimo de caracteres para un código: "
+
+#. module: base_gen
+#: model:ir.model.fields,field_description:base_gen.field_simple_model__notes
+msgid "Notes"
+msgstr "Notas internas"
+
+#. module: base_gen
+#: model:ir.model,name:base_gen.model_simple_model
+msgid "Simple Model"
+msgstr ""
+
+#. module: base_gen
+#: model:ir.model.constraint,message:base_gen.constraint_res_municipality_description_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_res_place_description_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_res_province_description_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_res_region_description_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_simple_model_description_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_ter_parcel_description_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_ter_parceltag_description_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_ter_profile_description_not_null
+#: model:ir.model.constraint,message:base_gen.constraint_ter_property_description_not_null
+msgid "The description is required."
+msgstr "Es necesario asignar una descripción."
