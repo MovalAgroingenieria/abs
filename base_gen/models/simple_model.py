@@ -90,7 +90,7 @@ class SimpleModel(models.AbstractModel):
         compute='_compute_name',)
 
     notes = fields.Html(
-        string='Notes',)
+        string='Internal Notes',)
 
     _sql_constraints = [
         ('name_unique',

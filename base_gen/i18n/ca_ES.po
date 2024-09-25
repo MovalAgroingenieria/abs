@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-21 11:25+0000\n"
-"PO-Revision-Date: 2024-09-21 11:25+0000\n"
+"POT-Creation-Date: 2024-09-24 19:00+0000\n"
+"PO-Revision-Date: 2024-09-24 19:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -71,6 +71,11 @@ msgid "Existing Code."
 msgstr "Codi repetit."
 
 #. module: base_gen
+#: model:ir.model.fields,field_description:base_gen.field_simple_model__notes
+msgid "Internal Notes"
+msgstr "Notes internes"
+
+#. module: base_gen
 #. odoo-python
 #: code:addons/base_gen/models/simple_model.py:0
 #, python-format
@@ -90,11 +95,6 @@ msgstr "Nombre màxim de caràcters per a un codi: "
 #, python-format
 msgid "Minimum number of characters allowed for te code: "
 msgstr "Nombre mínim de caràcters per a un codi: "
-
-#. module: base_gen
-#: model:ir.model.fields,field_description:base_gen.field_simple_model__notes
-msgid "Notes"
-msgstr "Notes internes"
 
 #. module: base_gen
 #: model:ir.model,name:base_gen.model_simple_model

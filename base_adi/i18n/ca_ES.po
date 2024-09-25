@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-21 15:56+0000\n"
-"PO-Revision-Date: 2024-09-21 15:56+0000\n"
+"POT-Creation-Date: 2024-09-24 19:05+0000\n"
+"PO-Revision-Date: 2024-09-24 19:05+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -56,7 +56,7 @@ msgstr "Crear una nova província"
 #. module: base_adi
 #: model_terms:ir.actions.act_window,help:base_adi.res_region_action
 msgid "Create a new region"
-msgstr "Crear una nova Comunitat Autònoma"
+msgstr "Crear una nova regió"
 
 #. module: base_adi
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__create_uid
@@ -161,6 +161,14 @@ msgid "ID"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_municipality__notes
+#: model:ir.model.fields,field_description:base_adi.field_res_place__notes
+#: model:ir.model.fields,field_description:base_adi.field_res_province__notes
+#: model:ir.model.fields,field_description:base_adi.field_res_region__notes
+msgid "Internal Notes"
+msgstr "Notes internes"
+
+#. module: base_adi
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality____last_update
 #: model:ir.model.fields,field_description:base_adi.field_res_place____last_update
 #: model:ir.model.fields,field_description:base_adi.field_res_province____last_update
@@ -202,7 +210,7 @@ msgstr "Gestionar províncies"
 #. module: base_adi
 #: model_terms:ir.actions.act_window,help:base_adi.res_region_action
 msgid "Manage regions."
-msgstr "Gestionar comunitats autònomes"
+msgstr "Gestionar regions"
 
 #. module: base_adi
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__mapped_to_polygon
@@ -235,10 +243,6 @@ msgid "Municipality"
 msgstr "Municipi"
 
 #. module: base_adi
-#: model:ir.model.fields,field_description:base_adi.field_res_municipality__notes
-#: model:ir.model.fields,field_description:base_adi.field_res_place__notes
-#: model:ir.model.fields,field_description:base_adi.field_res_province__notes
-#: model:ir.model.fields,field_description:base_adi.field_res_region__notes
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_form
@@ -321,12 +325,12 @@ msgstr "Províncies"
 #: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_search
 #: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_tree
 msgid "Region"
-msgstr "Comunitat Autònoma"
+msgstr "Regió"
 
 #. module: base_adi
 #: model:ir.actions.act_window,name:base_adi.res_region_action
 msgid "Regions"
-msgstr "Comunitats Autònomes"
+msgstr "Regions"
 
 #. module: base_adi
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_search
@@ -346,7 +350,7 @@ msgstr "Buscar províncies"
 #. module: base_adi
 #: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_search
 msgid "Search regions"
-msgstr "Buscar comunitats autònomes"
+msgstr "Buscar regions"
 
 #. module: base_adi
 #. odoo-python
@@ -354,5 +358,4 @@ msgstr "Buscar comunitats autònomes"
 #, python-format
 msgid ""
 "There is already another municipality on this province with the same name."
-msgstr ""
-"A la província ja hi ha un altre municipi amb el mateix nom."
+msgstr "A la província ja hi ha un altre municipi amb el mateix nom."
