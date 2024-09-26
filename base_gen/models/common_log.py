@@ -10,14 +10,17 @@ class CommonLog(models.AbstractModel):
     _name = 'common.log'
     _description = 'Common functions related to logging'
 
-    def register_in_log(self, message, module='', model='', method='',
+    def register_in_log(self, message, source='',  module='', model='', method='',
                         message_type='INFO'):
         if (message and (message_type == 'INFO' or
                          message_type == 'DEBUG' or
                          message_type == 'WARNING' or
                          message_type == 'ERROR' or
                          message_type == 'CRITICAL')):
-            _logger = logging.getLogger(__name__)
+            if source:
+                _logger = logging.getLogger(source)
+            else:
+                _logger = logging.getLogger(__name__)
             if module or model or method:
                 suffix = ''
                 if module:
