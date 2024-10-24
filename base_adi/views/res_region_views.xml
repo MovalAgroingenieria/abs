@@ -52,7 +52,8 @@
                   default_order="alphanum_code">
                 <field name="flag_image_64" class="text-center" widget="image"
                        string=" "/>
-                <field name="alphanum_code" string="Region"/>
+                <field name="alphanum_code" string="Region"
+                       class="align-middle"/>
             </tree>
         </field>
     </record>

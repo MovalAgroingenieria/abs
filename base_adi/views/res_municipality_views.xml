@@ -57,6 +57,8 @@
         <field name="arch" type="xml">
             <search string="Search municipalities">
                 <field name="alphanum_code" string="Municipality"/>
+                <field name="province_id" string="Province"/>
+                <field name="region_id" string="Region"/>
                 <group expand="0" string="Group By">
                     <filter string="Region"
                             name="grouped_region"
