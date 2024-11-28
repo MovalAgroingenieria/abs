@@ -43,6 +43,10 @@ class PolygonModel(models.AbstractModel):
         string='EWKT Geometry',
         compute='_compute_geom_ewkt',)
 
+    geom_geojson = fields.Char(
+        string='GeoJSON Geometry',
+        compute='_compute_geom_geojson',)
+
     oriented_envelope_ewkt = fields.Char(
         string='EWKT Geometry for oriented envelope',
         compute='_compute_oriented_envelope_ewkt',)
@@ -119,6 +123,22 @@ class PolygonModel(models.AbstractModel):
                    query_results[0].get('st_asewkt') is not None):
                     geom_ewkt = query_results[0].get('st_asewkt')
             record.geom_ewkt = geom_ewkt
+
+    def _compute_geom_geojson(self):
+        geom_ok = self._geom_ok()
+        for record in self:
+            geom_geojson = ''
+            if geom_ok:
+                self.env.cr.execute("""
+                    SELECT postgis.st_asgeojson(%s)
+                    FROM %s WHERE %s = %%s""" % (
+                        self._geom_field, self._gis_table, self._link_field),
+                    (record.name,))
+                query_results = self.env.cr.dictfetchall()
+                if (query_results and
+                   query_results[0].get('st_asgeojson') is not None):
+                    geom_geojson = query_results[0].get('st_asgeojson')
+            record.geom_geojson = geom_geojson
 
     def _compute_oriented_envelope_ewkt(self):
         geom_ok = self._geom_ok()
