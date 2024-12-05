@@ -419,13 +419,15 @@ class PolygonModel(models.AbstractModel):
                         '&height=' + str(image_height_pixels) + \
                         '&layers=' + layers + \
                         '&styles=' + styles + \
+                        '&transparent=true' + \
                         cql_filter + \
                         '&format=image/' + format
                     request_ok = True
                     resp = None
                     try:
-                        resp = requests.get(url, stream=True,
+                        resp = requests.get(url, stream=True, verify=False,
                                             timeout=self.OGC_TIMEOUT)
+                    # TODO: Log the excpetions for easier debugging
                     except Exception:
                         request_ok = False
                     if request_ok and resp.status_code == 200:
