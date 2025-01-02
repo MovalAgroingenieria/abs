@@ -10,7 +10,7 @@ class SimpleModel(models.AbstractModel):
     _order = 'name'
 
     # Size of the "name" and "alphanum_code" fields, in the model.
-    MAX_SIZE_NAME_FIELD = 50
+    MAX_SIZE_NAME_FIELD = 100
 
     # Size of the fields of char type, in the model.
     MAX_SIZE_CHAR_FIELD = 255
