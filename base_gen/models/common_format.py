@@ -6,8 +6,7 @@ import datetime
 import pytz
 import babel
 from Crypto.Cipher import AES
-from odoo import models, _
-from odoo import models
+from odoo import models, tools, _
 
 
 class CommonFormat(models.AbstractModel):
@@ -101,3 +100,9 @@ class CommonFormat(models.AbstractModel):
                     if year:
                         resp = resp + ', ' + year
             return resp
+
+    def is_html_field_filled(self, html_field):
+        filled = False
+        if html_field and tools.html2plaintext(html_field).strip():
+            filled = True
+        return filled
