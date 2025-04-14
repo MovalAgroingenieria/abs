@@ -4,8 +4,8 @@
 from odoo import fields, models, _
 
 
-class ResRegion(models.Model):
-    _name = 'res.region'
+class ResAdmregion(models.Model):
+    _name = 'res.admregion'
     _description = 'Region'
     _inherit = ['simple.model', 'polygon.model', ]
 

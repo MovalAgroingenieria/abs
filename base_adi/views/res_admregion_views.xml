@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="res_region_view_form" model="ir.ui.view">
-        <field name="name">res.region.view.form</field>
-        <field name="model">res.region</field>
+    <record id="res_admregion_view_form" model="ir.ui.view">
+        <field name="name">res.admregion.view.form</field>
+        <field name="model">res.admregion</field>
         <field name="arch" type="xml">
             <form string="Region" duplicate="0">
                 <sheet>
@@ -44,11 +44,11 @@
         </field>
     </record>
 
-    <record id="res_region_view_tree" model="ir.ui.view">
-        <field name="name">res.region.view.tree</field>
-        <field name="model">res.region</field>
+    <record id="res_admregion_view_tree" model="ir.ui.view">
+        <field name="name">res.admregion.view.tree</field>
+        <field name="model">res.admregion</field>
             <field name="arch" type="xml">
-            <tree class="o_base_adi_res_region"
+            <tree class="o_base_adi_res_admregion"
                   default_order="alphanum_code">
                 <field name="flag_image_64" class="text-center" widget="image"
                        string=" "/>
@@ -58,9 +58,9 @@
         </field>
     </record>
 
-    <record id="res_region_view_search" model="ir.ui.view">
-        <field name="name">res.region.view.search</field>
-        <field name="model">res.region</field>
+    <record id="res_admregion_view_search" model="ir.ui.view">
+        <field name="name">res.admregion.view.search</field>
+        <field name="model">res.admregion</field>
         <field name="arch" type="xml">
             <search string="Search regions">
                 <field name="alphanum_code" string="Region"/>
@@ -68,17 +68,17 @@
         </field>
     </record>
 
-    <record id="res_region_action" model="ir.actions.act_window">
+    <record id="res_admregion_action" model="ir.actions.act_window">
         <field name="name">Regions</field>
-        <field name="res_model">res.region</field>
+        <field name="res_model">res.admregion</field>
         <field name="view_mode">tree,form</field>
         <field name="view_ids"
          eval="[(5, 0),
                 (0, 0, {'view_mode': 'tree',
-                        'view_id': ref('res_region_view_tree')}),
+                        'view_id': ref('res_admregion_view_tree')}),
                 (0, 0, {'view_mode': 'form',
-                        'view_id': ref('res_region_view_form')})]"/>
-        <field name="search_view_id" ref="res_region_view_search"/>
+                        'view_id': ref('res_admregion_view_form')})]"/>
+        <field name="search_view_id" ref="res_admregion_view_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create a new region

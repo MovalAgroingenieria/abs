@@ -27,7 +27,7 @@ class ResProvince(models.Model):
 
     region_id = fields.Many2one(
         string='Region',
-        comodel_name='res.region',
+        comodel_name='res.admregion',
         required=True,
         index=True,
         ondelete='restrict',)

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-24 19:05+0000\n"
-"PO-Revision-Date: 2024-09-24 19:05+0000\n"
+"POT-Creation-Date: 2025-04-14 06:48+0000\n"
+"PO-Revision-Date: 2025-04-14 06:48+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,25 +16,25 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__bounding_box_str
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__bounding_box_str
 #: model:ir.model.fields,field_description:base_adi.field_res_province__bounding_box_str
-#: model:ir.model.fields,field_description:base_adi.field_res_region__bounding_box_str
 msgid "Bounding box as string"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__name
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__name
 #: model:ir.model.fields,field_description:base_adi.field_res_place__name
 #: model:ir.model.fields,field_description:base_adi.field_res_province__name
-#: model:ir.model.fields,field_description:base_adi.field_res_region__name
 msgid "Code (name)"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__num_code
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__num_code
 #: model:ir.model.fields,field_description:base_adi.field_res_place__num_code
 #: model:ir.model.fields,field_description:base_adi.field_res_province__num_code
-#: model:ir.model.fields,field_description:base_adi.field_res_region__num_code
 msgid "Code (numeric value)"
 msgstr ""
 
@@ -54,60 +54,60 @@ msgid "Create a new province"
 msgstr ""
 
 #. module: base_adi
-#: model_terms:ir.actions.act_window,help:base_adi.res_region_action
+#: model_terms:ir.actions.act_window,help:base_adi.res_admregion_action
 msgid "Create a new region"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__create_uid
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__create_uid
 #: model:ir.model.fields,field_description:base_adi.field_res_place__create_uid
 #: model:ir.model.fields,field_description:base_adi.field_res_province__create_uid
-#: model:ir.model.fields,field_description:base_adi.field_res_region__create_uid
 msgid "Created by"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__create_date
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__create_date
 #: model:ir.model.fields,field_description:base_adi.field_res_place__create_date
 #: model:ir.model.fields,field_description:base_adi.field_res_province__create_date
-#: model:ir.model.fields,field_description:base_adi.field_res_region__create_date
 msgid "Created on"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__description
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__description
 #: model:ir.model.fields,field_description:base_adi.field_res_place__description
 #: model:ir.model.fields,field_description:base_adi.field_res_province__description
-#: model:ir.model.fields,field_description:base_adi.field_res_region__description
 msgid "Description"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__display_name
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__display_name
 #: model:ir.model.fields,field_description:base_adi.field_res_place__display_name
 #: model:ir.model.fields,field_description:base_adi.field_res_province__display_name
-#: model:ir.model.fields,field_description:base_adi.field_res_region__display_name
 msgid "Display Name"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__centroid_ewkt
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__centroid_ewkt
 #: model:ir.model.fields,field_description:base_adi.field_res_province__centroid_ewkt
-#: model:ir.model.fields,field_description:base_adi.field_res_region__centroid_ewkt
 msgid "EWKT Centroid"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__geom_ewkt
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__geom_ewkt
 #: model:ir.model.fields,field_description:base_adi.field_res_province__geom_ewkt
-#: model:ir.model.fields,field_description:base_adi.field_res_region__geom_ewkt
 msgid "EWKT Geometry"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__oriented_envelope_ewkt
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__oriented_envelope_ewkt
 #: model:ir.model.fields,field_description:base_adi.field_res_province__oriented_envelope_ewkt
-#: model:ir.model.fields,field_description:base_adi.field_res_region__oriented_envelope_ewkt
 msgid "EWKT Geometry for oriented envelope"
 msgstr ""
 
@@ -117,32 +117,39 @@ msgid "Existing Code (NOT)."
 msgstr ""
 
 #. module: base_adi
-#: model:ir.model.fields,field_description:base_adi.field_res_region__flag_image_128
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__flag_image_128
 msgid "Flag (128 x 86)"
 msgstr ""
 
 #. module: base_adi
-#: model:ir.model.fields,field_description:base_adi.field_res_region__flag_image_256
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__flag_image_256
 msgid "Flag (256 x 172)"
 msgstr ""
 
 #. module: base_adi
-#: model:ir.model.fields,field_description:base_adi.field_res_region__flag_image_64
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__flag_image_64
 msgid "Flag (64 x 43)"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__area_gis
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__area_gis
 #: model:ir.model.fields,field_description:base_adi.field_res_province__area_gis
-#: model:ir.model.fields,field_description:base_adi.field_res_region__area_gis
 msgid "GIS Area (m²)"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__perimeter_gis
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__perimeter_gis
 #: model:ir.model.fields,field_description:base_adi.field_res_province__perimeter_gis
-#: model:ir.model.fields,field_description:base_adi.field_res_region__perimeter_gis
 msgid "GIS Perimeter (m)"
+msgstr ""
+
+#. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__geom_geojson
+#: model:ir.model.fields,field_description:base_adi.field_res_municipality__geom_geojson
+#: model:ir.model.fields,field_description:base_adi.field_res_province__geom_geojson
+msgid "GeoJSON Geometry"
 msgstr ""
 
 #. module: base_adi
@@ -153,42 +160,42 @@ msgid "Group By"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__id
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__id
 #: model:ir.model.fields,field_description:base_adi.field_res_place__id
 #: model:ir.model.fields,field_description:base_adi.field_res_province__id
-#: model:ir.model.fields,field_description:base_adi.field_res_region__id
 msgid "ID"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__notes
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__notes
 #: model:ir.model.fields,field_description:base_adi.field_res_place__notes
 #: model:ir.model.fields,field_description:base_adi.field_res_province__notes
-#: model:ir.model.fields,field_description:base_adi.field_res_region__notes
 msgid "Internal Notes"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion____last_update
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality____last_update
 #: model:ir.model.fields,field_description:base_adi.field_res_place____last_update
 #: model:ir.model.fields,field_description:base_adi.field_res_province____last_update
-#: model:ir.model.fields,field_description:base_adi.field_res_region____last_update
 msgid "Last Modified on"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__write_uid
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__write_uid
 #: model:ir.model.fields,field_description:base_adi.field_res_place__write_uid
 #: model:ir.model.fields,field_description:base_adi.field_res_province__write_uid
-#: model:ir.model.fields,field_description:base_adi.field_res_region__write_uid
 msgid "Last Updated by"
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__write_date
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__write_date
 #: model:ir.model.fields,field_description:base_adi.field_res_place__write_date
 #: model:ir.model.fields,field_description:base_adi.field_res_province__write_date
-#: model:ir.model.fields,field_description:base_adi.field_res_region__write_date
 msgid "Last Updated on"
 msgstr ""
 
@@ -208,14 +215,14 @@ msgid "Manage provinces."
 msgstr ""
 
 #. module: base_adi
-#: model_terms:ir.actions.act_window,help:base_adi.res_region_action
+#: model_terms:ir.actions.act_window,help:base_adi.res_admregion_action
 msgid "Manage regions."
 msgstr ""
 
 #. module: base_adi
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__mapped_to_polygon
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__mapped_to_polygon
 #: model:ir.model.fields,field_description:base_adi.field_res_province__mapped_to_polygon
-#: model:ir.model.fields,field_description:base_adi.field_res_region__mapped_to_polygon
 msgid "Mapped to polygon"
 msgstr ""
 
@@ -243,10 +250,10 @@ msgid "Municipality"
 msgstr ""
 
 #. module: base_adi
+#: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_form
-#: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_form
 msgid "Notes"
 msgstr ""
 
@@ -261,7 +268,7 @@ msgid "Number of places"
 msgstr ""
 
 #. module: base_adi
-#: model:ir.model.fields,field_description:base_adi.field_res_region__number_of_provinces
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__number_of_provinces
 msgid "Number of provinces"
 msgstr ""
 
@@ -303,32 +310,32 @@ msgstr ""
 
 #. module: base_adi
 #. odoo-python
-#: code:addons/base_adi/models/res_region.py:0
+#: code:addons/base_adi/models/res_admregion.py:0
 #: model:ir.actions.act_window,name:base_adi.res_province_action
-#: model:ir.model.fields,field_description:base_adi.field_res_region__province_ids
-#: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_form
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__province_ids
+#: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_form
 #, python-format
 msgid "Provinces"
 msgstr ""
 
 #. module: base_adi
-#: model:ir.model,name:base_adi.model_res_region
+#: model:ir.model,name:base_adi.model_res_admregion
+#: model:ir.model.fields,field_description:base_adi.field_res_admregion__alphanum_code
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__region_id
 #: model:ir.model.fields,field_description:base_adi.field_res_place__region_id
 #: model:ir.model.fields,field_description:base_adi.field_res_province__region_id
-#: model:ir.model.fields,field_description:base_adi.field_res_region__alphanum_code
+#: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_form
+#: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_search
+#: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_tree
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_search
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_search
 #: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_form
-#: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_tree
 msgid "Region"
 msgstr ""
 
 #. module: base_adi
-#: model:ir.actions.act_window,name:base_adi.res_region_action
+#: model:ir.actions.act_window,name:base_adi.res_admregion_action
 msgid "Regions"
 msgstr ""
 
@@ -348,7 +355,7 @@ msgid "Search provinces"
 msgstr ""
 
 #. module: base_adi
-#: model_terms:ir.ui.view,arch_db:base_adi.res_region_view_search
+#: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_search
 msgid "Search regions"
 msgstr ""
 

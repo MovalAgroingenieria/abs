@@ -35,7 +35,7 @@ class ResMunicipality(models.Model):
 
     region_id = fields.Many2one(
         string='Region',
-        comodel_name='res.region',
+        comodel_name='res.admregion',
         store=True,
         index=True,
         compute='_compute_region_id',)

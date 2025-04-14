@@ -4,7 +4,7 @@
 {
     "name": "Administrative Divisions",
     "summary": "Management of a country's administrative divisions",
-    "version": "16.0.1.0.0",
+    "version": "16.0.1.0.1",
     "author": "Moval Agroingeniería",
     "license": "AGPL-3",
     "website": "https://moval.es",
@@ -14,7 +14,7 @@
         "base_gis",
     ],
     "data": [
-        "views/res_region_views.xml",
+        "views/res_admregion_views.xml",
         "views/res_province_views.xml",
         "views/res_municipality_views.xml",
         "views/res_place_views.xml",
