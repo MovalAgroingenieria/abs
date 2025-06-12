@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.base_invoicing</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='invoicing_settings']" position="after">
+                <h2>Customer Invoices (based on invoice sets)</h2>
+                <div class="row mt16 o_settings_container" id="massive_invoicing_settings">
+
+                    <div class="col-12 col-lg-6 o_setting_box" id="seq_invoiceset_code">
+                        <div class="o_setting_left_pane"/>
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label">Sequence for coding the set of invoices</span>
+                            <div class="text-muted">
+                                Sequence used to assign a default code for each new invoice set
+                            </div>
+                            <div class="text-muted">
+                                <field name="mass_invoicing_seq_invoiceset_code_id"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-md-6 o_setting_box" id="run_background">
+                        <div class="o_setting_left_pane">
+                            <field name="mass_invoicing_run_background"/>
+                        </div>
+                        <div class="o_setting_right_pane" name="run_background_right_pane">
+                            <label for="mass_invoicing_run_background"/>
+                            <div class="text-muted">
+                                Run the generation of the invoice set in the background, with
+                                the possibility of interrupting the calculation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

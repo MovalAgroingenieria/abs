@@ -4,4 +4,5 @@
 from . import common_format
 from . import common_image
 from . import common_log
+from . import common_metadata
 from . import simple_model

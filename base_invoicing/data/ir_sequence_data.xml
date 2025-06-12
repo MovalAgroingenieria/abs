@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+        <record id="seq_invoiceset_code" model="ir.sequence">
+            <field name="name">Invoice-Set coding sequence</field>
+            <field name="code">base_invoicing.invoiceset.code</field>
+            <field name="prefix">%(range_year)s/</field>
+            <field eval="1" name="number_next"/>
+            <field eval="1" name="number_increment"/>
+            <field eval="True" name="use_date_range"/>
+            <field eval="False" name="company_id"/>
+            <field name="padding">4</field>
+        </record>
+
+</odoo>

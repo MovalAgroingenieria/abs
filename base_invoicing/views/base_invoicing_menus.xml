@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_finance_receivables_massive_invoicing"
+              name="Massive Invoicing"
+              sequence="120"
+              parent="account.menu_finance_receivables"/>
+
+</odoo>

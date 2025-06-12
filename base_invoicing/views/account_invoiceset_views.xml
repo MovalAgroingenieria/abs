@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="account_invoiceset_view_form" model="ir.ui.view">
+        <field name="name">account.invoiceset.view.form</field>
+        <field name="model">account.invoiceset</field>
+        <field name="arch" type="xml">
+            <form string="Invoice Set" duplicate="0">
+                <sheet>
+                    <group name="master_data">
+                        <group name="master_data_left">
+                            <field name="alphanum_code"/>
+                        </group>
+                        <group name="master_data_right">
+                            <field name="description"/>
+                        </group>
+                    </group>
+                    <notebook name="slave_data_notebook" colspan="4">
+                        <page name="page_notes" string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_invoiceset_view_tree" model="ir.ui.view">
+        <field name="name">account.invoiceset.view.tree</field>
+        <field name="model">account.invoiceset</field>
+            <field name="arch" type="xml">
+            <tree default_order="alphanum_code"
+                  class="o_base_account_invoiceset">
+                <field name="alphanum_code" string="Code"/>
+                <field name="description" string="Description"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="account_invoiceset_view_search" model="ir.ui.view">
+        <field name="name">account.invoiceset.view.search</field>
+        <field name="model">account.invoiceset</field>
+        <field name="arch" type="xml">
+            <search string="Search invoice sets">
+                <field name="alphanum_code"/>
+                <field name="description"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="account_invoiceset_action" model="ir.actions.act_window">
+        <field name="name">Invoice Sets</field>
+        <field name="res_model">account.invoiceset</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids"
+         eval="[(5, 0),
+                (0, 0, {'view_mode': 'tree',
+                        'view_id': ref('account_invoiceset_view_tree')}),
+                (0, 0, {'view_mode': 'form',
+                        'view_id': ref('account_invoiceset_view_form')})]"/>
+        <field name="search_view_id" ref="account_invoiceset_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new invoice set
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="account_invoiceset_menu"
+        parent="base_invoicing.menu_finance_receivables_massive_invoicing"
+        action="account_invoiceset_action"
+        sequence="10"/>
+
+</odoo>
