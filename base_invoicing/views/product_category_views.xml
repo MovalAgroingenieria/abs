@@ -120,4 +120,36 @@
         </field>
     </record>
 
+    <record id="product_category_list_view" model="ir.ui.view">
+        <field name="name">product.category.list.view.inherit.base_invoicing</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_list_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="class">o_base_invoicing_product_category</attribute>
+            </xpath>
+            <xpath expr="//field[@name='display_name']" position="after">
+                <field name="supports_mass_billing"
+                       string="Supports Lots"
+                       class="text-center"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_category_search_view" model="ir.ui.view">
+        <field name="name">product.category.search.view.inherit.base_invoicing</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <filter name="supports_mass_billing_yes"
+                        string="Supports lots: Yes"
+                        domain="[('supports_mass_billing', '=', True)]"/>
+                <filter name="supports_mass_billing_no"
+                        string="Supports lots: No"
+                        domain="[('supports_mass_billing', '=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>

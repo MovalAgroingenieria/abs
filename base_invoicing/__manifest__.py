@@ -30,4 +30,9 @@
         'views/account_move_line_views.xml',
         'views/product_category_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'base_invoicing/static/src/scss/base_invoicing.scss',
+        ],
+    },
 }

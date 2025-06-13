@@ -48,10 +48,22 @@ class ProductCategory(models.Model):
     billable_item_domain = fields.Char(
         string='Pre-filter on billable items',)
 
+    supports_mass_billing = fields.Boolean(
+        string='Supports massive billing (y/n)',
+        store=True,
+        compute='_compute_supports_mass_billing',)
+
     _sql_constraints = [
         ('category_code_ok', 'CHECK (category_code >= 0)',
          'Incorrect value for "Category Code".'),
     ]
+
+    def _compute_supports_mass_billing(self):
+        for record in self:
+            supports_mass_billing = False
+            if record.billable_item_model_id:
+                supports_mass_billing = True
+            record.supports_mass_billing = supports_mass_billing
 
     @api.onchange('billable_item_quantity_field')
     def _onchange_billable_item_quantity_field(self):

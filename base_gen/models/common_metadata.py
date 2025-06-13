@@ -42,9 +42,9 @@ class CommonMetadata(models.AbstractModel):
         if reference_model:
             if include_model:
                 resp.append(reference_model)
-            models = model_ir_model.search(
+            all_models = model_ir_model.search(
                 [('model', '!=', model_name), ('transient', '=', False)])
-            for model in models:
+            for model in all_models:
                 for field in model.field_id:
                     if (field.ttype == 'many2one' and
                        field.relation == model_name and
