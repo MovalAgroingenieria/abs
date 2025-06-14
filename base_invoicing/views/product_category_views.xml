@@ -44,8 +44,8 @@
                                         <button name="action_select_billable_item_field"
                                                 title="Select the quantity field"
                                                 type="object" icon="fa-table"
-                                                context="{'field': 'billable_item_model_quantity_field',
-                                                          'types': 'Integer,Float'}"
+                                                context="{'field': 'billable_item_quantity_field',
+                                                          'types': 'integer,float'}"
                                         />
                                     </div>
                                     <span style="margin-top:3px">/</span>
@@ -72,7 +72,7 @@
                                         <button name="action_select_billable_item_field"
                                                 title="Select the field for grouping"
                                                 type="object" icon="fa-table"
-                                                context="{'field': 'billable_item_model_group_field'}"
+                                                context="{'field': 'billable_item_group_field'}"
                                         />
                                     </div>
                                 </div>

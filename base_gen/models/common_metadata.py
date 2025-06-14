@@ -52,3 +52,30 @@ class CommonMetadata(models.AbstractModel):
                         resp.append(model)
                         break
         return resp
+
+    # Obtain the metadata of the fields in a model, with a filter based on the
+    # field type (example: "integer,float").
+    def get_fields(self, model_name, field_types):
+        resp = []
+        field_types = field_types.lower()
+        condition = [('model', '=', model_name)]
+        additional_condition = self._get_condition(field_types)
+        if additional_condition:
+            condition.append(additional_condition)
+        # Provisional
+        print(condition)
+        model_ir_model_fields = self.env['ir.model.fields'].sudo()
+        fields = model_ir_model_fields.search(condition)
+        for field in fields:
+            resp.append({
+                'name': field.name,
+                'field_description': field.field_description
+            })
+        return resp
+
+    def _get_condition(self, field_types):
+        resp = []
+        if field_types:
+            # Provisional
+            pass
+        return resp

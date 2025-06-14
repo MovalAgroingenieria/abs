@@ -24,6 +24,7 @@
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
+        'wizards/wizard_select_field_views.xml',
         'views/base_invoicing_menus.xml',
         'views/res_config_settings_views.xml',
         'views/account_invoiceset_views.xml',

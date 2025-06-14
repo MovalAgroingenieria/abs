@@ -67,6 +67,8 @@ class ProductCategory(models.Model):
 
     @api.onchange('billable_item_quantity_field')
     def _onchange_billable_item_quantity_field(self):
+        # Provisional
+        print('_onchange_billable_item_quantity_field')
         billable_item_model_id = self.billable_item_model_id
         billable_item_quantity_field = self.billable_item_quantity_field
         if billable_item_model_id and billable_item_quantity_field:
@@ -98,7 +100,26 @@ class ProductCategory(models.Model):
 
     def action_select_billable_item_field(self):
         self.ensure_one()
-        # Provisional
-        print('action_select_billable_item_quantity_field')
-        print('field = ' + str(self.env.context.get('field', False)))
-        print('types = ' + str(self.env.context.get('types', False)))
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Warning'),
+                'message': _('It is mandatory to set the billable items '
+                             'model.'),
+                'type': 'warning',
+                'sticky': False,
+                'next': {'type': 'ir.actions.act_window_close', },
+            }
+        }
+        if self.billable_item_model_id:
+            name_value = _('Model') + ' : ' + self.billable_item_model_id.model + \
+                ' (' + self.billable_item_model_id.name + ')',
+            action = {
+                'type': 'ir.actions.act_window',
+                'name': name_value,
+                'res_model': 'wizard.select.field',
+                'view_mode': 'form',
+                'target': 'new',
+            }
+        return action

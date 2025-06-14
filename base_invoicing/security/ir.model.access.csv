@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 account_invoiceset_rule_group_account_invoice,account.invoiceset.rule.group.account.invoice,base_invoicing.model_account_invoiceset,account.group_account_invoice,1,1,1,1
 product_category_rule_group_account_invoiceset_config,product.category.rule.group.account.invoiceset.config,product.model_product_category,base_invoicing.group_account_invoiceset_config,1,1,1,1
 ir_model_rule_group_account_manager,ir.model.rule.group.account.manager,base.model_ir_model,account.group_account_manager,1,0,0,0
+access_wizard_select_field_rule_group_account_invoiceset_config,access.wizard.select.field.rule.group.account.invoiceset.config,base_invoicing.model_wizard_select_field,base_invoicing.group_account_invoiceset_config,1,1,1,1
