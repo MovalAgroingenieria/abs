@@ -36,6 +36,9 @@ class ProductCategory(models.Model):
 
     billable_item_quantity_label = fields.Char(
         string='Label of the quantity field',
+        store=True,
+        compute='_compute_billable_item_quantity_label',
+        readonly=False,
         translate=True,)
 
     billable_item_group_field = fields.Char(
@@ -53,10 +56,31 @@ class ProductCategory(models.Model):
         store=True,
         compute='_compute_supports_mass_billing',)
 
+    aux_01_char_field = fields.Char(
+        string='Aux. field of type char #1',
+    )
+
+    aux_01_char_label = fields.Char(
+        string='Label of the aux. field of type char #1',
+        translate=True,)
+
     _sql_constraints = [
         ('category_code_ok', 'CHECK (category_code >= 0)',
          'Incorrect value for "Category Code".'),
     ]
+
+    @api.depends('billable_item_model_id',
+                 'billable_item_quantity_field')
+    def _compute_billable_item_quantity_label(self):
+        for record in self:
+            billable_item_model_id = record.billable_item_model_id
+            billable_item_quantity_field = record.billable_item_quantity_field
+            if billable_item_model_id and billable_item_quantity_field:
+                field_metadata = self.env['common.metadata'].get_field(
+                    billable_item_model_id.model, billable_item_quantity_field)
+                if field_metadata:
+                    record.billable_item_quantity_label = \
+                        field_metadata['field_description']
 
     def _compute_supports_mass_billing(self):
         for record in self:
@@ -64,19 +88,6 @@ class ProductCategory(models.Model):
             if record.billable_item_model_id:
                 supports_mass_billing = True
             record.supports_mass_billing = supports_mass_billing
-
-    @api.onchange('billable_item_quantity_field')
-    def _onchange_billable_item_quantity_field(self):
-        # Provisional
-        print('_onchange_billable_item_quantity_field')
-        billable_item_model_id = self.billable_item_model_id
-        billable_item_quantity_field = self.billable_item_quantity_field
-        if billable_item_model_id and billable_item_quantity_field:
-            field_metadata = self.env['common.metadata'].get_field(
-                billable_item_model_id.model, billable_item_quantity_field)
-            if field_metadata:
-                self.billable_item_quantity_label = \
-                    field_metadata['field_description']
 
     def name_get(self):
         category_names = super(ProductCategory, self).name_get()

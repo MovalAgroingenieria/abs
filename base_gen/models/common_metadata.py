@@ -55,15 +55,15 @@ class CommonMetadata(models.AbstractModel):
 
     # Obtain the metadata of the fields in a model, with a filter based on the
     # field type (example: "integer,float").
-    def get_fields(self, model_name, field_types):
+    def get_fields(self, model_name, field_types, exclude_id=True):
         resp = []
         field_types = field_types.lower()
         condition = [('model', '=', model_name)]
+        if exclude_id:
+            condition.append(('name', '!=', 'id'))
         additional_condition = self._get_condition(field_types)
         if additional_condition:
-            condition.append(additional_condition)
-        # Provisional
-        print(condition)
+            condition = condition + additional_condition
         model_ir_model_fields = self.env['ir.model.fields'].sudo()
         fields = model_ir_model_fields.search(condition)
         for field in fields:
@@ -76,6 +76,13 @@ class CommonMetadata(models.AbstractModel):
     def _get_condition(self, field_types):
         resp = []
         if field_types:
-            # Provisional
-            pass
+            pos_sep = field_types.find(',')
+            if pos_sep == -1:
+                resp.append(('ttype', '=', field_types))
+            else:
+                current_field_type = field_types[:pos_sep]
+                remaining_field_types = field_types[pos_sep+1:]
+                resp.append('|')
+                resp.append(('ttype', '=', current_field_type))
+                resp = resp + self._get_condition(remaining_field_types)
         return resp

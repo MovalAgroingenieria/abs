@@ -72,7 +72,8 @@
                                         <button name="action_select_billable_item_field"
                                                 title="Select the field for grouping"
                                                 type="object" icon="fa-table"
-                                                context="{'field': 'billable_item_group_field'}"
+                                                context="{'field': 'billable_item_group_field',
+                                                          'types': 'boolean,char,date,selection,many2one'}"
                                         />
                                     </div>
                                 </div>
@@ -112,8 +113,35 @@
                                 </div>
                             </group>
                         </page>
-                        <page name="page_calculation_config" string="Invoice Sets: Selection Settings"
+                        <page name="page_selection_config" string="Invoice Sets: Selection Settings"
                               attrs="{'invisible': [('billable_item_model_id', '=', False)]}">
+                            <group name="group_selection_config">
+                                <div class="container" colspan="2">
+                                    <div class="row">
+                                        <div class="col text-center">
+                                            <h4 class="text-decoration-underline">GROUP 1</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span name="aux_01_char_label_label" class="o_form_label o_td_label">
+                                    Aux. field of type char #1 (name / label)
+                                </span>
+                                <div name="div_aux_01_char_field" class="o_address_format"
+                                     style="display: flex; gap: 4px;">
+                                    <field name="aux_01_char_field"
+                                           style="max-width:150px"/>
+                                    <div name="button_aux_01_char_field">
+                                        <button name="action_select_billable_item_field"
+                                                title="Select the char field"
+                                                type="object" icon="fa-table"
+                                                context="{'field': 'aux_01_char_field',
+                                                          'types': 'char'}"
+                                        />
+                                    </div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_01_char_label"/>
+                                </div>
+                            </group>
                         </page>
                     </notebook>
             </xpath>
