@@ -6,7 +6,41 @@
         <field name="model">account.invoiceset</field>
         <field name="arch" type="xml">
             <form string="Invoice Set" duplicate="0">
+                <header>
+                    <button name="calculate_invoiceset"
+                            type="object"
+                            string="Calculate"
+                            class="oe_highlight"
+                            data-hotkey="a"
+                            attrs="{'invisible':[('state', '!=', 'configured')]}"/>
+                    <button name="cancel_invoiceset"
+                            type="object"
+                            string="Cancel"
+                            data-hotkey="l"
+                            attrs="{'invisible':[('state', '!=', 'configured')]}"/>
+                    <button name="cancel_invoices"
+                            type="object"
+                            string="Cancel"
+                            data-hotkey="l"
+                            attrs="{'invisible':[('state', '!=', 'calculated')]}"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,configured,calculating,calculated,committed"/>
+                </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                       <button name="action_show_invoices"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-dollar ">
+                            <field string="Invoices"
+                                   name="number_of_invoices"
+                                   widget="statinfo"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="DRAFT"
+                            bg_color="bg-info"
+                            attrs="{'invisible':
+                                    [('state', '!=', 'draft')]}"/>
                     <group name="master_data">
                         <group name="master_data_left">
                             <field name="alphanum_code"/>
@@ -21,6 +55,11 @@
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"
+                           widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>
@@ -29,10 +68,32 @@
         <field name="name">account.invoiceset.view.tree</field>
         <field name="model">account.invoiceset</field>
             <field name="arch" type="xml">
-            <tree default_order="alphanum_code"
-                  class="o_base_account_invoiceset">
-                <field name="alphanum_code" string="Code"/>
+            <tree default_order="alphanum_code desc"
+                  class="o_base_account_invoiceset"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'calculating'">
+                <field name="alphanum_code" string="Code"
+                       decoration-bf="1"/>
+                <field name="invoice_date" string="Invoicing Date"/>
                 <field name="description" string="Description"/>
+                <field name="invoice_date_due" string="Due Date"
+                       widget="remaining_days"/>
+                <field name="invoice_user_id" string="Sales Person"
+                       widget="many2one_avatar_user" optional="show"/>
+                <field name="journal_id" string="Journal"
+                       optional="hide"/>
+                <field name="payment_term_id" string="Payment Term"
+                       optional="hide"/>
+                <field name="number_of_invoices" string="No. of invoices"
+                       optional="show"/>
+                <field name="state" string="State"
+                       widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-primary="state == 'configured'"
+                       decoration-warning="state == 'calculating'"
+                       decoration-muted="state == 'calculated'"
+                       decoration-success="state == 'committed'"
+                       optional="show"/>
             </tree>
         </field>
     </record>
@@ -42,8 +103,22 @@
         <field name="model">account.invoiceset</field>
         <field name="arch" type="xml">
             <search string="Search invoice sets">
-                <field name="alphanum_code"/>
-                <field name="description"/>
+                <field name="alphanum_code" string="Code"/>
+                <field name="description" string="Description"/>
+                <group expand="0">
+                    <filter name="grouped_by_invoice_user_id"
+                            string="Sales Person"
+                     context="{'group_by':'invoice_user_id'}"/>
+                    <filter name="grouped_by_journal_id"
+                            string="Journal"
+                     context="{'group_by':'journal_id'}"/>
+                    <filter name="grouped_by_payment_term_id"
+                            string="Payment Term"
+                     context="{'group_by':'payment_term_id'}"/>
+                    <filter name="grouped_by_state"
+                            string="State"
+                     context="{'group_by':'state'}"/>
+                </group>
             </search>
         </field>
     </record>

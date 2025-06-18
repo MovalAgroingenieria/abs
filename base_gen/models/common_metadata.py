@@ -55,12 +55,15 @@ class CommonMetadata(models.AbstractModel):
 
     # Obtain the metadata of the fields in a model, with a filter based on the
     # field type (example: "integer,float").
-    def get_fields(self, model_name, field_types, exclude_id=True):
+    def get_fields(self, model_name, field_types, exclude_id=True,
+                   exclude_computed=True):
         resp = []
         field_types = field_types.lower()
         condition = [('model', '=', model_name)]
         if exclude_id:
             condition.append(('name', '!=', 'id'))
+        if exclude_computed:
+            condition.append(('store', '=', True))
         additional_condition = self._get_condition(field_types)
         if additional_condition:
             condition = condition + additional_condition

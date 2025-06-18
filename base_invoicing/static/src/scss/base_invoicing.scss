@@ -3,3 +3,43 @@
     width: 140px;
     min-width: 140px;
 }
+
+.o_base_account_invoiceset [data-name="alphanum_code"] {
+    width: 100px;
+    min-width: 100px;
+}
+
+.o_base_account_invoiceset [data-name="invoice_date"] {
+    width: 120px;
+    min-width: 120px;
+}
+
+.o_base_account_invoiceset [data-name="invoice_date_due"] {
+    width: 120px;
+    min-width: 120px;
+}
+
+.o_base_account_invoiceset [data-name="invoice_user_id"] {
+    width: 150px;
+    min-width: 150px;
+}
+
+.o_base_account_invoiceset [data-name="number_of_invoices"] {
+    width: 120px;
+    min-width: 120px;
+}
+
+.o_base_account_invoiceset [data-name="journal_id"] {
+    width: 150px;
+    min-width: 150px;
+}
+
+.o_base_account_invoiceset [data-name="payment_term_id"] {
+    width: 150px;
+    min-width: 150px;
+}
+
+.o_base_account_invoiceset [data-name="state"] {
+    width: 120px;
+    min-width: 120px;
+}

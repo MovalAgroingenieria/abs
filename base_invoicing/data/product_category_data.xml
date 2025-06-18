@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="product_category_01" model="product.category">
+        <field name="name">Partners</field>
+        <field name="category_code">1</field>
+        <field name="billable_item_model_id" ref="base.model_res_partner"/>
+        <field name="parent_id" ref="product.product_category_1"/>
+    </record>
+
+</odoo>

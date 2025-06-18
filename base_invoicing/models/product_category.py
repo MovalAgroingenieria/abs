@@ -1,7 +1,7 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import fields, models, api, _
+from odoo import fields, models, api, exceptions, _
 
 
 class ProductCategory(models.Model):
@@ -17,44 +17,44 @@ class ProductCategory(models.Model):
         return [('id', 'in', valid_models)]
 
     name = fields.Char(
-        translate=True,)
+        translate=True, )
 
     category_code = fields.Integer(
         string='Category Code',
         default=0,
         required=True,
         readonly=True,
-        index=True,)
+        index=True, )
 
     billable_item_model_id = fields.Many2one(
         string='Billable-items Model',
         comodel_name='ir.model',
-        domain=_get_billable_item_model_id_domain,)
+        domain=_get_billable_item_model_id_domain, )
 
     billable_item_quantity_field = fields.Char(
-        string='Quantity Field',)
+        string='Quantity Field', )
 
     billable_item_quantity_label = fields.Char(
         string='Label of the quantity field',
         store=True,
         compute='_compute_billable_item_quantity_label',
         readonly=False,
-        translate=True,)
+        translate=True, )
 
     billable_item_group_field = fields.Char(
-        string='Field for grouping',)
+        string='Field for grouping', )
 
     billable_item_detail_desc = fields.Char(
         string='Template for invoice lines',
-        translate=True,)
+        translate=True, )
 
     billable_item_domain = fields.Char(
-        string='Pre-filter on billable items',)
+        string='Pre-filter on billable items', )
 
     supports_mass_billing = fields.Boolean(
         string='Supports massive billing (y/n)',
         store=True,
-        compute='_compute_supports_mass_billing',)
+        compute='_compute_supports_mass_billing', )
 
     aux_01_char_field = fields.Char(
         string='Aux. field of type char #1',
@@ -62,7 +62,135 @@ class ProductCategory(models.Model):
 
     aux_01_char_label = fields.Char(
         string='Label of the aux. field of type char #1',
-        translate=True,)
+        store=True,
+        compute='_compute_aux_01_label',
+        readonly=False,
+        translate=True, )
+
+    aux_01_int_field = fields.Char(
+        string='Aux. field of type integer #1',
+    )
+
+    aux_01_int_label = fields.Char(
+        string='Label of the aux. field of type integer #1',
+        store=True,
+        compute='_compute_aux_01_label',
+        readonly=False,
+        translate=True, )
+
+    aux_01_float_field = fields.Char(
+        string='Aux. field of type float #1',
+    )
+
+    aux_01_float_label = fields.Char(
+        string='Label of the aux. field of type float #1',
+        store=True,
+        compute='_compute_aux_01_label',
+        readonly=False,
+        translate=True, )
+
+    aux_01_bool_field = fields.Char(
+        string='Aux. field of type boolean #1',
+    )
+
+    aux_01_bool_label = fields.Char(
+        string='Label of the aux. field of type boolean #1',
+        store=True,
+        compute='_compute_aux_01_label',
+        readonly=False,
+        translate=True, )
+
+    aux_02_char_field = fields.Char(
+        string='Aux. field of type char #2',
+    )
+
+    aux_02_char_label = fields.Char(
+        string='Label of the aux. field of type char #2',
+        store=True,
+        compute='_compute_aux_02_label',
+        readonly=False,
+        translate=True, )
+
+    aux_02_int_field = fields.Char(
+        string='Aux. field of type integer #2',
+    )
+
+    aux_02_int_label = fields.Char(
+        string='Label of the aux. field of type integer #2',
+        store=True,
+        compute='_compute_aux_02_label',
+        readonly=False,
+        translate=True, )
+
+    aux_02_float_field = fields.Char(
+        string='Aux. field of type float #2',
+    )
+
+    aux_02_float_label = fields.Char(
+        string='Label of the aux. field of type float #2',
+        store=True,
+        compute='_compute_aux_02_label',
+        readonly=False,
+        translate=True, )
+
+    aux_02_bool_field = fields.Char(
+        string='Aux. field of type boolean #2',
+    )
+
+    aux_02_bool_label = fields.Char(
+        string='Label of the aux. field of type boolean #2',
+        store=True,
+        compute='_compute_aux_02_label',
+        readonly=False,
+        translate=True, )
+
+    aux_03_char_field = fields.Char(
+        string='Aux. field of type char #3',
+    )
+
+    aux_03_char_label = fields.Char(
+        string='Label of the aux. field of type char #3',
+        store=True,
+        compute='_compute_aux_03_label',
+        readonly=False,
+        translate=True, )
+
+    aux_03_int_field = fields.Char(
+        string='Aux. field of type integer #3',
+    )
+
+    aux_03_int_label = fields.Char(
+        string='Label of the aux. field of type integer #3',
+        store=True,
+        compute='_compute_aux_03_label',
+        readonly=False,
+        translate=True, )
+
+    aux_03_float_field = fields.Char(
+        string='Aux. field of type float #3',
+    )
+
+    aux_03_float_label = fields.Char(
+        string='Label of the aux. field of type float #3',
+        store=True,
+        compute='_compute_aux_03_label',
+        readonly=False,
+        translate=True, )
+
+    aux_03_bool_field = fields.Char(
+        string='Aux. field of type boolean #3',
+    )
+
+    aux_03_bool_label = fields.Char(
+        string='Label of the aux. field of type boolean #3',
+        store=True,
+        compute='_compute_aux_03_label',
+        readonly=False,
+        translate=True, )
+
+    aux_desc = fields.Char(
+        string='Wildcard Template',
+        translate=True, )
 
     _sql_constraints = [
         ('category_code_ok', 'CHECK (category_code >= 0)',
@@ -88,6 +216,126 @@ class ProductCategory(models.Model):
             if record.billable_item_model_id:
                 supports_mass_billing = True
             record.supports_mass_billing = supports_mass_billing
+
+    @api.depends('billable_item_model_id',
+                 'aux_01_char_field', 'aux_01_int_field',
+                 'aux_01_float_field', 'aux_01_bool_field')
+    def _compute_aux_01_label(self):
+        for record in self:
+            billable_item_model_id = record.billable_item_model_id
+            aux_01_char_field = record.aux_01_char_field
+            aux_01_int_field = record.aux_01_int_field
+            aux_01_float_field = record.aux_01_float_field
+            aux_01_bool_field = record.aux_01_bool_field
+            if billable_item_model_id:
+                if aux_01_char_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_01_char_field)
+                    if field_metadata:
+                        record.aux_01_char_label = \
+                            field_metadata['field_description']
+                if aux_01_int_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_01_int_field)
+                    if field_metadata:
+                        record.aux_01_int_label = \
+                            field_metadata['field_description']
+                if aux_01_float_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_01_float_field)
+                    if field_metadata:
+                        record.aux_01_float_label = \
+                            field_metadata['field_description']
+                if aux_01_bool_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_01_bool_field)
+                    if field_metadata:
+                        record.aux_01_bool_label = \
+                            field_metadata['field_description']
+
+    @api.depends('billable_item_model_id',
+                 'aux_02_char_field', 'aux_02_int_field',
+                 'aux_02_float_field', 'aux_02_bool_field')
+    def _compute_aux_02_label(self):
+        for record in self:
+            billable_item_model_id = record.billable_item_model_id
+            aux_02_char_field = record.aux_02_char_field
+            aux_02_int_field = record.aux_02_int_field
+            aux_02_float_field = record.aux_02_float_field
+            aux_02_bool_field = record.aux_02_bool_field
+            if billable_item_model_id:
+                if aux_02_char_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_02_char_field)
+                    if field_metadata:
+                        record.aux_02_char_label = \
+                            field_metadata['field_description']
+                if aux_02_int_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_02_int_field)
+                    if field_metadata:
+                        record.aux_02_int_label = \
+                            field_metadata['field_description']
+                if aux_02_float_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_02_float_field)
+                    if field_metadata:
+                        record.aux_02_float_label = \
+                            field_metadata['field_description']
+                if aux_02_bool_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_02_bool_field)
+                    if field_metadata:
+                        record.aux_02_bool_label = \
+                            field_metadata['field_description']
+
+    @api.depends('billable_item_model_id',
+                 'aux_03_char_field', 'aux_03_int_field',
+                 'aux_03_float_field', 'aux_03_bool_field')
+    def _compute_aux_03_label(self):
+        for record in self:
+            billable_item_model_id = record.billable_item_model_id
+            aux_03_char_field = record.aux_03_char_field
+            aux_03_int_field = record.aux_03_int_field
+            aux_03_float_field = record.aux_03_float_field
+            aux_03_bool_field = record.aux_03_bool_field
+            if billable_item_model_id:
+                if aux_03_char_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_03_char_field)
+                    if field_metadata:
+                        record.aux_03_char_label = \
+                            field_metadata['field_description']
+                if aux_03_int_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_03_int_field)
+                    if field_metadata:
+                        record.aux_03_int_label = \
+                            field_metadata['field_description']
+                if aux_03_float_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_03_float_field)
+                    if field_metadata:
+                        record.aux_03_float_label = \
+                            field_metadata['field_description']
+                if aux_03_bool_field:
+                    field_metadata = self.env['common.metadata'].get_field(
+                        billable_item_model_id.model, aux_03_bool_field)
+                    if field_metadata:
+                        record.aux_03_bool_label = \
+                            field_metadata['field_description']
+
+    @api.constrains('category_code')
+    def _check_category_code(self):
+        for record in self:
+            if record.category_code > 0:
+                categories_mapped_to_category_code = \
+                    self.env['product.category'].search(
+                        [('category_code', '=', record.category_code)])
+                if (categories_mapped_to_category_code and
+                        len(categories_mapped_to_category_code) > 1):
+                    raise exceptions.ValidationError(
+                        _('Repeated category code.'))
 
     def name_get(self):
         category_names = super(ProductCategory, self).name_get()
@@ -125,7 +373,7 @@ class ProductCategory(models.Model):
         }
         if self.billable_item_model_id:
             name_value = _('Model') + ' : ' + self.billable_item_model_id.model + \
-                ' (' + self.billable_item_model_id.name + ')',
+                         ' (' + self.billable_item_model_id.name + ')',
             action = {
                 'type': 'ir.actions.act_window',
                 'name': name_value,
@@ -134,3 +382,15 @@ class ProductCategory(models.Model):
                 'target': 'new',
             }
         return action
+
+    @api.model
+    def _check_field(self, model_name, field_name, admissible_types):
+        resp = False
+        field_metadata = self.env['common.metadata'].get_field(
+            model_name, field_name)
+        if field_metadata:
+            field_ttype = field_metadata['ttype']
+            admissible_types = admissible_types.lower().split(',')
+            if field_ttype in admissible_types:
+                resp = True
+        return resp
