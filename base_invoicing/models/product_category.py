@@ -198,6 +198,7 @@ class ProductCategory(models.Model):
                     record.billable_item_quantity_label = \
                         field_metadata['field_description']
 
+    @api.depends('billable_item_model_id')
     def _compute_supports_mass_billing(self):
         for record in self:
             supports_mass_billing = False

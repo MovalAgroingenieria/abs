@@ -190,6 +190,15 @@ class AccountInvoicesetProductlink(models.Model):
     _name = 'account.invoiceset.productlink'
     _description = 'Product of invoice set'
 
+    def _get_product_id_domain(self):
+        valid_products = []
+        templ_with_mass_billing = self.env['product.template'].search(
+            [('categ_id.supports_mass_billing', '=', True)])
+        for tmpl in templ_with_mass_billing or []:
+            for product in tmpl.product_variant_ids:
+                valid_products.append(product.id)
+        return [('id', 'in', valid_products)]
+
     # Size of the "name" field in the model.
     MAX_SIZE_PRODUCTLINK_CODE = 100
 
@@ -202,6 +211,7 @@ class AccountInvoicesetProductlink(models.Model):
     product_id = fields.Many2one(
         string='Product',
         comodel_name='product.product',
+        domain=_get_product_id_domain,
         required=True,
         index=True,
         ondelete='restrict',)
@@ -241,27 +251,41 @@ class AccountInvoicesetProductlink(models.Model):
 
     billable_item_quantity_label = fields.Char(
         string='Label of the quantity field',
-        translate=True,
-        readonly=True, )
+        store=True,
+        compute='_compute_billable_item_quantity_label',
+        translate=True,)
 
     billable_item_group_field = fields.Char(
-        string='Field for grouping',)
+        string='Field for grouping',
+        store=True,
+        compute='_compute_billable_item_group_field',
+        readonly=False,)
 
     billable_item_detail_desc = fields.Char(
         string='Template for invoice lines',
+        store=True,
+        compute='_compute_billable_item_detail_desc',
+        readonly=False,
         translate=True,)
 
     billable_item_domain = fields.Char(
-        string='Pre-filter on billable items',)
+        string='Pre-filter on billable items',
+        store=True,
+        compute='_compute_billable_item_domain',
+        readonly=False,)
 
     @api.depends('invoiceset_id', 'invoiceset_id.alphanum_code',
                  'product_id', 'product_id.product_tmpl_id.name')
     def _compute_name(self):
+        default_lang = self.env['ir.default'].get('res.partner', 'lang')
+        if not default_lang:
+            default_lang = 'en_ES'
         for record in self:
             name = ''
             if record.invoiceset_id and record.product_id:
-                name = record.invoiceset_id.alphanum_code + \
-                    record.product_id.product_tmpl_id.name
+                name = record.invoiceset_id.alphanum_code + '-' + \
+                    record.product_id.product_tmpl_id.with_context(
+                        lang=default_lang).name
             record.name = name[:self.MAX_SIZE_PRODUCTLINK_CODE]
 
     @api.depends('product_id', 'product_id.product_tmpl_id.categ_id')
@@ -302,3 +326,62 @@ class AccountInvoicesetProductlink(models.Model):
                     (record.product_id.product_tmpl_id.categ_id.
                      billable_item_quantity_field)
             record.billable_item_quantity_field = billable_item_quantity_field
+
+    @api.depends('product_id')
+    def _compute_billable_item_quantity_label(self):
+        for record in self:
+            billable_item_quantity_label = None
+            if (record.product_id and
+               record.product_id.product_tmpl_id.categ_id):
+                billable_item_quantity_label = \
+                    (record.product_id.product_tmpl_id.categ_id.
+                     billable_item_quantity_label)
+            record.billable_item_quantity_label = billable_item_quantity_label
+
+    @api.depends('product_id')
+    def _compute_billable_item_group_field(self):
+        for record in self:
+            billable_item_group_field = None
+            if (record.product_id and
+               record.product_id.product_tmpl_id.categ_id):
+                billable_item_group_field = \
+                    (record.product_id.product_tmpl_id.categ_id.
+                     billable_item_group_field)
+            record.billable_item_group_field = billable_item_group_field
+
+    @api.depends('product_id')
+    def _compute_billable_item_detail_desc(self):
+        for record in self:
+            billable_item_detail_desc = None
+            if (record.product_id and
+               record.product_id.product_tmpl_id.categ_id):
+                billable_item_detail_desc = \
+                    (record.product_id.product_tmpl_id.categ_id.
+                     billable_item_detail_desc)
+            record.billable_item_detail_desc = billable_item_detail_desc
+
+    @api.depends('product_id')
+    def _compute_billable_item_domain(self):
+        for record in self:
+            billable_item_domain = None
+            if (record.product_id and
+               record.product_id.product_tmpl_id.categ_id):
+                billable_item_domain = \
+                    (record.product_id.product_tmpl_id.categ_id.
+                     billable_item_domain)
+            record.billable_item_domain = billable_item_domain
+
+    def action_show_selectable_items(self):
+        self.ensure_one()
+        # Provisional
+        print('action_show_selectable_items')
+
+    def action_refresh_selectable_items(self):
+        self.ensure_one()
+        # Provisional
+        print('action_refresh_selectable_items')
+
+    def action_delete_selectable_items(self):
+        self.ensure_one()
+        # Provisional
+        print('action_delete_selectable_items')
