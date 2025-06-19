@@ -51,8 +51,7 @@ class AccountInvoiceset(models.Model):
         string='Sales Person',
         comodel_name='res.users',
         default=lambda self: self.env.user,
-        required=True,
-        readonly=True,)
+        required=True,)
 
     state = fields.Selection(
         string='State',
@@ -214,6 +213,47 @@ class AccountInvoicesetProductlink(models.Model):
         index=True,
         compute='_compute_name',)
 
+    categ_id = fields.Many2one(
+        string='Category',
+        comodel_name='product.category',
+        store=True,
+        compute='_compute_categ_id',)
+
+    number_of_selected_items = fields.Integer(
+        string='Number of selected records',
+        compute='_compute_number_of_selected_items',)
+
+    populated = fields.Boolean(
+        string='Populated (y/n)',
+        default=False,
+        readonly=True,)
+
+    billable_item_model_id = fields.Many2one(
+        string='Billable-items Model',
+        comodel_name='ir.model',
+        store=True,
+        compute='_compute_billable_item_model_id',)
+
+    billable_item_quantity_field = fields.Char(
+        string='Quantity Field',
+        store=True,
+        compute='_compute_billable_item_quantity_field',)
+
+    billable_item_quantity_label = fields.Char(
+        string='Label of the quantity field',
+        translate=True,
+        readonly=True, )
+
+    billable_item_group_field = fields.Char(
+        string='Field for grouping',)
+
+    billable_item_detail_desc = fields.Char(
+        string='Template for invoice lines',
+        translate=True,)
+
+    billable_item_domain = fields.Char(
+        string='Pre-filter on billable items',)
+
     @api.depends('invoiceset_id', 'invoiceset_id.alphanum_code',
                  'product_id', 'product_id.product_tmpl_id.name')
     def _compute_name(self):
@@ -223,3 +263,42 @@ class AccountInvoicesetProductlink(models.Model):
                 name = record.invoiceset_id.alphanum_code + \
                     record.product_id.product_tmpl_id.name
             record.name = name[:self.MAX_SIZE_PRODUCTLINK_CODE]
+
+    @api.depends('product_id', 'product_id.product_tmpl_id.categ_id')
+    def _compute_categ_id(self):
+        for record in self:
+            categ_id = None
+            if (record.product_id and
+               record.product_id.product_tmpl_id.categ_id):
+                categ_id = record.product_id.product_tmpl_id.categ_id
+            record.categ_id = categ_id
+
+    def _compute_number_of_selected_items(self):
+        for record in self:
+            number_of_selected_items = 0
+            # Provisional
+            # if record.selected_item_ids:
+            #     number_of_selected_items = len(record.selected_item_ids)
+            record.number_of_selected_items = number_of_selected_items
+
+    @api.depends('product_id')
+    def _compute_billable_item_model_id(self):
+        for record in self:
+            billable_item_model_id = None
+            if (record.product_id and
+               record.product_id.product_tmpl_id.categ_id):
+                billable_item_model_id = \
+                    (record.product_id.product_tmpl_id.categ_id.
+                     billable_item_model_id)
+            record.billable_item_model_id = billable_item_model_id
+
+    @api.depends('product_id')
+    def _compute_billable_item_quantity_field(self):
+        for record in self:
+            billable_item_quantity_field = None
+            if (record.product_id and
+               record.product_id.product_tmpl_id.categ_id):
+                billable_item_quantity_field = \
+                    (record.product_id.product_tmpl_id.categ_id.
+                     billable_item_quantity_field)
+            record.billable_item_quantity_field = billable_item_quantity_field

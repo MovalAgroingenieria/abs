@@ -17,180 +17,168 @@ class ProductCategory(models.Model):
         return [('id', 'in', valid_models)]
 
     name = fields.Char(
-        translate=True, )
+        translate=True,)
 
     category_code = fields.Integer(
         string='Category Code',
         default=0,
         required=True,
         readonly=True,
-        index=True, )
+        index=True,)
 
     billable_item_model_id = fields.Many2one(
         string='Billable-items Model',
         comodel_name='ir.model',
-        domain=_get_billable_item_model_id_domain, )
+        domain=_get_billable_item_model_id_domain,)
 
     billable_item_quantity_field = fields.Char(
-        string='Quantity Field', )
+        string='Quantity Field',)
 
     billable_item_quantity_label = fields.Char(
         string='Label of the quantity field',
         store=True,
         compute='_compute_billable_item_quantity_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     billable_item_group_field = fields.Char(
-        string='Field for grouping', )
+        string='Field for grouping',)
 
     billable_item_detail_desc = fields.Char(
         string='Template for invoice lines',
-        translate=True, )
+        translate=True,)
 
     billable_item_domain = fields.Char(
-        string='Pre-filter on billable items', )
+        string='Pre-filter on billable items',)
 
     supports_mass_billing = fields.Boolean(
         string='Supports massive billing (y/n)',
         store=True,
-        compute='_compute_supports_mass_billing', )
+        compute='_compute_supports_mass_billing',)
 
     aux_01_char_field = fields.Char(
-        string='Aux. field of type char #1',
-    )
+        string='Aux. field of type char #1',)
 
     aux_01_char_label = fields.Char(
         string='Label of the aux. field of type char #1',
         store=True,
         compute='_compute_aux_01_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_01_int_field = fields.Char(
-        string='Aux. field of type integer #1',
-    )
+        string='Aux. field of type integer #1',)
 
     aux_01_int_label = fields.Char(
         string='Label of the aux. field of type integer #1',
         store=True,
         compute='_compute_aux_01_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_01_float_field = fields.Char(
-        string='Aux. field of type float #1',
-    )
+        string='Aux. field of type float #1',)
 
     aux_01_float_label = fields.Char(
         string='Label of the aux. field of type float #1',
         store=True,
         compute='_compute_aux_01_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_01_bool_field = fields.Char(
-        string='Aux. field of type boolean #1',
-    )
+        string='Aux. field of type boolean #1',)
 
     aux_01_bool_label = fields.Char(
         string='Label of the aux. field of type boolean #1',
         store=True,
         compute='_compute_aux_01_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_02_char_field = fields.Char(
-        string='Aux. field of type char #2',
-    )
+        string='Aux. field of type char #2',)
 
     aux_02_char_label = fields.Char(
         string='Label of the aux. field of type char #2',
         store=True,
         compute='_compute_aux_02_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_02_int_field = fields.Char(
-        string='Aux. field of type integer #2',
-    )
+        string='Aux. field of type integer #2',)
 
     aux_02_int_label = fields.Char(
         string='Label of the aux. field of type integer #2',
         store=True,
         compute='_compute_aux_02_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_02_float_field = fields.Char(
-        string='Aux. field of type float #2',
-    )
+        string='Aux. field of type float #2',)
 
     aux_02_float_label = fields.Char(
         string='Label of the aux. field of type float #2',
         store=True,
         compute='_compute_aux_02_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_02_bool_field = fields.Char(
-        string='Aux. field of type boolean #2',
-    )
+        string='Aux. field of type boolean #2',)
 
     aux_02_bool_label = fields.Char(
         string='Label of the aux. field of type boolean #2',
         store=True,
         compute='_compute_aux_02_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_03_char_field = fields.Char(
-        string='Aux. field of type char #3',
-    )
+        string='Aux. field of type char #3',)
 
     aux_03_char_label = fields.Char(
         string='Label of the aux. field of type char #3',
         store=True,
         compute='_compute_aux_03_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_03_int_field = fields.Char(
-        string='Aux. field of type integer #3',
-    )
+        string='Aux. field of type integer #3',)
 
     aux_03_int_label = fields.Char(
         string='Label of the aux. field of type integer #3',
         store=True,
         compute='_compute_aux_03_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_03_float_field = fields.Char(
-        string='Aux. field of type float #3',
-    )
+        string='Aux. field of type float #3',)
 
     aux_03_float_label = fields.Char(
         string='Label of the aux. field of type float #3',
         store=True,
         compute='_compute_aux_03_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_03_bool_field = fields.Char(
-        string='Aux. field of type boolean #3',
-    )
+        string='Aux. field of type boolean #3',)
 
     aux_03_bool_label = fields.Char(
         string='Label of the aux. field of type boolean #3',
         store=True,
         compute='_compute_aux_03_label',
         readonly=False,
-        translate=True, )
+        translate=True,)
 
     aux_desc = fields.Char(
         string='Wildcard Template',
-        translate=True, )
+        translate=True,)
 
     _sql_constraints = [
         ('category_code_ok', 'CHECK (category_code >= 0)',
