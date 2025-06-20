@@ -53,6 +53,7 @@ class ProductCategory(models.Model):
 
     supports_mass_billing = fields.Boolean(
         string='Supports massive billing (y/n)',
+        default=False,
         store=True,
         compute='_compute_supports_mass_billing',)
 

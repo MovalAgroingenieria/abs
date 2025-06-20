@@ -233,6 +233,10 @@ class AccountInvoicesetProductlink(models.Model):
         string='Number of selected records',
         compute='_compute_number_of_selected_items',)
 
+    lst_price = fields.Float(
+        string='Price',
+        compute='_compute_lst_price',)
+
     populated = fields.Boolean(
         string='Populated (y/n)',
         default=False,
@@ -274,6 +278,12 @@ class AccountInvoicesetProductlink(models.Model):
         compute='_compute_billable_item_domain',
         readonly=False,)
 
+    _sql_constraints = [
+        ('name_unique',
+         'UNIQUE (name)',
+         'Existing Product.'),
+        ]
+
     @api.depends('invoiceset_id', 'invoiceset_id.alphanum_code',
                  'product_id', 'product_id.product_tmpl_id.name')
     def _compute_name(self):
@@ -304,6 +314,13 @@ class AccountInvoicesetProductlink(models.Model):
             # if record.selected_item_ids:
             #     number_of_selected_items = len(record.selected_item_ids)
             record.number_of_selected_items = number_of_selected_items
+
+    def _compute_lst_price(self):
+        for record in self:
+            lst_price = 0
+            if record.product_id:
+                lst_price = record.product_id.lst_price
+            record.lst_price = lst_price
 
     @api.depends('product_id')
     def _compute_billable_item_model_id(self):
@@ -385,3 +402,15 @@ class AccountInvoicesetProductlink(models.Model):
         self.ensure_one()
         # Provisional
         print('action_delete_selectable_items')
+
+    def action_config_billable_item_fields(self):
+        self.ensure_one()
+        act_window = {
+            'type': 'ir.actions.act_window',
+            'name': _('Product') + ' : ' +
+                    self.product_id.product_tmpl_id.name,
+            'res_model': 'wizard.config.billable.item.fields',
+            'view_mode': 'form',
+            'target': 'new',
+        }
+        return act_window

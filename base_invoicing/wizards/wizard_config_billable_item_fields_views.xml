@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="wizard_config_billable_item_fields_view_form" model="ir.ui.view">
+        <field name="name">Wizard to configure the billable items fields</field>
+        <field name="model">wizard.config.billable.item.fields</field>
+        <field name="arch" type="xml">
+            <form string="Data of the configuration">
+                <script>
+                    $(document).ready(function(){
+                        $('.modal-dialog').css({'width': '400px'});
+                    });
+                </script>
+                <div style="text-align:center">
+                    <h4 class="mb-4">Billing Settings</h4>
+                </div>
+                <group name="group_config_data">
+                    <field name="billable_item_model_id"
+                           string="Billable items model" readonly="1"/>
+                    <field name="billable_item_quantity_field"
+                           string="Quantity Field" readonly="1"/>
+                    <field name="billable_item_quantity_label"
+                           string="Quantity Label" readonly="1"/>
+                    <field name="billable_item_group_field"
+                           string="Field for grouping"/>
+                </group>
+                <footer>
+                    <button name="set_config_fields"
+                            type="object"
+                            string="Apply"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

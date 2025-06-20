@@ -26,6 +26,7 @@
         'data/ir_sequence_data.xml',
         'data/product_category_data.xml',
         'wizards/wizard_select_field_views.xml',
+        'wizards/wizard_config_billable_item_fields_views.xml',
         'views/base_invoicing_menus.xml',
         'views/res_config_settings_views.xml',
         'views/account_invoiceset_views.xml',
