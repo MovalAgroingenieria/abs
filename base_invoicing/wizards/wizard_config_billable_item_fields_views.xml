@@ -22,6 +22,10 @@
                     <field name="info_billable_item_quantity_field"
                            string="Quantity Field" readonly="1"
                            attrs="{'invisible': [('category_code', '=', 1)]}"/>
+                    <field name="billable_item_detail_desc"
+                           string="Template (lines)"
+                           widget="text" rows="4"
+                           readonly="1"/>
                 </group>
                 <div style="text-align:center">
                     <h2 class="mb-2">●︎ ●︎ ●︎</h2>
@@ -30,11 +34,9 @@
                     <field name="billable_item_group_field"
                            string="Field for grouping"
                            attrs="{'invisible': [('category_code', '=', 1)]}"/>
-                    <field name="billable_item_detail_desc"
-                           string="Template (lines)"
-                           widget="text" rows="4"/>
                     <field name="billable_item_domain"
-                           string="Pre-filter"/>
+                           string="Pre-filter"
+                           widget="text" rows="2"/>
                 </group>
                 <footer>
                     <button name="set_config_fields"

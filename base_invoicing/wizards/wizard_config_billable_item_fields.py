@@ -41,7 +41,8 @@ class WizardConfigBillableItemFields(models.TransientModel):
             info_billable_item_quantity_field = \
                 record.billable_item_quantity_field
             if info_billable_item_quantity_field:
-                info_billable_item_quantity_field = info_billable_quantity_field + \
+                info_billable_item_quantity_field = \
+                    info_billable_item_quantity_field + \
                     ' (' + record.billable_item_quantity_label + ')'
             resp = {
                 'info_billable_item_model_id':

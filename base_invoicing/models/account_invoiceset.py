@@ -225,9 +225,7 @@ class AccountInvoicesetProductlink(models.Model):
 
     categ_id = fields.Many2one(
         string='Category',
-        comodel_name='product.category',
-        store=True,
-        compute='_compute_categ_id',)
+        related='product_id.product_tmpl_id.categ_id',)
 
     number_of_selected_items = fields.Integer(
         string='Number of selected records',
@@ -235,6 +233,7 @@ class AccountInvoicesetProductlink(models.Model):
 
     lst_price = fields.Float(
         string='Price',
+        store=True,
         compute='_compute_lst_price',)
 
     populated = fields.Boolean(
@@ -255,9 +254,8 @@ class AccountInvoicesetProductlink(models.Model):
 
     billable_item_quantity_label = fields.Char(
         string='Label of the quantity field',
-        store=True,
-        compute='_compute_billable_item_quantity_label',
-        translate=True,)
+        related='product_id.product_tmpl_id.categ_id.'
+                'billable_item_quantity_label',)
 
     billable_item_group_field = fields.Char(
         string='Field for grouping',
@@ -267,10 +265,8 @@ class AccountInvoicesetProductlink(models.Model):
 
     billable_item_detail_desc = fields.Char(
         string='Template for invoice lines',
-        store=True,
-        compute='_compute_billable_item_detail_desc',
-        readonly=False,
-        translate=True,)
+        related='product_id.product_tmpl_id.categ_id.'
+                'billable_item_detail_desc',)
 
     billable_item_domain = fields.Char(
         string='Pre-filter on billable items',
@@ -315,6 +311,7 @@ class AccountInvoicesetProductlink(models.Model):
             #     number_of_selected_items = len(record.selected_item_ids)
             record.number_of_selected_items = number_of_selected_items
 
+    @api.depends('product_id')
     def _compute_lst_price(self):
         for record in self:
             lst_price = 0
@@ -365,17 +362,6 @@ class AccountInvoicesetProductlink(models.Model):
                     (record.product_id.product_tmpl_id.categ_id.
                      billable_item_group_field)
             record.billable_item_group_field = billable_item_group_field
-
-    @api.depends('product_id')
-    def _compute_billable_item_detail_desc(self):
-        for record in self:
-            billable_item_detail_desc = None
-            if (record.product_id and
-               record.product_id.product_tmpl_id.categ_id):
-                billable_item_detail_desc = \
-                    (record.product_id.product_tmpl_id.categ_id.
-                     billable_item_detail_desc)
-            record.billable_item_detail_desc = billable_item_detail_desc
 
     @api.depends('product_id')
     def _compute_billable_item_domain(self):
