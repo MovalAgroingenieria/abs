@@ -10,16 +10,11 @@ class WizardConfigBillableItemFields(models.TransientModel):
     _description = ('Dialog box to configure the fields of the'
                     'billable items model')
 
-    billable_item_model_id = fields.Many2one(
-        string='Billable-items Model',
-        comodel_name='ir.model',)
+    info_billable_item_model_id = fields.Char(
+        string='Billable-items Model',)
 
-    billable_item_quantity_field = fields.Char(
+    info_billable_item_quantity_field = fields.Char(
         string='Quantity Field',)
-
-    billable_item_quantity_label = fields.Char(
-        string='Label of the quantity field',
-        translate=True, )
 
     billable_item_group_field = fields.Char(
         string='Field for grouping',)
@@ -31,29 +26,46 @@ class WizardConfigBillableItemFields(models.TransientModel):
     billable_item_domain = fields.Char(
         string='Pre-filter on billable items',)
 
+    category_code = fields.Integer(
+        string='Category Code',)
+
     @api.model
     def default_get(self, var_fields):
         resp = None
         record = self.env['account.invoiceset.productlink'].browse(
             self.env.context['active_id'])
         if record:
+            info_billable_item_model_id = \
+                record.billable_item_model_id.sudo().model + ' (' + \
+                record.billable_item_model_id.sudo().name + ')'
+            info_billable_item_quantity_field = \
+                record.billable_item_quantity_field
+            if info_billable_item_quantity_field:
+                info_billable_item_quantity_field = info_billable_quantity_field + \
+                    ' (' + record.billable_item_quantity_label + ')'
             resp = {
-                'billable_item_model_id':
-                    record.categ_id.billable_item_model_id,
-                'billable_item_quantity_field':
-                    record.categ_id.billable_item_quantity_field,
-                'billable_item_quantity_label':
-                    record.categ_id.billable_item_quantity_label,
+                'info_billable_item_model_id':
+                    info_billable_item_model_id,
+                'info_billable_item_quantity_field':
+                    info_billable_item_quantity_field,
                 'billable_item_group_field':
-                    record.categ_id.billable_item_group_field,
+                    record.billable_item_group_field,
                 'billable_item_detail_desc':
-                    record.categ_id.billable_item_detail_desc,
+                    record.billable_item_detail_desc,
                 'billable_item_domain':
-                    record.categ_id.billable_item_domain,
+                    record.billable_item_domain,
+                'category_code':
+                    record.categ_id.category_code,
             }
         return resp
 
     def set_config_fields(self):
         self.ensure_one
-        # Provisional
-        print('set_config_fields')
+        record = self.env['account.invoiceset.productlink'].browse(
+            self.env.context['active_id'])
+        if record:
+            record.write({
+                'billable_item_group_field': self.billable_item_group_field,
+                'billable_item_detail_desc': self.billable_item_detail_desc,
+                'billable_item_domain': self.billable_item_domain,
+            })

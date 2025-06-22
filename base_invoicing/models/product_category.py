@@ -363,7 +363,7 @@ class ProductCategory(models.Model):
         }
         if self.billable_item_model_id:
             name_value = _('Model') + ' : ' + self.billable_item_model_id.model + \
-                         ' (' + self.billable_item_model_id.name + ')',
+                ' (' + self.billable_item_model_id.name + ')',
             action = {
                 'type': 'ir.actions.act_window',
                 'name': name_value,

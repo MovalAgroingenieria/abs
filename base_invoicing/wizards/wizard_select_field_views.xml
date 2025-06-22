@@ -11,12 +11,15 @@
                         $('.modal-dialog').css({'width': '400px'});
                     });
                 </script>
-                <div style="text-align:center">
-                    <h4 class="mb-4">Please, select a field</h4>
+                <div>
+                    <h4>Field Selection</h4>
+                    <hr class="mb-4"/>
                 </div>
                 <group name="group_field_data">
-                    <field name="selected_field"
-                           string="Field"/>
+                    <field name="selected_field_id"
+                           string="Field"
+                           options="{'no_quick_create':True, 'no_create_edit': True}"
+                           required="1"/>
                 </group>
                 <footer>
                     <button name="set_selected_field"
