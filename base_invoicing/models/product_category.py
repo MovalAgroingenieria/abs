@@ -328,6 +328,16 @@ class ProductCategory(models.Model):
                         _('Repeated category code.'))
 
     def name_get(self):
+        if self.env.context.get('short_name_categories', False):
+            category_names = []
+            for record in self:
+                category_name = record.name
+                if record.category_code:
+                    category_name = (category_names + ' (' + _('cat. #') +
+                                     str(record.category_code) + ')')
+
+                category_names.append((record.id, category_name))
+            return category_names
         category_names = super(ProductCategory, self).name_get()
         if category_names:
             new_category_names = []
@@ -340,8 +350,8 @@ class ProductCategory(models.Model):
                              ' (' + _('standard cat.') + ')'))
                     else:
                         new_category_names.append(
-                            (category.id, category_name[1] + ' (' + _('cat. #') +
-                             str(category.category_code) + ')'))
+                            (category.id, category_name[1] + ' (' +
+                             _('cat. #') + str(category.category_code) + ')'))
                 else:
                     new_category_names.append(category_name)
             category_names = new_category_names

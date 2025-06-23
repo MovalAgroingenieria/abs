@@ -184,6 +184,7 @@
                 Create a new invoice set
             </p>
         </field>
+        <field name="context">{'short_name_categories': True}</field>
     </record>
 
     <menuitem id="account_invoiceset_menu"

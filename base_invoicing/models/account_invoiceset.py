@@ -225,7 +225,9 @@ class AccountInvoicesetProductlink(models.Model):
 
     categ_id = fields.Many2one(
         string='Category',
-        related='product_id.product_tmpl_id.categ_id',)
+        comodel_name='product.category',
+        store=True,
+        compute='_compute_categ_id',)
 
     number_of_selected_items = fields.Integer(
         string='Number of selected records',
@@ -285,7 +287,7 @@ class AccountInvoicesetProductlink(models.Model):
     def _compute_name(self):
         default_lang = self.env['ir.default'].get('res.partner', 'lang')
         if not default_lang:
-            default_lang = 'en_ES'
+            default_lang = 'en_US'
         for record in self:
             name = ''
             if record.invoiceset_id and record.product_id:
@@ -294,7 +296,7 @@ class AccountInvoicesetProductlink(models.Model):
                         lang=default_lang).name
             record.name = name[:self.MAX_SIZE_PRODUCTLINK_CODE]
 
-    @api.depends('product_id', 'product_id.product_tmpl_id.categ_id')
+    @api.depends('product_id')
     def _compute_categ_id(self):
         for record in self:
             categ_id = None
