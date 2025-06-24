@@ -29,6 +29,9 @@ class WizardConfigBillableItemFields(models.TransientModel):
     category_code = fields.Integer(
         string='Category Code',)
 
+    editable = fields.Boolean(
+        string='Editable Wizard (y/n)',)
+
     @api.model
     def default_get(self, var_fields):
         resp = None
@@ -57,6 +60,9 @@ class WizardConfigBillableItemFields(models.TransientModel):
                     record.billable_item_domain,
                 'category_code':
                     record.categ_id.category_code,
+                'editable':
+                    (record.invoiceset_id.state == 'draft' or
+                     record.invoiceset_id.state == 'configured')
             }
         return resp
 

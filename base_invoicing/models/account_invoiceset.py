@@ -8,6 +8,7 @@ class AccountInvoiceset(models.Model):
     _name = 'account.invoiceset'
     _description = 'Invoice Set'
     _inherit = ['simple.model', 'mail.thread']
+    _order = 'alphanum_code desc'
 
     # Static variables inherited from "simple.model"
     _set_num_code = False
@@ -376,21 +377,6 @@ class AccountInvoicesetProductlink(models.Model):
                      billable_item_domain)
             record.billable_item_domain = billable_item_domain
 
-    def action_show_selectable_items(self):
-        self.ensure_one()
-        # Provisional
-        print('action_show_selectable_items')
-
-    def action_refresh_selectable_items(self):
-        self.ensure_one()
-        # Provisional
-        print('action_refresh_selectable_items')
-
-    def action_delete_selectable_items(self):
-        self.ensure_one()
-        # Provisional
-        print('action_delete_selectable_items')
-
     def action_config_billable_item_fields(self):
         self.ensure_one()
         act_window = {
@@ -402,3 +388,118 @@ class AccountInvoicesetProductlink(models.Model):
             'target': 'new',
         }
         return act_window
+
+    def action_show_selectable_items(self):
+        self.ensure_one()
+        # Provisional
+        print('action_show_selectable_items')
+
+    def action_refresh_selectable_items(self):
+        self.ensure_one()
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Warning'),
+                'message': _('This operation is only allowed when the '
+                             'invoice set is in the \'draft\' or'
+                             ' \'configured\' state.'),
+                'type': 'warning',
+                'sticky': False,
+                'next': {'type': 'ir.actions.act_window_close', },
+            }
+        }
+        if (self.invoiceset_id.state == 'draft' or
+           self.invoiceset_id.state == 'configured'):
+            action = {
+                'type': 'ir.actions.act_window',
+                'name': _('Product') + ' : ' +
+                        self.product_id.product_tmpl_id.name,
+                'res_model': 'wizard.confirm.productlink.action',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {'confirm_message': _('You are about to refresh the'
+                                                 ' lines associated with this '
+                                                 'product. This will cause the'
+                                                 ' current selection to be '
+                                                 'lost.'),
+                            'operation': 'refresh_selectable_items'}
+            }
+        return action
+
+    def action_delete_selectable_items(self):
+        self.ensure_one()
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Warning'),
+                'message': _('This operation is only allowed when the '
+                             'invoice set is in the \'draft\' or'
+                             ' \'configured\' state.'),
+                'type': 'warning',
+                'sticky': False,
+                'next': {'type': 'ir.actions.act_window_close', },
+            }
+        }
+        if (self.invoiceset_id.state == 'draft' or
+           self.invoiceset_id.state == 'configured'):
+            action = {
+                'type': 'ir.actions.act_window',
+                'name': _('Product') + ' : ' +
+                        self.product_id.product_tmpl_id.name,
+                'res_model': 'wizard.confirm.productlink.action',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {'confirm_message': _('You are about to delete all '
+                                                 'lines associated with this '
+                                                 'product.'),
+                            'operation': 'delete_selectable_items'}
+            }
+        return action
+
+    def action_delete_line(self):
+        self.ensure_one()
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Warning'),
+                'message': _('This operation is only allowed when the '
+                             'invoice set is in the \'draft\' or'
+                             ' \'configured\' state.'),
+                'type': 'warning',
+                'sticky': False,
+                'next': {'type': 'ir.actions.act_window_close', },
+            }
+        }
+        if (self.invoiceset_id.state == 'draft' or
+           self.invoiceset_id.state == 'configured'):
+            action = {
+                'type': 'ir.actions.act_window',
+                'name': _('Product') + ' : ' +
+                        self.product_id.product_tmpl_id.name,
+                'res_model': 'wizard.confirm.productlink.action',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': {'confirm_message': _('You are about to remove this '
+                                                 'product from the invoice set.'
+                                                 ' Therefore, its associated '
+                                                 'lines will also be deleted.'),
+                            'operation': 'delete'}
+            }
+        return action
+
+    def refresh_selectable_items(self):
+        for record in self:
+            # Provisional
+            print('refresh_selectable_items')
+
+    def delete_selectable_items(self):
+        for record in self:
+            # Provisional
+            print('delete_selectable_items')
+
+    def delete(self):
+        for record in self:
+            record.unlink()

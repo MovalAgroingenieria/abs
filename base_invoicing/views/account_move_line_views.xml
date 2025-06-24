@@ -39,6 +39,7 @@
                 (0, 0, {'view_mode': 'tree',
                         'view_id': ref('account_move_line_view_tree')})]"/>
         <field name="search_view_id" ref="account_move_line_view_search"/>
+        <field name="domain">[('credit', '&gt;', 0), ('quantity', '&gt;', 0)]</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Invoice Lines

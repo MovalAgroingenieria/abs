@@ -37,10 +37,10 @@
                                    widget="statinfo"/>
                         </button>
                     </div>
-                    <widget name="web_ribbon" title="DRAFT"
-                            bg_color="bg-info"
+                    <widget name="web_ribbon" title="IN PROGRESS"
+                            bg_color="bg-warning"
                             attrs="{'invisible':
-                                    [('state', '!=', 'draft')]}"/>
+                                    [('state', '!=', 'calculating')]}"/>
                     <div class="oe_title">
                         <span class="o_form_label">Code of invoice set</span>
                         <h1>
@@ -73,25 +73,28 @@
                         <page name="page_productlinks" string="Products">
                             <field name="productlink_ids" nolabel="1"
                                    attrs="{'readonly': [('state', '!=', 'draft'), ('state', '!=', 'configured')]}">
-                                <tree editable="bottom"
+                                <tree editable="bottom" delete="False"
                                       class="o_base_invoicing_account_invoiceset_productlink">
                                     <field name="product_id" string="Product"
                                            options="{'no_quick_create':True, 'no_create_edit': True}"/>
                                     <field name="categ_id" string="Category"/>
                                     <field name="lst_price" string="Unit Price"/>
+                                    <button name="action_config_billable_item_fields"
+                                            title="Configure parameters" type="object" class="oe_stat_button"
+                                            icon="fa-cog"/>
                                     <button name="action_show_selectable_items"
                                             title="Show selectable items" type="object" class="oe_stat_button"
-                                            icon="fa-cog"/>
+                                            icon="fa-plug"/>
                                     <button name="action_refresh_selectable_items"
                                             title="Refresh selectable items" type="object" class="oe_stat_button"
                                             icon="fa-refresh"/>
                                     <button name="action_delete_selectable_items"
                                             title="Delete selectable items" type="object" class="oe_stat_button"
                                             icon="fa-eraser"/>
-                                    <button name="action_config_billable_item_fields"
-                                            title="Configure parameters" type="object" class="oe_stat_button"
-                                            icon="fa-table"/>
                                     <field name="number_of_selected_items" string="No. of lines"/>
+                                    <button name="action_delete_line"
+                                            title="Delete this line" type="object" class="oe_stat_button"
+                                            icon="fa-trash"/>
                                 </tree>
                             </field>
                         </page>
@@ -168,16 +171,64 @@
         </field>
     </record>
 
+    <record id="account_invoiceset_view_kanban" model="ir.ui.view">
+        <field name="name">account.invoiceset.view.kanban</field>
+        <field name="model">account.invoiceset</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1" js_class="account_documents_kanban">
+                <field name="alphanum_code"/>
+                <field name="description"/>
+                <field name="invoice_date"/>
+                <field name="state"/>
+                <field name="invoice_user_id"/>
+                <field name="number_of_invoices"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click">
+                            <div class="row">
+                                <div class="col-6 o_kanban_record_headings">
+                                    <strong>
+                                        <span>
+                                            <field name="alphanum_code"/>
+                                        </span>
+                                    </strong>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <strong><i class="fa fa-clock-o" aria-label="Date" role="img" title="Date"/> <t t-esc="record.invoice_date.value"/></strong>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span><field name="description"/></span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <span><field name="number_of_invoices" attrs="{'invisible': [('number_of_invoices', '=', 0)]}"/></span><span attrs="{'invisible': [('number_of_invoices', '=', 0)]}"> invoices</span>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <field name="state" widget="label_selection" options="{'classes': {'draft': 'info', 'configured': 'primary', 'calculating': 'warning', 'calculated': 'muted', 'committed': 'success'}}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="account_invoiceset_action" model="ir.actions.act_window">
         <field name="name">Invoice Sets</field>
         <field name="res_model">account.invoiceset</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form,kanban</field>
         <field name="view_ids"
          eval="[(5, 0),
                 (0, 0, {'view_mode': 'tree',
                         'view_id': ref('account_invoiceset_view_tree')}),
                 (0, 0, {'view_mode': 'form',
-                        'view_id': ref('account_invoiceset_view_form')})]"/>
+                        'view_id': ref('account_invoiceset_view_form')}),
+                (0, 0, {'view_mode': 'kanban',
+                        'view_id': ref('account_invoiceset_view_kanban')})]"/>
         <field name="search_view_id" ref="account_invoiceset_view_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

@@ -333,7 +333,7 @@ class ProductCategory(models.Model):
             for record in self:
                 category_name = record.name
                 if record.category_code:
-                    category_name = (category_names + ' (' + _('cat. #') +
+                    category_name = (category_name + ' (' + _('cat. #') +
                                      str(record.category_code) + ')')
 
                 category_names.append((record.id, category_name))
@@ -356,6 +356,52 @@ class ProductCategory(models.Model):
                     new_category_names.append(category_name)
             category_names = new_category_names
         return category_names
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            vals = self._update_vals(vals)
+        categories = super(ProductCategory, self).create(vals_list)
+        return categories
+
+    def write(self, vals):
+        vals = self._update_vals(vals)
+        resp = super(ProductCategory, self).write(vals)
+        return resp
+
+    def _update_vals(self, vals):
+        if ('billable_item_model_id' in vals and
+           (not vals['billable_item_model_id'])):
+            vals['billable_item_quantity_field'] = None
+            vals['billable_item_quantity_label'] = None
+            vals['billable_item_group_field'] = None
+            vals['billable_item_detail_desc'] = None
+            vals['billable_item_domain'] = None
+            vals['aux_01_char_field'] = None
+            vals['aux_01_char_label'] = None
+            vals['aux_01_int_field'] = None
+            vals['aux_01_int_label'] = None
+            vals['aux_01_float_field'] = None
+            vals['aux_01_float_label'] = None
+            vals['aux_01_bool_field'] = None
+            vals['aux_01_bool_label'] = None
+            vals['aux_02_char_field'] = None
+            vals['aux_02_char_label'] = None
+            vals['aux_02_int_field'] = None
+            vals['aux_02_int_label'] = None
+            vals['aux_02_float_field'] = None
+            vals['aux_02_float_label'] = None
+            vals['aux_02_bool_field'] = None
+            vals['aux_02_bool_label'] = None
+            vals['aux_03_char_field'] = None
+            vals['aux_03_char_label'] = None
+            vals['aux_03_int_field'] = None
+            vals['aux_03_int_label'] = None
+            vals['aux_03_float_field'] = None
+            vals['aux_03_float_label'] = None
+            vals['aux_03_bool_field'] = None
+            vals['aux_03_bool_label'] = None
+        return vals
 
     def action_select_billable_item_field(self):
         self.ensure_one()
