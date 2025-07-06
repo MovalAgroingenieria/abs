@@ -1,7 +1,7 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import fields, models, api, _
+from odoo import models, fields, api, exceptions, _
 
 
 class AccountInvoiceset(models.Model):
@@ -150,6 +150,16 @@ class AccountInvoiceset(models.Model):
                                           for invoice in record.move_ids)
             record.some_posted_invoice = some_posted_invoice
 
+    def name_get(self):
+        invoiceset_names = []
+        for record in self:
+            invoiceset_name = record.alphanum_code
+            if record.description:
+                invoiceset_name = (invoiceset_name + ' (' +
+                                   record.description + ')')
+            invoiceset_names.append((record.id, invoiceset_name))
+        return invoiceset_names
+
     def action_show_invoices(self):
         self.ensure_one()
         current_invoiceset = self
@@ -230,10 +240,6 @@ class AccountInvoicesetProductlink(models.Model):
         store=True,
         compute='_compute_categ_id',)
 
-    number_of_selected_items = fields.Integer(
-        string='Number of selected records',
-        compute='_compute_number_of_selected_items',)
-
     lst_price = fields.Float(
         string='Price',
         store=True,
@@ -277,6 +283,24 @@ class AccountInvoicesetProductlink(models.Model):
         compute='_compute_billable_item_domain',
         readonly=False,)
 
+    selectable_item_ids = fields.One2many(
+        string='Selectable Records',
+        comodel_name='account.selectable.item',
+        inverse_name='productlink_id',)
+
+    number_of_selectable_items = fields.Integer(
+        string='Number of selectable records',
+        compute='_compute_number_of_selectable_items',)
+
+    selected_item_ids = fields.One2many(
+        string='Selected Records',
+        comodel_name='account.selectable.item',
+        compute='_compute_selected_item_ids',)
+
+    number_of_selected_items = fields.Integer(
+        string='Number of selected records',
+        compute='_compute_number_of_selected_items',)
+
     _sql_constraints = [
         ('name_unique',
          'UNIQUE (name)',
@@ -305,14 +329,6 @@ class AccountInvoicesetProductlink(models.Model):
                record.product_id.product_tmpl_id.categ_id):
                 categ_id = record.product_id.product_tmpl_id.categ_id
             record.categ_id = categ_id
-
-    def _compute_number_of_selected_items(self):
-        for record in self:
-            number_of_selected_items = 0
-            # Provisional
-            # if record.selected_item_ids:
-            #     number_of_selected_items = len(record.selected_item_ids)
-            record.number_of_selected_items = number_of_selected_items
 
     @api.depends('product_id')
     def _compute_lst_price(self):
@@ -377,6 +393,26 @@ class AccountInvoicesetProductlink(models.Model):
                      billable_item_domain)
             record.billable_item_domain = billable_item_domain
 
+    def _compute_number_of_selectable_items(self):
+        for record in self:
+            number_of_selectable_items = 0
+            if record.selectable_item_ids:
+                number_of_selectable_items = len(record.selectable_item_ids)
+            record.number_of_selectable_items = number_of_selectable_items
+
+    def _compute_selected_item_ids(self):
+        for record in self:
+            record.selected_item_ids = \
+                record.selectable_item_ids.filtered(
+                    lambda item: item.selected)
+
+    def _compute_number_of_selected_items(self):
+        for record in self:
+            number_of_selected_items = 0
+            if record.selected_item_ids:
+                number_of_selected_items = len(record.selected_item_ids)
+            record.number_of_selected_items = number_of_selected_items
+
     def action_config_billable_item_fields(self):
         self.ensure_one()
         act_window = {
@@ -391,8 +427,97 @@ class AccountInvoicesetProductlink(models.Model):
 
     def action_show_selectable_items(self):
         self.ensure_one()
-        # Provisional
-        print('action_show_selectable_items')
+        current_productlink = self
+        if (current_productlink.invoiceset_id.state == 'draft' and
+           current_productlink.number_of_selectable_items == 0):
+            self.populate_selectable_items(current_productlink)
+        id_tree_view = self.sudo().env.ref(
+            'base_invoicing.account_selectable_item_view_tree').id
+        search_view = self.sudo().env.ref(
+            'base_invoicing.account_selectable_item_view_search')
+        title_prefix = _('Selectable Items. Product:')
+        domain_conditions = [('productlink_id', '=', current_productlink.id)]
+        if (current_productlink.invoiceset_id.state
+           not in ['draft', 'configured']):
+            title_prefix = _('Selected Items. Product:')
+            domain_conditions.append(('selected', '=', True))
+        act_window = {
+            'type': 'ir.actions.act_window',
+            'name': title_prefix + ' ' +
+                    current_productlink.product_id.product_tmpl_id.name,
+            'res_model': 'account.selectable.item',
+            'view_mode': 'tree',
+            'views': [(id_tree_view, 'tree'),],
+            'search_view_id': (search_view.id, search_view.name),
+            'target': 'current',
+            'domain': domain_conditions,
+            'context': self._get_context_hide_fields(
+                current_productlink.categ_id,
+                current_productlink.invoiceset_id.state),
+            }
+        return act_window
+
+    @api.model
+    def _get_context_hide_fields(self, category, current_state='draft'):
+        context = {}
+        if not category.billable_item_quantity_field:
+            context['hide_quantity'] = True
+        else:
+            context['billable_item_quantity_label'] = \
+                category.billable_item_quantity_label
+        if not category.aux_01_char_field:
+            context['hide_aux_01_char'] = True
+        else:
+            context['aux_01_char_label'] = category.aux_01_char_label
+        if not category.aux_01_int_field:
+            context['hide_aux_01_int'] = True
+        else:
+            context['aux_01_int_label'] = category.aux_01_int_label
+        if not category.aux_01_float_field:
+            context['hide_aux_01_float'] = True
+        else:
+            context['aux_01_float_label'] = category.aux_01_float_label
+        if not category.aux_01_bool_field:
+            context['hide_aux_01_bool'] = True
+        else:
+            context['aux_01_bool_label'] = category.aux_01_bool_label
+        if not category.aux_02_char_field:
+            context['hide_aux_02_char'] = True
+        else:
+            context['aux_02_char_label'] = category.aux_02_char_label
+        if not category.aux_02_int_field:
+            context['hide_aux_02_int'] = True
+        else:
+            context['aux_02_int_label'] = category.aux_02_int_label
+        if not category.aux_02_float_field:
+            context['hide_aux_02_float'] = True
+        else:
+            context['aux_02_float_label'] = category.aux_02_float_label
+        if not category.aux_02_bool_field:
+            context['hide_aux_02_bool'] = True
+        else:
+            context['aux_02_bool_label'] = category.aux_02_bool_label
+        if not category.aux_03_char_field:
+            context['hide_aux_03_char'] = True
+        else:
+            context['aux_03_char_label'] = category.aux_03_char_label
+        if not category.aux_03_int_field:
+            context['hide_aux_03_int'] = True
+        else:
+            context['aux_03_int_label'] = category.aux_03_int_label
+        if not category.aux_03_float_field:
+            context['hide_aux_03_float'] = True
+        else:
+            context['aux_03_float_label'] = category.aux_03_float_label
+        if not category.aux_03_bool_field:
+            context['hide_aux_03_bool'] = True
+        else:
+            context['aux_03_bool_label'] = category.aux_03_bool_label
+        if not category.aux_desc:
+            context['hide_rendered_aux_desc'] = True
+        if current_state != 'draft' and current_state != 'configured':
+            context['hide_selectors'] = True
+        return context
 
     def action_refresh_selectable_items(self):
         self.ensure_one()
@@ -503,3 +628,105 @@ class AccountInvoicesetProductlink(models.Model):
     def delete(self):
         for record in self:
             record.unlink()
+
+    @api.model
+    def populate_selectable_items(self, plink):
+        my_product = plink.product_id
+        my_categ = my_product.product_tmpl_id.categ_id
+        if my_categ and my_categ.billable_item_model_id:
+            my_billable_item_model = \
+                my_categ.billable_item_model_id.sudo().model
+            my_billable_item_table = \
+                my_billable_item_model.replace('.', '_')
+            partner_id_field = 'partner_id'
+            quantity_field = ''
+            if (self.env['account.billable.item'].
+               inherits_from_account_billable_item(my_billable_item_model)):
+                partner_id_field = \
+                    self.env[my_billable_item_model]._billing_partner_id_name
+                quantity_field = \
+                    self.env[my_billable_item_model]._billing_quantity_name
+            else:
+                quantity_field = my_categ.billable_item_quantity_field
+            aux_fields_insert, aux_fields_select = self._get_aux_fields(my_categ)
+            sql_insert = """INSERT INTO account_selectable_item
+            (id, create_uid, write_uid, create_date, write_date,
+            productlink_id, billable_item_model, billable_item_res_id,
+            partner_id, quantity, selected"""
+            if aux_fields_insert:
+                sql_insert = sql_insert + """, """ + aux_fields_insert
+            sql_insert = sql_insert + """) """
+            sql_insert = sql_insert + """SELECT nextval
+            ('account_selectable_item_id_seq'),
+            %s, %s, now(), now(),
+            %s, %s, bt.id, bt.""" + partner_id_field
+            if not quantity_field:
+                sql_insert = sql_insert + """, 1"""
+            else:
+                sql_insert = sql_insert + """, bt.""" + quantity_field
+            sql_insert = sql_insert + """, TRUE"""
+            if aux_fields_select:
+                sql_insert = sql_insert + """, """ + aux_fields_select
+            sql_insert = sql_insert + """ FROM """ + my_billable_item_table + """ bt
+            INNER JOIN res_partner rp ON bt.""" + partner_id_field + """ =
+            rp.id WHERE rp.active"""
+            if (self.env['account.billable.item'].exists_active_field(
+               my_billable_item_model)):
+                sql_insert = sql_insert + ' AND bt.active'
+            if plink.billable_item_domain:
+                sql_insert = sql_insert + ' AND ' + plink.billable_item_domain
+            try:
+                self.env.cr.savepoint()
+                self.env.cr.execute(
+                    sql_insert, (self.env.user.id, self.env.user.id, plink.id,
+                                 my_billable_item_model))
+                self.env.cr.commit()
+            except Exception as e:
+                self.env.cr.rollback()
+                raise exceptions.UserError(_('Error updating records:') +
+                                           ' ' + str(e))
+
+    @api.model
+    def _get_aux_fields(self, category):
+        aux_fields_insert = ''
+        aux_fields_select = ''
+        if category.aux_01_char_field:
+            aux_fields_insert = aux_fields_insert + ', aux_01_char'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_01_char_field
+        if category.aux_01_int_field:
+            aux_fields_insert = aux_fields_insert + ', aux_01_int'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_01_int_field
+        if category.aux_01_float_field:
+            aux_fields_insert = aux_fields_insert + ', aux_01_float'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_01_float_field
+        if category.aux_01_bool_field:
+            aux_fields_insert = aux_fields_insert + ', aux_01_bool'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_01_bool_field
+        if category.aux_02_char_field:
+            aux_fields_insert = aux_fields_insert + ', aux_02_char'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_02_char_field
+        if category.aux_02_int_field:
+            aux_fields_insert = aux_fields_insert + ', aux_02_int'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_02_int_field
+        if category.aux_02_float_field:
+            aux_fields_insert = aux_fields_insert + ', aux_02_float'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_02_float_field
+        if category.aux_02_bool_field:
+            aux_fields_insert = aux_fields_insert + ', aux_02_bool'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_02_bool_field
+        if category.aux_03_char_field:
+            aux_fields_insert = aux_fields_insert + ', aux_03_char'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_03_char_field
+        if category.aux_03_int_field:
+            aux_fields_insert = aux_fields_insert + ', aux_03_int'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_03_int_field
+        if category.aux_03_float_field:
+            aux_fields_insert = aux_fields_insert + ', aux_03_float'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_03_float_field
+        if category.aux_03_bool_field:
+            aux_fields_insert = aux_fields_insert + ', aux_03_bool'
+            aux_fields_select = aux_fields_select + ', ' + category.aux_03_bool_field
+        if aux_fields_select and aux_fields_select:
+            aux_fields_insert = aux_fields_insert[2:]
+            aux_fields_select = aux_fields_select[2:]
+        return aux_fields_insert, aux_fields_select

@@ -4,42 +4,42 @@
     min-width: 140px;
 }
 
-.o_base_account_invoiceset [data-name="alphanum_code"] {
+.o_base_invoicing_account_invoiceset [data-name="alphanum_code"] {
     width: 100px;
     min-width: 100px;
 }
 
-.o_base_account_invoiceset [data-name="invoice_date"] {
+.o_base_invoicing_account_invoiceset [data-name="invoice_date"] {
     width: 120px;
     min-width: 120px;
 }
 
-.o_base_account_invoiceset [data-name="invoice_date_due"] {
+.o_base_invoicing_account_invoiceset [data-name="invoice_date_due"] {
     width: 120px;
     min-width: 120px;
 }
 
-.o_base_account_invoiceset [data-name="invoice_user_id"] {
+.o_base_invoicing_account_invoiceset [data-name="invoice_user_id"] {
     width: 150px;
     min-width: 150px;
 }
 
-.o_base_account_invoiceset [data-name="number_of_invoices"] {
+.o_base_invoicing_account_invoiceset [data-name="number_of_invoices"] {
     width: 120px;
     min-width: 120px;
 }
 
-.o_base_account_invoiceset [data-name="journal_id"] {
+.o_base_invoicing_account_invoiceset [data-name="journal_id"] {
     width: 150px;
     min-width: 150px;
 }
 
-.o_base_account_invoiceset [data-name="payment_term_id"] {
+.o_base_invoicing_account_invoiceset [data-name="payment_term_id"] {
     width: 150px;
     min-width: 150px;
 }
 
-.o_base_account_invoiceset [data-name="state"] {
+.o_base_invoicing_account_invoiceset [data-name="state"] {
     width: 120px;
     min-width: 120px;
 }
@@ -62,4 +62,66 @@
 .o_list_button {
     text-align: center;
     width:30px;
+}
+
+.o_base_invoicing_account_move_line [data-name="invoiceset_id"] {
+    width: 225px;
+    min-width: 225px;
+}
+
+.o_base_invoicing_account_move_line [data-name="move_id"] {
+    width: 225px;
+    min-width: 225px;
+}
+
+.o_base_invoicing_account_move_line [data-name="partner_id"] {
+    width: 225px;
+    min-width: 225px;
+}
+
+.o_base_invoicing_account_move_line [data-name="date"] {
+    width: 120px;
+    min-width: 120px;
+}
+
+.o_base_invoicing_account_move_line [data-name="quantity"] {
+    width: 100px;
+    min-width: 100px;
+}
+
+.o_base_invoicing_account_move_line [data-name="price_unit"] {
+    width: 100px;
+    min-width: 100px;
+}
+
+.o_base_invoicing_account_move_line [data-name="price_subtotal"] {
+    width: 100px;
+    min-width: 100px;
+}
+
+.o_base_invoicing_account_move_line [data-name="price_taxes"] {
+    width: 100px;
+    min-width: 100px;
+}
+
+.o_base_invoicing_account_move_line [data-name="price_total"] {
+    width: 100px;
+    min-width: 100px;
+}
+
+.o_base_invoicing_account_move_line [data-name="parent_state"] {
+    width: 100px;
+    min-width: 100px;
+}
+
+body[data-res-model="account.selectable.item"] .o_add_custom_filter_menu {
+    display: none !important;
+}
+
+body[data-res-model="account.selectable.item"] .o_favorite_menu {
+    display: none !important;
+}
+
+body[data-res-model-hide-selectors="account.selectable.item"] .o_filter_menu {
+    display: none !important;
 }

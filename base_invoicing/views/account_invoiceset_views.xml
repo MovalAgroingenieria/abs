@@ -117,7 +117,7 @@
         <field name="model">account.invoiceset</field>
             <field name="arch" type="xml">
             <tree default_order="alphanum_code desc"
-                  class="o_base_account_invoiceset"
+                  class="o_base_invoicing_account_invoiceset"
                   decoration-info="state == 'draft'"
                   decoration-warning="state == 'calculating'">
                 <field name="alphanum_code" string="Code"
@@ -134,7 +134,7 @@
                        optional="hide"/>
                 <field name="number_of_invoices" string="No. of invoices"
                        optional="show"/>
-                <field name="state" string="State"
+                <field name="state" string="Status"
                        widget="badge"
                        decoration-info="state == 'draft'"
                        decoration-primary="state == 'configured'"
@@ -153,6 +153,8 @@
             <search string="Search invoice sets">
                 <field name="alphanum_code" string="Code"/>
                 <field name="description" string="Description"/>
+                <filter name="invoice_date" string="Invoice Date"
+                        date="invoice_date"/>
                 <group expand="0">
                     <filter name="grouped_by_invoice_user_id"
                             string="Sales Person"
@@ -164,8 +166,12 @@
                             string="Payment Term"
                      context="{'group_by':'payment_term_id'}"/>
                     <filter name="grouped_by_state"
-                            string="State"
+                            string="Status"
                      context="{'group_by':'state'}"/>
+                    <separator/>
+                    <filter name="grouped_by_invoice_date"
+                            string="Invoicing Date"
+                     context="{'group_by':'invoice_date'}"/>
                 </group>
             </search>
         </field>
@@ -196,18 +202,18 @@
                                 <div class="col-6 text-end">
                                     <strong><i class="fa fa-clock-o" aria-label="Date" role="img" title="Date"/> <t t-esc="record.invoice_date.value"/></strong>
                                 </div>
-                                <div class="row">
-                                    <div class="col-12">
-                                        <span><field name="description"/></span>
-                                    </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <span><field name="description"/></span>
                                 </div>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <span><field name="number_of_invoices" attrs="{'invisible': [('number_of_invoices', '=', 0)]}"/></span><span attrs="{'invisible': [('number_of_invoices', '=', 0)]}"> invoices</span>
-                                    </div>
-                                    <div class="col-6 text-end">
-                                        <field name="state" widget="label_selection" options="{'classes': {'draft': 'info', 'configured': 'primary', 'calculating': 'warning', 'calculated': 'muted', 'committed': 'success'}}"/>
-                                    </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <span><field name="number_of_invoices" attrs="{'invisible': [('number_of_invoices', '=', 0)]}"/></span><span attrs="{'invisible': [('number_of_invoices', '=', 0)]}"> invoices</span>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <field name="state" widget="label_selection" options="{'classes': {'draft': 'info', 'configured': 'primary', 'calculating': 'warning', 'calculated': 'muted', 'committed': 'success'}}"/>
                                 </div>
                             </div>
                         </div>

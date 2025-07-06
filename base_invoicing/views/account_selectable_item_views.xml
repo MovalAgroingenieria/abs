@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="account_selectable_item_view_tree" model="ir.ui.view">
+        <field name="name">account.selectable.item.view.tree</field>
+        <field name="model">account.selectable.item</field>
+        <field name="arch" type="xml">
+            <tree default_order="partner_id, quantity"
+                  create="False" delete="False"
+                  decoration-muted="selected == False"
+                  js_class="selectable_item_view_tree">
+                <header>
+                    <button name="action_select_items"
+                            string="Select"
+                            type="object" class="btn-secondary"
+                            icon="fa-thumbs-o-up"/>
+                </header>
+                <field name="partner_id" string="Customer"/>
+                <field name="quantity" string="Quantity"
+                       sum="Total"
+                       invisible="context.get('hide_quantity', False)"/>
+                <field name="aux_01_char"
+                       invisible="context.get('hide_aux_01_char', False)"/>
+                <field name="aux_01_int"
+                       invisible="context.get('hide_aux_01_int', False)"/>
+                <field name="aux_01_float"
+                       invisible="context.get('hide_aux_01_float', False)"/>
+                <field name="aux_01_bool"
+                       invisible="context.get('hide_aux_01_bool', False)"/>
+                <field name="aux_02_char"
+                       invisible="context.get('hide_aux_02_char', False)"/>
+                <field name="aux_02_int"
+                       invisible="context.get('hide_aux_02_int', False)"/>
+                <field name="aux_02_float"
+                       invisible="context.get('hide_aux_02_float', False)"/>
+                <field name="aux_02_bool"
+                       invisible="context.get('hide_aux_02_bool', False)"/>
+                <field name="aux_03_char"
+                       invisible="context.get('hide_aux_03_char', False)"/>
+                <field name="aux_03_int"
+                       invisible="context.get('hide_aux_03_int', False)"/>
+                <field name="aux_03_float"
+                       invisible="context.get('hide_aux_03_float', False)"/>
+                <field name="aux_03_bool"
+                       invisible="context.get('hide_aux_03_bool', False)"/>
+                <field name="rendered_aux_desc" string="Additional Information"
+                       invisible="context.get('hide_rendered_aux_desc', False)"/>
+                <field name="selected" string="Selected (y/n)"
+                       invisible="context.get('hide_selectors', False)"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="account_selectable_item_view_search" model="ir.ui.view">
+        <field name="name">account.selectable.item.view.search</field>
+        <field name="model">account.selectable.item</field>
+        <field name="arch" type="xml">
+            <search string="Search items">
+                <field name="partner_id"
+                       string="Customer"/>
+                <field name="aux_01_char"
+                       invisible="context.get('hide_aux_01_char', False)"/>
+                <field name="aux_02_char"
+                       invisible="context.get('hide_aux_02_char', False)"/>
+                <field name="aux_03_char"
+                       invisible="context.get('hide_aux_03_char', False)"/>
+                <filter name="selected_yes"
+                        string="Selected: Yes"
+                        domain="[('selected', '=', True)]"/>
+                <filter name="selected_no"
+                        string="Selected: No"
+                        domain="[('selected', '=', False)]"/>
+                <group expand="0">
+                    <filter name="grouped_by_partner_id"
+                            string="Customer"
+                            context="{'group_by':'partner_id'}"/>
+                    <filter name="grouped_by_aux_01_char"
+                            context="{'group_by':'aux_01_char'}"
+                            invisible="context.get('hide_aux_01_char', False)"/>
+                    <filter name="grouped_by_aux_02_char"
+                            context="{'group_by':'aux_02_char'}"
+                            invisible="context.get('hide_aux_02_char', False)"/>
+                    <filter name="grouped_by_aux_03_char"
+                            context="{'group_by':'aux_03_char'}"
+                            invisible="context.get('hide_aux_03_char', False)"/>
+                    <separator/>
+                    <filter name="grouped_by_aux_01_bool"
+                            context="{'group_by':'aux_01_bool'}"
+                            invisible="context.get('hide_aux_01_bool', False)"/>
+                    <filter name="grouped_by_aux_02_bool"
+                            context="{'group_by':'aux_02_bool'}"
+                            invisible="context.get('hide_aux_02_bool', False)"/>
+                    <filter name="grouped_by_aux_03_bool"
+                            context="{'group_by':'aux_03_bool'}"
+                            invisible="context.get('hide_aux_03_bool', False)"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+</odoo>

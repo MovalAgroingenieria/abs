@@ -1,7 +1,7 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import fields, models, api
+from odoo import models, fields, api
 
 
 class AccountMoveLine(models.Model):
@@ -15,7 +15,7 @@ class AccountMoveLine(models.Model):
         compute='_compute_invoiceset_id',)
 
     categ_id = fields.Many2one(
-        string='Category',
+        string='Product Category',
         comodel_name='product.category',
         store=True,
         compute='_compute_categ_id',)
@@ -25,6 +25,12 @@ class AccountMoveLine(models.Model):
         comodel_name='res.users',
         store=True,
         compute='_compute_invoice_user_id',)
+
+    price_taxes = fields.Monetary(
+        string='Tax',
+        store=True,
+        compute='_compute_price_taxes',
+        currency_field='currency_id',)
 
     @api.depends('move_id')
     def _compute_invoiceset_id(self):
@@ -50,3 +56,11 @@ class AccountMoveLine(models.Model):
             if record.move_id and record.move_id.invoice_user_id:
                 invoice_user_id = record.move_id.invoice_user_id
             record.invoice_user_id = invoice_user_id
+
+    @api.depends('price_total')
+    def _compute_price_taxes(self):
+        for record in self:
+            price_taxes = 0
+            if record.credit > 0:
+                price_taxes = record.price_total - record.price_subtotal
+            record.price_taxes = price_taxes

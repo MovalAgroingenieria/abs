@@ -34,10 +34,13 @@
         'views/account_move_views.xml',
         'views/account_move_line_views.xml',
         'views/product_category_views.xml',
+        'views/account_selectable_item_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
             'base_invoicing/static/src/scss/base_invoicing.scss',
+            'base_invoicing/static/src/js/massive_invoicing_list_renderer.js',
+            'base_invoicing/static/src/js/massive_invoicing_search_model.js',
         ],
     },
 }

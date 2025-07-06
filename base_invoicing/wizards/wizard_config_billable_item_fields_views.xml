@@ -37,7 +37,7 @@
                                    'readonly': [('editable', '=', False)]}"/>
                     <field name="billable_item_domain"
                            string="Pre-filter"
-                           widget="text" rows="2"
+                           widget="text" rows="3"
                            attrs="{'readonly': [('editable', '=', False)]}"/>
                 </group>
                 <footer>

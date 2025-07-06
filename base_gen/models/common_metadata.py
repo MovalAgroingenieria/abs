@@ -9,11 +9,14 @@ class CommonMetadata(models.AbstractModel):
     _description = 'Metadata extraction from Odoo models'
 
     # Get the metadata of a field in a model.
-    def get_field(self, model_name, field_name):
+    def get_field(self, model_name, field_name,
+                  exclude_related=True):
         resp = {'model': model_name, 'name': field_name, }
         model_ir_model_fields = self.env['ir.model.fields'].sudo()
-        field = model_ir_model_fields.search(
-            [('model', '=', model_name), ('name', '=', field_name)])
+        condition = [('model', '=', model_name), ('name', '=', field_name)]
+        if exclude_related:
+            condition.append(('related', '=', False))
+        field = model_ir_model_fields.search(condition)
         if field:
             field = field[0]
         else:
@@ -56,7 +59,7 @@ class CommonMetadata(models.AbstractModel):
     # Obtain the metadata of the fields in a model, with a filter based on the
     # field type (example: "integer,float").
     def get_fields(self, model_name, field_types, exclude_id=True,
-                   exclude_computed=True):
+                   exclude_computed=True, exclude_related=True):
         resp = []
         field_types = field_types.lower()
         condition = [('model', '=', model_name)]
@@ -64,6 +67,8 @@ class CommonMetadata(models.AbstractModel):
             condition.append(('name', '!=', 'id'))
         if exclude_computed:
             condition.append(('store', '=', True))
+        if exclude_related:
+            condition.append(('related', '=', False))
         additional_condition = self._get_condition(field_types)
         if additional_condition:
             condition = condition + additional_condition
@@ -88,4 +93,13 @@ class CommonMetadata(models.AbstractModel):
                 resp.append('|')
                 resp.append(('ttype', '=', current_field_type))
                 resp = resp + self._get_condition(remaining_field_types)
+        return resp
+
+    # Get the inherited models of a specific model (excluding the model itself)
+    def get_inherited_models(self, model_name):
+        resp = []
+        for inherited_class in self.env[model_name].__class__.__mro__:
+            class_name = inherited_class.__name__
+            if class_name != model_name and class_name.find('.') != -1:
+                resp.append(class_name)
         return resp
