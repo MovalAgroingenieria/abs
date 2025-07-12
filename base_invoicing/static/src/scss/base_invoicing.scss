@@ -114,6 +114,11 @@
     min-width: 100px;
 }
 
+.o_base_invoicing_account_selectable_item [data-name="selected_message"] {
+    width: 115px;
+    min-width: 115px;
+}
+
 body[data-res-model="account.selectable.item"] .o_add_custom_filter_menu {
     display: none !important;
 }

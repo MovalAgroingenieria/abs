@@ -29,8 +29,17 @@ class AccountSelectableItem(models.Model):
         string='Quantity',
         digits=(32, 4),)
 
+    state = fields.Selection(
+        string='State',
+        related='productlink_id.invoiceset_id.state',)
+
     selected = fields.Boolean(
         string='Selected (y/n)',)
+
+    selected_message = fields.Char(
+        string='Selected (message)',
+        store=False,
+        compute='_compute_selected_message',)
 
     rendered_aux_desc = fields.Text(
         string='Additional Information',
@@ -75,6 +84,13 @@ class AccountSelectableItem(models.Model):
     aux_03_bool = fields.Boolean(
         string='Aux. field of type boolean #3',)
 
+    def _compute_selected_message(self):
+        for record in self:
+            selected_message = _('Excluded')
+            if record.selected:
+                selected_message = _('Selected')
+            record.selected_message = selected_message
+
     def _compute_rendered_aux_desc(self):
         for record in self:
             rendered_aux_desc = ''
@@ -96,4 +112,13 @@ class AccountSelectableItem(models.Model):
             record.rendered_aux_desc = rendered_aux_desc
 
     def action_select_items(self):
+        productlink = self[0].productlink_id
         self.selected = True
+        populated = productlink.number_of_selected_items > 0
+        productlink.write({'populated': populated})
+
+    def action_deselect_items(self):
+        productlink = self[0].productlink_id
+        self.selected = False
+        populated = productlink.number_of_selected_items > 0
+        productlink.write({'populated': populated})

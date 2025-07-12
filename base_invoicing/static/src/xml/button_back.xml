@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<templates>
+    <t t-name="base_invoicing.ListView.Buttons" t-inherit="web.ListView.Buttons">
+        <xpath expr="//*[@t-if='props.showButtons']" position="before">
+            <button type="button" class="btn btn-primary" style="margin-left:10px;" t-on-click="OnClickToReturn">
+                Return
+            </button>
+        </xpath>
+    </t>
+</templates>

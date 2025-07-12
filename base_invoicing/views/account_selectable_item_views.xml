@@ -7,14 +7,27 @@
         <field name="arch" type="xml">
             <tree default_order="partner_id, quantity"
                   create="False" delete="False"
+                  decoration-info="selected == True and (state == 'draft' or state == 'configured')"
                   decoration-muted="selected == False"
+                  class="o_base_invoicing_account_selectable_item"
                   js_class="selectable_item_view_tree">
                 <header>
                     <button name="action_select_items"
                             string="Select"
                             type="object" class="btn-secondary"
                             icon="fa-thumbs-o-up"/>
+                    <button name="action_deselect_items"
+                            string="Deselect"
+                            type="object" class="btn-secondary"
+                            icon="fa-thumbs-o-down"/>
                 </header>
+                <field name="state" invisible="1"/>
+                <field name="selected" invisible="1"/>
+                <field name="selected_message" string=" "
+                       widget="badge"
+                       decoration-info="selected == True"
+                       decoration-muted="selected == False"
+                       invisible="context.get('hide_selectors', False)"/>
                 <field name="partner_id" string="Customer"/>
                 <field name="quantity" string="Quantity"
                        sum="Total"
@@ -45,8 +58,6 @@
                        invisible="context.get('hide_aux_03_bool', False)"/>
                 <field name="rendered_aux_desc" string="Additional Information"
                        invisible="context.get('hide_rendered_aux_desc', False)"/>
-                <field name="selected" string="Selected (y/n)"
-                       invisible="context.get('hide_selectors', False)"/>
             </tree>
         </field>
     </record>

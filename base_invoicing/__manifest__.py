@@ -41,6 +41,7 @@
             'base_invoicing/static/src/scss/base_invoicing.scss',
             'base_invoicing/static/src/js/massive_invoicing_list_renderer.js',
             'base_invoicing/static/src/js/massive_invoicing_search_model.js',
+            'base_invoicing/static/src/xml/button_back.xml'
         ],
     },
 }

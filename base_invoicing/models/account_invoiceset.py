@@ -118,10 +118,20 @@ class AccountInvoiceset(models.Model):
         compute='_compute_some_posted_invoice',)
 
     # Provisional
-    @api.depends('calculating')
+    @api.depends('all_productlinks_configured', 'calculating')
     def _compute_state(self):
         for record in self:
             state = 'draft'
+            transition_all_productlinks_configured = \
+                record.all_productlinks_configured
+            transition_some_unconfigured_productlink = \
+                not transition_all_productlinks_configured
+            if (state == 'draft' and
+               transition_all_productlinks_configured):
+                state = 'configured'
+            if (state == 'configured' and
+               transition_some_unconfigured_productlink):
+                state = 'draft'
             # Provisional
             record.state = state
 
@@ -134,11 +144,14 @@ class AccountInvoiceset(models.Model):
             record.number_of_invoices = number_of_invoices
 
     # Provisional
-    @api.depends('productlink_ids')
+    @api.depends('productlink_ids', 'productlink_ids.populated')
     def _compute_all_productlinks_configured(self):
         for record in self:
             all_productlinks_configured = False
-            # Provisional
+            if record.productlink_ids:
+                all_productlinks_configured = \
+                    all(productlink.populated for
+                        productlink in record.productlink_ids)
             record.all_productlinks_configured = all_productlinks_configured
 
     @api.depends('move_ids', 'move_ids.state')
@@ -431,6 +444,7 @@ class AccountInvoicesetProductlink(models.Model):
         if (current_productlink.invoiceset_id.state == 'draft' and
            current_productlink.number_of_selectable_items == 0):
             self.populate_selectable_items(current_productlink)
+            self.update_populated()
         id_tree_view = self.sudo().env.ref(
             'base_invoicing.account_selectable_item_view_tree').id
         search_view = self.sudo().env.ref(
@@ -616,14 +630,23 @@ class AccountInvoicesetProductlink(models.Model):
         return action
 
     def refresh_selectable_items(self):
+        self.delete_selectable_items()
         for record in self:
-            # Provisional
-            print('refresh_selectable_items')
+            self.populate_selectable_items(record)
+        self.update_populated()
 
     def delete_selectable_items(self):
         for record in self:
-            # Provisional
-            print('delete_selectable_items')
+            try:
+                self.env.cr.savepoint()
+                self.env.cr.execute("""DELETE FROM account_selectable_item
+                WHERE productlink_id = %s""", (record.id,))
+                self.env.cr.commit()
+            except Exception as e:
+                self.env.cr.rollback()
+                raise exceptions.UserError(_('Error updating records:') +
+                                           ' ' + str(e))
+            record.update_populated()
 
     def delete(self):
         for record in self:
@@ -730,3 +753,13 @@ class AccountInvoicesetProductlink(models.Model):
             aux_fields_insert = aux_fields_insert[2:]
             aux_fields_select = aux_fields_select[2:]
         return aux_fields_insert, aux_fields_select
+
+    def update_populated(self):
+        self.ensure_one
+        populated = False
+        self.env.cr.execute("""SELECT count(*) FROM account_selectable_item
+        WHERE productlink_id = %s AND selected""", (self.id,))
+        query_results = self.env.cr.dictfetchall()
+        if query_results and query_results[0].get('count') is not None:
+            populated = query_results[0].get('count') > 0
+        self.write({'populated': populated})
