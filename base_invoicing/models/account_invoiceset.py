@@ -1,6 +1,9 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
+import time
+import threading
+
 from odoo import models, fields, api, exceptions, _
 
 
@@ -20,6 +23,9 @@ class AccountInvoiceset(models.Model):
     _set_alphanum_code_to_lowercase = False
     _set_alphanum_code_to_uppercase = True
     _size_description = 100
+
+    # Indication of whether the stop button has been pressed (background).
+    _stop_order = False
 
     # Modified fields
     alphanum_code = fields.Char(
@@ -94,12 +100,6 @@ class AccountInvoiceset(models.Model):
         store=True,
         compute='_compute_all_productlinks_configured',)
 
-    calculating = fields.Boolean(
-        string='In calculation process (y/n)',
-        default=False,
-        required=True,
-        readonly=True,)
-
     invoice_generation_progress = fields.Float(
         string='Percentage of progress during invoice generation',
         default=0,
@@ -117,11 +117,10 @@ class AccountInvoiceset(models.Model):
         store=True,
         compute='_compute_some_posted_invoice',)
 
-    # Provisional
-    @api.depends('all_productlinks_configured', 'calculating')
+    @api.depends('all_productlinks_configured')
     def _compute_state(self):
         for record in self:
-            state = 'draft'
+            state = record.state
             transition_all_productlinks_configured = \
                 record.all_productlinks_configured
             transition_some_unconfigured_productlink = \
@@ -143,7 +142,6 @@ class AccountInvoiceset(models.Model):
                 number_of_invoices = len(record.move_ids)
             record.number_of_invoices = number_of_invoices
 
-    # Provisional
     @api.depends('productlink_ids', 'productlink_ids.populated')
     def _compute_all_productlinks_configured(self):
         for record in self:
@@ -196,8 +194,120 @@ class AccountInvoiceset(models.Model):
 
     def calculate_invoiceset(self):
         self.ensure_one()
-        # Provisional
-        print('calculate_invoiceset')
+        invoiceset = self
+        if not invoiceset.state == 'configured':
+            return None
+        # Set state to "calculating" with SQL
+        # (ORM does not update until the end)
+        self.env.cr.execute("""UPDATE account_invoiceset
+        SET state = 'calculating' WHERE id = %s""", (invoiceset.id,))
+        self.env.cr.commit()
+        config = self.env['ir.config_parameter'].sudo()
+        run_background = config.get_param(
+            'base_invoicing.mass_invoicing_run_background', False)
+        if run_background:
+            self.calculation_process(invoiceset.id, True)
+        else:
+            self.calculation_process(invoiceset.id)
+
+    # It is usually run from "cron".
+    @api.model
+    def calculate_all_configured_invoiceset(self):
+        configured_invoicesets = self.search([('state', '=', 'configured')])
+        for invoiceset in (configured_invoicesets or []):
+            self.calculation_process(invoiceset.id, from_cron=True)
+
+    @api.model
+    def calculation_process(self, id_of_invoiceset,
+                            background=False, from_cron=False):
+        invoiceset = self.env['account.invoiceset'].browse(id_of_invoiceset)
+        if not invoiceset:
+            return None
+        if background:
+            new_cr = self.pool.cursor()
+            env = api.Environment(new_cr, self.env.uid, self.env.context)
+            self = self.with_env(env)
+            background_process = threading.Thread(
+                target=self.invoice_generation,
+                args=(invoiceset.id, True, False), daemon=True)
+            background_process.start()
+            number_of_invoices = 0
+        else:
+            number_of_invoices = self.invoice_generation(id_of_invoiceset,
+                                                         from_cron=from_cron)
+
+    @api.model
+    def invoice_generation(self, id_of_invoiceset,
+                           background=False, from_cron=False):
+        number_of_invoices = 0
+        invoiceset = self.env['account.invoiceset'].browse(id_of_invoiceset)
+        if not invoiceset:
+            return 0
+        # Provisional: replace "productlinks" with invoice list.
+        productlinks = invoiceset.productlink_ids
+        if not productlinks:
+            return 0
+        suffix = _('(foreground)')
+        if background:
+            suffix = _('(background)')
+        log_message = _('Calculation Process: start') + ' ' + suffix
+        invoiceset.message_post(body=log_message)
+        self.env['common.log'].register_in_log('Calculation Process: start.',
+                                               source=self._name,
+                                               message_type='INFO')
+        invoice_generation_progress = 0
+        step = 100/len(productlinks)
+        invoiceset.write({
+            'invoice_generation_progress': 0, })
+        if background:
+            self.__class__._stop_order = False
+        elif not from_cron:
+            productlinks = productlinks.with_progress(
+                _('Creating invoices...'))
+        cancelled = False
+        for productlink in (productlinks or []):
+            # Provisional: create invoice.
+            time.sleep(2)
+            print(productlink.name)
+            # Provisional: assign an invoice to a set of invoices.
+            test_invoice = self.env['account.move'].browse(1)
+            if test_invoice:
+                test_invoice.invoiceset_id = id_of_invoiceset
+            invoice_generation_progress = invoice_generation_progress + step
+            invoiceset.write({
+                'invoice_generation_progress': invoice_generation_progress, })
+            if background and self._stop_order:
+                invoiceset.cancel_invoices()
+                number_of_invoices = 0
+                self.__class__._stop_order = False
+                cancelled = True
+                break
+        if not cancelled:
+            invoice_generation_progress = 100
+            state = 'calculated'
+        else:
+            invoice_generation_progress = 0
+            state = 'configured'
+        invoiceset.write({
+            'state': state,
+            'invoice_generation_progress': invoice_generation_progress, })
+        suffix = _('No. of invoices:') + ' ' + str(number_of_invoices)
+        if cancelled:
+            suffix = _('Cancelled')
+        log_message = _('Calculation Process: end.') + ' ' + suffix
+        invoiceset.message_post(body=log_message)
+        self.env['common.log'].register_in_log(
+            'Calculation Process: end. No. of invoices:' +
+            ' ' + str(number_of_invoices),
+            source=self._name, message_type='INFO')
+        if background:
+            self.env.cr.commit()
+            self.env.cr.close()
+        return number_of_invoices
+
+    def stop_calculation(self):
+        self.ensure_one
+        self.__class__._stop_order = True
 
     def cancel_invoiceset(self):
         self.ensure_one()

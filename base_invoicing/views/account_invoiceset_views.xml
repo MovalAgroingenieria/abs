@@ -67,6 +67,14 @@
                             <field name="journal_id" string="Journal"
                                    attrs="{'readonly': [('state', '!=', 'draft'), ('state', '!=', 'configured')]}"
                                    options="{'no_quick_create':True, 'no_create_edit': True}"/>
+                            <div name="calculation_progress" colspan="2"
+                                 class="text-center mb-4">
+                                <button name="stop_calculation"
+                                        type="object" string=" Stop calculation"
+                                        class="btn-primary"
+                                        icon="fa-hand-paper-o"
+                                        attrs="{'invisible': [('state', '!=', 'calculating')]}"/>
+                            </div>
                         </group>
                     </group>
                     <notebook name="slave_data_notebook" colspan="4">
