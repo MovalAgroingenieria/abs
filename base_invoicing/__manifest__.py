@@ -25,6 +25,7 @@
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
         'data/product_category_data.xml',
+        'data/base_invoicing_cron.xml',
         'wizards/wizard_select_field_views.xml',
         'wizards/wizard_config_billable_item_fields_views.xml',
         'wizards/wizard_confirm_productlink_action_views.xml',
@@ -41,7 +42,8 @@
             'base_invoicing/static/src/scss/base_invoicing.scss',
             'base_invoicing/static/src/js/massive_invoicing_list_renderer.js',
             'base_invoicing/static/src/js/massive_invoicing_search_model.js',
-            'base_invoicing/static/src/xml/button_back.xml'
+            'base_invoicing/static/src/xml/button_back.xml',
+            'base_invoicing/static/src/js/massive_invoicing_form_controller.js',
         ],
     },
 }

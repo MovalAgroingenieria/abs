@@ -103,7 +103,7 @@ class AccountInvoiceset(models.Model):
     invoice_generation_progress = fields.Float(
         string='Percentage of progress during invoice generation',
         default=0,
-        readonly=True,)
+        compute='_compute_invoice_generation_progress',)
 
     calculated = fields.Boolean(
         string='Calculated (y/n)',
@@ -152,6 +152,18 @@ class AccountInvoiceset(models.Model):
                         productlink in record.productlink_ids)
             record.all_productlinks_configured = all_productlinks_configured
 
+    def _compute_invoice_generation_progress(self):
+        model_account_invoiceset_progress = \
+            self.env['account.invoiceset.progress']
+        for record in self:
+            invoice_generation_progress = 0
+            progress_record = model_account_invoiceset_progress.search(
+                [('invoiceset_id', '=', record.id)])
+            if progress_record:
+                invoice_generation_progress = \
+                    progress_record[0].invoice_generation_progress
+            record.invoice_generation_progress = invoice_generation_progress
+
     @api.depends('move_ids', 'move_ids.state')
     def _compute_some_posted_invoice(self):
         for record in self:
@@ -170,6 +182,25 @@ class AccountInvoiceset(models.Model):
                                    record.description + ')')
             invoiceset_names.append((record.id, invoiceset_name))
         return invoiceset_names
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        model_account_invoiceset_progress = \
+            self.env['account.invoiceset.progress']
+        invoicesets = super(AccountInvoiceset, self).create(vals_list)
+        for invoiceset in invoicesets:
+            model_account_invoiceset_progress.create({
+                'invoiceset_id': invoiceset.id, })
+        return invoicesets
+
+    def unlink(self):
+        model_account_invoiceset_progress = \
+            self.env['account.invoiceset.progress']
+        for record in self:
+            model_account_invoiceset_progress.search(
+                [('invoiceset_id', '=', record.id)]).unlink()
+        res = super(AccountInvoiceset, self).unlink()
+        return res
 
     def action_show_invoices(self):
         self.ensure_one()
@@ -201,6 +232,10 @@ class AccountInvoiceset(models.Model):
         # (ORM does not update until the end)
         self.env.cr.execute("""UPDATE account_invoiceset
         SET state = 'calculating' WHERE id = %s""", (invoiceset.id,))
+        self.env.cr.execute("""DELETE FROM account_selectable_item
+        WHERE NOT selected AND productlink_id IN
+        (SELECT id FROM account_invoiceset_productlink
+        WHERE invoiceset_id = %s)""", (invoiceset.id,))
         self.env.cr.commit()
         config = self.env['ir.config_parameter'].sudo()
         run_background = config.get_param(
@@ -231,10 +266,9 @@ class AccountInvoiceset(models.Model):
                 target=self.invoice_generation,
                 args=(invoiceset.id, True, False), daemon=True)
             background_process.start()
-            number_of_invoices = 0
         else:
-            number_of_invoices = self.invoice_generation(id_of_invoiceset,
-                                                         from_cron=from_cron)
+            self.invoice_generation(id_of_invoiceset,
+                                    from_cron=from_cron)
 
     @api.model
     def invoice_generation(self, id_of_invoiceset,
@@ -242,11 +276,11 @@ class AccountInvoiceset(models.Model):
         number_of_invoices = 0
         invoiceset = self.env['account.invoiceset'].browse(id_of_invoiceset)
         if not invoiceset:
-            return 0
+            return None
         # Provisional: replace "productlinks" with invoice list.
         productlinks = invoiceset.productlink_ids
         if not productlinks:
-            return 0
+            return None
         suffix = _('(foreground)')
         if background:
             suffix = _('(background)')
@@ -257,10 +291,15 @@ class AccountInvoiceset(models.Model):
                                                message_type='INFO')
         invoice_generation_progress = 0
         step = 100/len(productlinks)
-        invoiceset.write({
-            'invoice_generation_progress': 0, })
+        tmp_cr = None
         if background:
             self.__class__._stop_order = False
+            tmp_cr = self.pool.cursor()
+            tmp_cr.execute("""UPDATE account_invoiceset_progress
+                           SET invoice_generation_progress = %s
+                           WHERE invoiceset_id = %s""",
+                           (0, id_of_invoiceset))
+            tmp_cr.commit()
         elif not from_cron:
             productlinks = productlinks.with_progress(
                 _('Creating invoices...'))
@@ -274,23 +313,25 @@ class AccountInvoiceset(models.Model):
             if test_invoice:
                 test_invoice.invoiceset_id = id_of_invoiceset
             invoice_generation_progress = invoice_generation_progress + step
-            invoiceset.write({
-                'invoice_generation_progress': invoice_generation_progress, })
-            if background and self._stop_order:
-                invoiceset.cancel_invoices()
-                number_of_invoices = 0
-                self.__class__._stop_order = False
-                cancelled = True
-                break
+            if background:
+                if self._stop_order:
+                    invoiceset.cancel_invoices()
+                    number_of_invoices = 0
+                    self.__class__._stop_order = False
+                    cancelled = True
+                    break
+                elif tmp_cr:
+                    tmp_cr.execute("""UPDATE account_invoiceset_progress
+                                   SET invoice_generation_progress = %s
+                                   WHERE invoiceset_id = %s""",
+                                   (invoice_generation_progress,
+                                    id_of_invoiceset))
+                    tmp_cr.commit()
         if not cancelled:
-            invoice_generation_progress = 100
             state = 'calculated'
         else:
-            invoice_generation_progress = 0
             state = 'configured'
-        invoiceset.write({
-            'state': state,
-            'invoice_generation_progress': invoice_generation_progress, })
+        invoiceset.write({'state': state, })
         suffix = _('No. of invoices:') + ' ' + str(number_of_invoices)
         if cancelled:
             suffix = _('Cancelled')
@@ -303,11 +344,30 @@ class AccountInvoiceset(models.Model):
         if background:
             self.env.cr.commit()
             self.env.cr.close()
-        return number_of_invoices
+            if tmp_cr:
+                tmp_cr.execute("""UPDATE account_invoiceset_progress
+                               SET invoice_generation_progress = %s
+                               WHERE invoiceset_id = %s""",
+                               (0, id_of_invoiceset))
+                tmp_cr.commit()
+                tmp_cr.close()
+        return None
 
     def stop_calculation(self):
         self.ensure_one
         self.__class__._stop_order = True
+
+    @api.model
+    def background_calculation_active(self, invoiceset_id):
+        resp = False
+        invoiceset = self.sudo().browse(invoiceset_id)
+        if invoiceset and invoiceset.state == 'calculating':
+            config = self.env['ir.config_parameter'].sudo()
+            run_background = config.get_param(
+                'base_invoicing.mass_invoicing_run_background', False)
+            if run_background:
+                resp = True
+        return resp
 
     def cancel_invoiceset(self):
         self.ensure_one()
@@ -825,40 +885,52 @@ class AccountInvoicesetProductlink(models.Model):
         aux_fields_select = ''
         if category.aux_01_char_field:
             aux_fields_insert = aux_fields_insert + ', aux_01_char'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_01_char_field
+            aux_fields_select = (aux_fields_select + ', '
+                                 + category.aux_01_char_field)
         if category.aux_01_int_field:
             aux_fields_insert = aux_fields_insert + ', aux_01_int'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_01_int_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_01_int_field)
         if category.aux_01_float_field:
             aux_fields_insert = aux_fields_insert + ', aux_01_float'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_01_float_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_01_float_field)
         if category.aux_01_bool_field:
             aux_fields_insert = aux_fields_insert + ', aux_01_bool'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_01_bool_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_01_bool_field)
         if category.aux_02_char_field:
             aux_fields_insert = aux_fields_insert + ', aux_02_char'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_02_char_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_02_char_field)
         if category.aux_02_int_field:
             aux_fields_insert = aux_fields_insert + ', aux_02_int'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_02_int_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_02_int_field)
         if category.aux_02_float_field:
             aux_fields_insert = aux_fields_insert + ', aux_02_float'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_02_float_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_02_float_field)
         if category.aux_02_bool_field:
             aux_fields_insert = aux_fields_insert + ', aux_02_bool'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_02_bool_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_02_bool_field)
         if category.aux_03_char_field:
             aux_fields_insert = aux_fields_insert + ', aux_03_char'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_03_char_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_03_char_field)
         if category.aux_03_int_field:
             aux_fields_insert = aux_fields_insert + ', aux_03_int'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_03_int_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_03_int_field)
         if category.aux_03_float_field:
             aux_fields_insert = aux_fields_insert + ', aux_03_float'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_03_float_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_03_float_field)
         if category.aux_03_bool_field:
             aux_fields_insert = aux_fields_insert + ', aux_03_bool'
-            aux_fields_select = aux_fields_select + ', ' + category.aux_03_bool_field
+            aux_fields_select = (aux_fields_select + ', ' +
+                                 category.aux_03_bool_field)
         if aux_fields_select and aux_fields_select:
             aux_fields_insert = aux_fields_insert[2:]
             aux_fields_select = aux_fields_select[2:]
@@ -873,3 +945,20 @@ class AccountInvoicesetProductlink(models.Model):
         if query_results and query_results[0].get('count') is not None:
             populated = query_results[0].get('count') > 0
         self.write({'populated': populated})
+
+
+class AccountInvoicesetProgress(models.Model):
+    _name = 'account.invoiceset.progress'
+    _description = ('Auxiliary model for the progress bar of  the invoice-set'
+                    'calculation')
+
+    invoiceset_id = fields.Many2one(
+        string='Invoice Set',
+        comodel_name='account.invoiceset',
+        index=True,
+        readonly=True,)
+
+    invoice_generation_progress = fields.Float(
+        string='Percentage of progress during invoice generation',
+        default=0,
+        readonly=True,)

@@ -5,14 +5,16 @@
         <field name="name">account.invoiceset.view.form</field>
         <field name="model">account.invoiceset</field>
         <field name="arch" type="xml">
-            <form string="Invoice Set" duplicate="0">
+            <form string="Invoice Set" duplicate="0"
+                  js_class="invoiceset_view_form">
                 <header>
                     <button name="calculate_invoiceset"
                             type="object"
                             string="Calculate"
                             class="oe_highlight"
                             data-hotkey="a"
-                            attrs="{'invisible':[('state', '!=', 'configured')]}"/>
+                            attrs="{'invisible':[('state', '!=', 'configured')]}"
+                            confirm="Do you confirm that you want to start the calculation process? If you proceed, the discarded items will no longer be available for selection, although you could recover them by reconfiguring the line."/>
                     <button name="cancel_invoiceset"
                             type="object"
                             string="Cancel"
@@ -68,12 +70,19 @@
                                    attrs="{'readonly': [('state', '!=', 'draft'), ('state', '!=', 'configured')]}"
                                    options="{'no_quick_create':True, 'no_create_edit': True}"/>
                             <div name="calculation_progress" colspan="2"
-                                 class="text-center mb-4">
-                                <button name="stop_calculation"
-                                        type="object" string=" Stop calculation"
-                                        class="btn-primary"
-                                        icon="fa-hand-paper-o"
-                                        attrs="{'invisible': [('state', '!=', 'calculating')]}"/>
+                                 class="text-center mb-4"
+                                 attrs="{'invisible': [('state', '!=', 'calculating')]}">
+                                <div style="display: inline-block;">
+                                    <field name="invoice_generation_progress"
+                                           widget="progressbar"/>
+                                </div>
+                                <div>
+                                    <button name="stop_calculation"
+                                            type="object" string=" Stop Calculation"
+                                            class="btn-primary"
+                                            icon="fa-hand-paper-o"
+                                            confirm="Are you sure you want to stop the calculation?"/>
+                                </div>
                             </div>
                         </group>
                     </group>
