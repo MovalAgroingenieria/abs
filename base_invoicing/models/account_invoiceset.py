@@ -228,10 +228,6 @@ class AccountInvoiceset(models.Model):
         invoiceset = self
         if not invoiceset.state == 'configured':
             return None
-        # Set state to "calculating" with SQL
-        # (ORM does not update until the end)
-        self.env.cr.execute("""UPDATE account_invoiceset
-        SET state = 'calculating' WHERE id = %s""", (invoiceset.id,))
         self.env.cr.execute("""DELETE FROM account_selectable_item
         WHERE NOT selected AND productlink_id IN
         (SELECT id FROM account_invoiceset_productlink
@@ -281,76 +277,99 @@ class AccountInvoiceset(models.Model):
         productlinks = invoiceset.productlink_ids
         if not productlinks:
             return None
-        suffix = _('(foreground)')
-        if background:
-            suffix = _('(background)')
-        log_message = _('Calculation Process: start') + ' ' + suffix
-        invoiceset.message_post(body=log_message)
-        self.env['common.log'].register_in_log('Calculation Process: start.',
-                                               source=self._name,
-                                               message_type='INFO')
-        invoice_generation_progress = 0
-        step = 100/len(productlinks)
         tmp_cr = None
-        if background:
-            self.__class__._stop_order = False
-            tmp_cr = self.pool.cursor()
-            tmp_cr.execute("""UPDATE account_invoiceset_progress
-                           SET invoice_generation_progress = %s
-                           WHERE invoiceset_id = %s""",
-                           (0, id_of_invoiceset))
-            tmp_cr.commit()
-        elif not from_cron:
-            productlinks = productlinks.with_progress(
-                _('Creating invoices...'))
-        cancelled = False
-        for productlink in (productlinks or []):
-            # Provisional: create invoice.
-            time.sleep(2)
-            print(productlink.name)
-            # Provisional: assign an invoice to a set of invoices.
-            test_invoice = self.env['account.move'].browse(1)
-            if test_invoice:
-                test_invoice.invoiceset_id = id_of_invoiceset
-            invoice_generation_progress = invoice_generation_progress + step
-            if background:
-                if self._stop_order:
-                    invoiceset.cancel_invoices()
-                    number_of_invoices = 0
-                    self.__class__._stop_order = False
-                    cancelled = True
-                    break
-                elif tmp_cr:
-                    tmp_cr.execute("""UPDATE account_invoiceset_progress
-                                   SET invoice_generation_progress = %s
-                                   WHERE invoiceset_id = %s""",
-                                   (invoice_generation_progress,
-                                    id_of_invoiceset))
-                    tmp_cr.commit()
-        if not cancelled:
-            state = 'calculated'
-        else:
-            state = 'configured'
-        invoiceset.write({'state': state, })
-        suffix = _('No. of invoices:') + ' ' + str(number_of_invoices)
-        if cancelled:
-            suffix = _('Cancelled')
-        log_message = _('Calculation Process: end.') + ' ' + suffix
-        invoiceset.message_post(body=log_message)
-        self.env['common.log'].register_in_log(
-            'Calculation Process: end. No. of invoices:' +
-            ' ' + str(number_of_invoices),
-            source=self._name, message_type='INFO')
-        if background:
+        try:
+            # Set state to "calculating" with SQL
+            # (ORM does not update until the end)
+            self.env.cr.execute("""UPDATE account_invoiceset
+            SET state = 'calculating' WHERE id = %s""", (invoiceset.id,))
             self.env.cr.commit()
-            self.env.cr.close()
-            if tmp_cr:
+            suffix = _('(foreground)')
+            if background:
+                suffix = _('(background)')
+            log_message = _('Calculation Process: start') + ' ' + suffix
+            invoiceset.message_post(body=log_message)
+            self.env['common.log'].register_in_log(
+                'Calculation Process: start.',
+                source=self._name, message_type='INFO')
+            invoice_generation_progress = 0
+            step = 100/len(productlinks)
+            if background:
+                self.__class__._stop_order = False
+                tmp_cr = self.pool.cursor()
                 tmp_cr.execute("""UPDATE account_invoiceset_progress
                                SET invoice_generation_progress = %s
                                WHERE invoiceset_id = %s""",
                                (0, id_of_invoiceset))
                 tmp_cr.commit()
-                tmp_cr.close()
+            elif not from_cron:
+                productlinks = productlinks.with_progress(
+                    _('Creating invoices...'))
+            cancelled = False
+            for productlink in (productlinks or []):
+                # Provisional: create invoice.
+                time.sleep(2)
+                print(productlink.name)
+                # Provisional: assign an invoice to a set of invoices.
+                test_invoice = self.env['account.move'].browse(1)
+                if test_invoice:
+                    test_invoice.invoiceset_id = id_of_invoiceset
+                invoice_generation_progress = \
+                    invoice_generation_progress + step
+                if background:
+                    if self._stop_order:
+                        invoiceset.cancel_invoices()
+                        number_of_invoices = 0
+                        self.__class__._stop_order = False
+                        cancelled = True
+                        break
+                    elif tmp_cr:
+                        tmp_cr.execute("""UPDATE account_invoiceset_progress
+                                       SET invoice_generation_progress = %s
+                                       WHERE invoiceset_id = %s""",
+                                       (invoice_generation_progress,
+                                        id_of_invoiceset))
+                        tmp_cr.commit()
+            if not cancelled:
+                state = 'calculated'
+            else:
+                state = 'configured'
+            invoiceset.write({'state': state, })
+            suffix = _('No. of invoices:') + ' ' + str(number_of_invoices)
+            if cancelled:
+                suffix = _('Cancelled')
+            log_message = _('Calculation Process: end.') + ' ' + suffix
+            invoiceset.message_post(body=log_message)
+            self.env['common.log'].register_in_log(
+                'Calculation Process: end. No. of invoices:' +
+                ' ' + str(number_of_invoices),
+                source=self._name, message_type='INFO')
+            if background:
+                self.env.cr.commit()
+                self.env.cr.close()
+                if tmp_cr:
+                    tmp_cr.execute("""UPDATE account_invoiceset_progress
+                                   SET invoice_generation_progress = %s
+                                   WHERE invoiceset_id = %s""",
+                                   (0, id_of_invoiceset))
+                    tmp_cr.commit()
+                    tmp_cr.close()
+        except Exception as e:
+            self.env['common.log'].register_in_log(
+                'Calculation Process: ERROR... ' + str(e),
+                source=self._name, message_type='INFO')
+            if background:
+                self.env.cr.execute("""UPDATE account_invoiceset
+                SET state = 'configured' WHERE id = %s""", (invoiceset.id,))
+                invoiceset.message_post(
+                    body=_('Calculation Process: ERROR...') + ' ' + str(e))
+                self.env.cr.commit()
+                self.env.cr.close()
+            else:
+                self.env.cr.execute("""UPDATE account_invoiceset
+                SET state = 'configured' WHERE id = %s""", (invoiceset.id,))
+                self.env.cr.commit()
+                raise exceptions.UserError(str(e))
         return None
 
     def stop_calculation(self):
