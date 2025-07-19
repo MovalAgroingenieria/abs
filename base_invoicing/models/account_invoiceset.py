@@ -237,7 +237,7 @@ class AccountInvoiceset(models.Model):
         run_background = config.get_param(
             'base_invoicing.mass_invoicing_run_background', False)
         if run_background:
-            self.calculation_process(invoiceset.id, True)
+            self.calculation_process(invoiceset.id, background=True)
         else:
             self.calculation_process(invoiceset.id)
 
@@ -271,7 +271,7 @@ class AccountInvoiceset(models.Model):
                            background=False, from_cron=False):
         number_of_invoices = 0
         invoiceset = self.env['account.invoiceset'].browse(id_of_invoiceset)
-        if not invoiceset:
+        if not invoiceset or invoiceset.state != 'configured':
             return None
         # Provisional: replace "productlinks" with invoice list.
         productlinks = invoiceset.productlink_ids
@@ -365,6 +365,13 @@ class AccountInvoiceset(models.Model):
                     body=_('Calculation Process: ERROR...') + ' ' + str(e))
                 self.env.cr.commit()
                 self.env.cr.close()
+                if tmp_cr:
+                    tmp_cr.execute("""UPDATE account_invoiceset_progress
+                                   SET invoice_generation_progress = %s
+                                   WHERE invoiceset_id = %s""",
+                                   (0, id_of_invoiceset))
+                    tmp_cr.commit()
+                    tmp_cr.close()
             else:
                 self.env.cr.execute("""UPDATE account_invoiceset
                 SET state = 'configured' WHERE id = %s""", (invoiceset.id,))
