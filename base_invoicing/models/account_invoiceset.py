@@ -3,6 +3,8 @@
 
 import time
 import threading
+from collections import defaultdict
+from jinja2 import Template, TemplateError
 
 from odoo import models, fields, api, exceptions, _
 
@@ -72,7 +74,8 @@ class AccountInvoiceset(models.Model):
         default='draft',
         store=True,
         compute='_compute_state',
-        index=True,)
+        index=True,
+        tracking=True,)
 
     move_ids = fields.One2many(
         string='Invoices',
@@ -117,7 +120,7 @@ class AccountInvoiceset(models.Model):
         store=True,
         compute='_compute_some_posted_invoice',)
 
-    @api.depends('all_productlinks_configured')
+    @api.depends('all_productlinks_configured', 'some_posted_invoice')
     def _compute_state(self):
         for record in self:
             state = record.state
@@ -125,13 +128,22 @@ class AccountInvoiceset(models.Model):
                 record.all_productlinks_configured
             transition_some_unconfigured_productlink = \
                 not transition_all_productlinks_configured
+            transition_some_posted_invoice = \
+                record.some_posted_invoice
+            transition_all_invoices_draft = \
+                not transition_some_posted_invoice
             if (state == 'draft' and
                transition_all_productlinks_configured):
                 state = 'configured'
             if (state == 'configured' and
                transition_some_unconfigured_productlink):
                 state = 'draft'
-            # Provisional
+            if (state == 'calculated' and
+               transition_some_posted_invoice):
+                state = 'committed'
+            if (state == 'committed' and
+               transition_all_invoices_draft):
+                state = 'calculated'
             record.state = state
 
     @api.depends('move_ids')
@@ -220,6 +232,7 @@ class AccountInvoiceset(models.Model):
             'search_view_id': (search_view.id, search_view.name),
             'target': 'current',
             'domain': [('invoiceset_id', '=', current_invoiceset.id)],
+            'context': {'default_move_type': 'out_invoice'},
             }
         return act_window
 
@@ -273,10 +286,6 @@ class AccountInvoiceset(models.Model):
         invoiceset = self.env['account.invoiceset'].browse(id_of_invoiceset)
         if not invoiceset or invoiceset.state != 'configured':
             return None
-        # Provisional: replace "productlinks" with invoice list.
-        productlinks = invoiceset.productlink_ids
-        if not productlinks:
-            return None
         tmp_cr = None
         try:
             # Set state to "calculating" with SQL
@@ -287,14 +296,6 @@ class AccountInvoiceset(models.Model):
             suffix = _('(foreground)')
             if background:
                 suffix = _('(background)')
-            log_message = _('Calculation Process: start') + ' ' + suffix
-            invoiceset.message_post(body=log_message)
-            self.env['common.log'].register_in_log(
-                'Calculation Process: start.',
-                source=self._name, message_type='INFO')
-            invoice_generation_progress = 0
-            step = 100/len(productlinks)
-            if background:
                 self.__class__._stop_order = False
                 tmp_cr = self.pool.cursor()
                 tmp_cr.execute("""UPDATE account_invoiceset_progress
@@ -302,34 +303,40 @@ class AccountInvoiceset(models.Model):
                                WHERE invoiceset_id = %s""",
                                (0, id_of_invoiceset))
                 tmp_cr.commit()
-            elif not from_cron:
-                productlinks = productlinks.with_progress(
-                    _('Creating invoices...'))
+            log_message = _('Calculation Process: start') + ' ' + suffix
+            invoiceset.message_post(body=log_message)
+            self.env['common.log'].register_in_log(
+                'Calculation Process: start (' + invoiceset.name + ')',
+                source=self._name, message_type='INFO')
             cancelled = False
-            for productlink in (productlinks or []):
-                # Provisional: create invoice.
-                time.sleep(2)
-                print(productlink.name)
-                # Provisional: assign an invoice to a set of invoices.
-                test_invoice = self.env['account.move'].browse(1)
-                if test_invoice:
-                    test_invoice.invoiceset_id = id_of_invoiceset
-                invoice_generation_progress = \
-                    invoice_generation_progress + step
-                if background:
-                    if self._stop_order:
-                        invoiceset.cancel_invoices()
-                        number_of_invoices = 0
-                        self.__class__._stop_order = False
-                        cancelled = True
-                        break
-                    elif tmp_cr:
-                        tmp_cr.execute("""UPDATE account_invoiceset_progress
-                                       SET invoice_generation_progress = %s
-                                       WHERE invoiceset_id = %s""",
-                                       (invoice_generation_progress,
-                                        id_of_invoiceset))
-                        tmp_cr.commit()
+            invoice_data = self.get_invoice_data(invoiceset)
+            if not invoice_data:
+                cancelled = True
+            else:
+                invoice_generation_progress = 0
+                step = 100 / len(invoice_data)
+                for data_of_the_invoice in (invoice_data or []):
+                    invoice = self.create_invoice(invoiceset, data_of_the_invoice)
+                    if invoice:
+                        number_of_invoices = number_of_invoices + 1
+                    if background:
+                        if self._stop_order:
+                            invoiceset.cancel_invoices()
+                            number_of_invoices = 0
+                            self.__class__._stop_order = False
+                            cancelled = True
+                            break
+                        elif tmp_cr:
+                            invoice_generation_progress = \
+                                invoice_generation_progress + step
+                            tmp_cr.execute("""UPDATE account_invoiceset_progress
+                                           SET invoice_generation_progress = %s
+                                           WHERE invoiceset_id = %s""",
+                                           (invoice_generation_progress,
+                                            id_of_invoiceset))
+                            tmp_cr.commit()
+            # Wait 2 seconds for the form view to refresh.
+            time.sleep(2)
             if not cancelled:
                 state = 'calculated'
             else:
@@ -379,6 +386,158 @@ class AccountInvoiceset(models.Model):
                 raise exceptions.UserError(str(e))
         return None
 
+    @api.model
+    def get_invoice_data(self, invoiceset):
+        invoice_data = None
+        if self._pre_get_invoice_data(invoiceset):
+            invoice_data = self._get_invoice_data(invoiceset)
+            invoice_data = self._post_get_invoice_data(invoiceset, invoice_data)
+        return invoice_data
+
+    @api.model
+    def _pre_get_invoice_data(self, invoiceset):
+        return True
+
+    @api.model
+    def _post_get_invoice_data(self, invoiceset, invoice_data):
+        return invoice_data
+
+    @api.model
+    def _get_invoice_data(self, invoiceset):
+        invoice_data = []
+        invoice_data_raw = []
+        for productlink in invoiceset.productlink_ids or []:
+            billable_item_model = \
+                productlink.sudo().billable_item_model_id.model
+            quantity_field = productlink.billable_item_quantity_field
+            group_field = productlink.billable_item_group_field
+            with_abstract_model = \
+                (self.env['account.billable.item'].
+                 inherits_from_account_billable_item(billable_item_model))
+            model_billable_item = self.env[billable_item_model]
+            if with_abstract_model:
+                model_billable_item.set_billing_quantity_name(quantity_field)
+                model_billable_item.set_billing_groupvalue_name(group_field)
+            for selected_item in productlink.selected_item_ids:
+                billable_item = model_billable_item.browse(
+                    selected_item.billable_item_res_id)
+                if billable_item:
+                    partner_id = 0
+                    quantity = 0
+                    groupvalue = ''
+                    if with_abstract_model:
+                        partner_id = billable_item.billing_partner_id.id
+                        quantity = billable_item.billing_quantity
+                        if group_field:
+                            groupvalue = billable_item.billing_groupvalue
+                    else:
+                        partner_id = billable_item.partner_id.id
+                        quantity = getattr(billable_item, quantity_field)
+                        if group_field:
+                            groupvalue = str(getattr(billable_item,
+                                                     group_field))
+                    if partner_id and quantity > 0:
+                        invoice_key = str(partner_id)
+                        if groupvalue:
+                            invoice_key = invoice_key + '-' + groupvalue
+                        vals = {
+                            'partner_id': partner_id,
+                            'invoice_key': invoice_key,
+                            'product_id': productlink.product_id.id,
+                            'quantity': quantity,
+                            'billable_item_model': billable_item_model,
+                            'billable_item_res_id': billable_item.id,
+                        }
+                        name = ''
+                        if productlink.billable_item_detail_desc:
+                            lang = billable_item.partner_id.lang
+                            try:
+                                template = None
+                                if lang:
+                                    template = Template(
+                                        productlink.with_context(
+                                            {'lang': lang}).
+                                        billable_item_detail_desc)
+                                else:
+                                    template = Template(
+                                        productlink.billable_item_detail_desc)
+                                name = template.render(
+                                    billable_item=billable_item,)
+                            except TemplateError as e:
+                                pass
+                        if name:
+                            vals['name'] = name
+                        invoice_data_raw.append(vals)
+        if invoice_data_raw:
+            grouped = defaultdict(list)
+            for item in invoice_data_raw:
+                grouped[item['invoice_key']].append(item)
+            invoice_data = [
+                {
+                    'invoice_key': key,
+                    'partner_id': lines[0]['partner_id'],
+                    'lines': lines
+                }
+                for key, lines in grouped.items()
+            ]
+            # Provisional
+            # print(invoice_data)
+        return invoice_data
+
+    @api.model
+    def create_invoice(self, invoiceset, data_of_the_invoice):
+        invoice = None
+        if self._pre_create_invoice(invoiceset,
+                                    data_of_the_invoice):
+            invoice = self._create_invoice(invoiceset,
+                                           data_of_the_invoice)
+            invoice = self._post_create_invoice(invoiceset,
+                                                data_of_the_invoice, invoice)
+        return invoice
+
+    @api.model
+    def _pre_create_invoice(self, invoiceset, data_of_the_invoice):
+        return True
+
+    @api.model
+    def _post_create_invoice(self, invoiceset, data_of_the_invoice, invoice):
+        return invoice
+
+    @api.model
+    def _create_invoice(self, invoiceset, data_of_the_invoice):
+        invoice = None
+        vals = {
+            'invoiceset_id': invoiceset.id,
+            'partner_id': data_of_the_invoice['partner_id'],
+            'invoice_date': invoiceset.invoice_date,
+            'move_type': 'out_invoice',
+            'state': 'draft',
+            'name': '/',
+        }
+        if invoiceset.payment_term_id:
+            vals['invoice_payment_term_id'] = invoiceset.payment_term_id.id
+        elif invoiceset.invoice_date_due:
+            vals['invoice_date_due'] = invoiceset.invoice_date_due
+        if invoiceset.invoice_user_id:
+            vals['invoice_user_id'] = invoiceset.invoice_user_id.id
+        if invoiceset.journal_id:
+            vals['journal_id'] = invoiceset.journal_id.id
+        if 'lines' in data_of_the_invoice:
+            invoice_lines = []
+            for invoice_line in data_of_the_invoice['lines']:
+                line_data = {
+                    'product_id': invoice_line['product_id'],
+                    'quantity': invoice_line['quantity'],
+                    'billable_item_model': invoice_line['billable_item_model'],
+                    'billable_item_res_id': invoice_line['billable_item_res_id'],
+                }
+                if 'name' in invoice_line:
+                    line_data['name'] = invoice_line['name']
+                invoice_lines.append((0, 0, line_data))
+            vals['invoice_line_ids'] = invoice_lines
+        invoice = self.env['account.move'].create(vals)
+        return invoice
+
     def stop_calculation(self):
         self.ensure_one
         self.__class__._stop_order = True
@@ -395,15 +554,10 @@ class AccountInvoiceset(models.Model):
                 resp = True
         return resp
 
-    def cancel_invoiceset(self):
-        self.ensure_one()
-        # Provisional
-        print('cancel_invoiceset')
-
     def cancel_invoices(self):
         self.ensure_one()
-        # Provisional
-        print('cancel_invoices')
+        self.move_ids.unlink()
+        self.write({'state': 'configured'})
 
 
 class AccountInvoicesetProductlink(models.Model):

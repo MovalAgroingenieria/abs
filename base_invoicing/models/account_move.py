@@ -10,4 +10,5 @@ class AccountMove(models.Model):
     invoiceset_id = fields.Many2one(
         string='Invoice Set',
         comodel_name='account.invoiceset',
-        index=True,)
+        index=True,
+        ondelete='restrict',)

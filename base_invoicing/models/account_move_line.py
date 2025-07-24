@@ -32,6 +32,13 @@ class AccountMoveLine(models.Model):
         compute='_compute_price_taxes',
         currency_field='currency_id',)
 
+    billable_item_model = fields.Char(
+        string='Billable item model: name',)
+
+    billable_item_res_id = fields.Many2oneReference(
+        string='Billable item model: reference',
+        model_field='billable_item_model',)
+
     @api.depends('move_id')
     def _compute_invoiceset_id(self):
         for record in self:
@@ -64,3 +71,42 @@ class AccountMoveLine(models.Model):
             if record.credit > 0:
                 price_taxes = record.price_total - record.price_subtotal
             record.price_taxes = price_taxes
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if ('billable_item_model' in vals and
+               'billable_item_res_id' in vals):
+                billable_item_model = vals['billable_item_model']
+                billable_item_res_id = vals['billable_item_res_id']
+                with_abstract_model = \
+                    (self.env['account.billable.item'].
+                     inherits_from_account_billable_item(billable_item_model))
+                if (billable_item_model and billable_item_res_id and
+                   with_abstract_model):
+                    my_billable_item = \
+                        self.env[billable_item_model].sudo().browse(
+                            billable_item_res_id)
+                    if my_billable_item:
+                        my_billable_item.number_of_invoices = \
+                            my_billable_item.number_of_invoices + 1
+        move_lines = super(AccountMoveLine, self).create(vals_list)
+        return move_lines
+
+    def unlink(self):
+        for record in self:
+            billable_item_model = record.billable_item_model
+            billable_item_res_id = record.billable_item_res_id
+            if billable_item_model and billable_item_res_id:
+                with_abstract_model = \
+                    (self.env['account.billable.item'].
+                     inherits_from_account_billable_item(billable_item_model))
+                if with_abstract_model:
+                    my_billable_item = \
+                        self.env[billable_item_model].sudo().browse(
+                            billable_item_res_id)
+                    if my_billable_item:
+                        my_billable_item.number_of_invoices = \
+                            max(my_billable_item.number_of_invoices - 1, 0)
+        res = super(AccountMoveLine, self).unlink()
+        return res

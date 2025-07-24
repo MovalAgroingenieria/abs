@@ -36,6 +36,7 @@
         'views/account_move_line_views.xml',
         'views/product_category_views.xml',
         'views/account_selectable_item_views.xml',
+        'views/account_portal_templates.xml',
     ],
     'assets': {
         'web.assets_backend': [

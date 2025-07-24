@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_my_invoices"
+              inherit_id="account.portal_my_invoices">
+        <xpath expr="//th[hasclass('d-md-table-cell')]" position="after">
+            <th>Invoice Set</th>
+        </xpath>
+        <xpath expr="//td[hasclass('d-md-table-cell')]" position="after">
+            <td><span t-field="invoice.invoiceset_id"/></td>
+        </xpath>
+    </template>
+
+</odoo>

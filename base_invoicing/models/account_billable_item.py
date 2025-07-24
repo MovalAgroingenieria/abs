@@ -17,6 +17,10 @@ class AccountBillableItem(models.AbstractModel):
     # of quantity.
     _billing_quantity_name = 'quantity'
 
+    # Name of the field in the billable items model that plays the role
+    # of "additional grouping criterion".
+    _billing_groupvalue_name = ''
+
     billing_partner_id = fields.Many2one(
         string='Billing partner reference',
         comodel_name='res.partner',
@@ -26,6 +30,10 @@ class AccountBillableItem(models.AbstractModel):
         string='Quantity field name',
         digits=(32, 4),
         compute='_compute_billing_quantity',)
+
+    billing_groupvalue = fields.Char(
+        string='Grouping Value',
+        compute='_compute_billing_groupvalue',)
 
     number_of_invoices = fields.Integer(
         string='No. of invoices',
@@ -53,6 +61,14 @@ class AccountBillableItem(models.AbstractModel):
                                            self._billing_quantity_name)
             record.billing_quantity = billing_quantity
 
+    def _compute_billing_groupvalue(self):
+        for record in self:
+            billing_groupvalue = ''
+            if self._billing_groupvalue_name:
+                billing_groupvalue = str(
+                    getattr(record, self._billing_groupvalue_name))
+            record.billing_groupvalue = billing_groupvalue
+
     def _compute_move_line_ids(self):
         for record in self:
             move_line_ids = None
@@ -66,6 +82,10 @@ class AccountBillableItem(models.AbstractModel):
     @api.model
     def set_billing_quantity_name(self, quantity_name):
         self.__class__._billing_quantity_name = quantity_name
+
+    @api.model
+    def set_billing_groupvalue_name(self, groupvalue_name):
+        self.__class__._billing_groupvalue_name = groupvalue_name
 
     @api.model
     def exists_active_field(self, model_name):
