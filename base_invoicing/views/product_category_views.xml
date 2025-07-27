@@ -97,7 +97,7 @@
                                     member {{billable_item.billing_partner_id.display_name}}" (optional field).
                                     Important: regardless of the billable items model, in the Jinja2 template
                                     we must refer to it as "billable_item". All fields used in the template
-                                    must belong to the selectable items model. The '|' character will be
+                                    must belong to the billable items model. The '|' character will be
                                     replaced by a new line.
                                 </div>
                                 <span name="billable_item_domain_label" class="o_form_label o_td_label">
