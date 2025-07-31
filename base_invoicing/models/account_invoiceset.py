@@ -206,6 +206,11 @@ class AccountInvoiceset(models.Model):
         return invoicesets
 
     def unlink(self):
+        for record in self:
+            if record.state not in ['draft', 'configured']:
+                raise exceptions.UserError(_(
+                    'It is not possible to delete a calculated invoice set, '
+                    'you must cancel it first.'))
         model_account_invoiceset_progress = \
             self.env['account.invoiceset.progress']
         for record in self:
@@ -1012,15 +1017,11 @@ class AccountInvoicesetProductlink(models.Model):
             my_billable_item_table = \
                 my_billable_item_model.replace('.', '_')
             partner_id_field = 'partner_id'
-            quantity_field = ''
+            quantity_field = my_categ.billable_item_quantity_field
             if (self.env['account.billable.item'].
                inherits_from_account_billable_item(my_billable_item_model)):
                 partner_id_field = \
                     self.env[my_billable_item_model]._billing_partner_id_name
-                quantity_field = \
-                    self.env[my_billable_item_model]._billing_quantity_name
-            else:
-                quantity_field = my_categ.billable_item_quantity_field
             aux_fields_insert, aux_fields_select = self._get_aux_fields(my_categ)
             sql_insert = """INSERT INTO account_selectable_item
             (id, create_uid, write_uid, create_date, write_date,

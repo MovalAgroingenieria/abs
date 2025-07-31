@@ -10,7 +10,7 @@ class CommonMetadata(models.AbstractModel):
 
     # Get the metadata of a field in a model.
     def get_field(self, model_name, field_name,
-                  exclude_related=True):
+                  exclude_related=False):
         resp = {'model': model_name, 'name': field_name, }
         model_ir_model_fields = self.env['ir.model.fields'].sudo()
         condition = [('model', '=', model_name), ('name', '=', field_name)]
@@ -59,13 +59,13 @@ class CommonMetadata(models.AbstractModel):
     # Obtain the metadata of the fields in a model, with a filter based on the
     # field type (example: "integer,float").
     def get_fields(self, model_name, field_types, exclude_id=True,
-                   exclude_computed=True, exclude_related=True):
+                   exclude_nonpersistent=True, exclude_related=False):
         resp = []
         field_types = field_types.lower()
         condition = [('model', '=', model_name)]
         if exclude_id:
             condition.append(('name', '!=', 'id'))
-        if exclude_computed:
+        if exclude_nonpersistent:
             condition.append(('store', '=', True))
         if exclude_related:
             condition.append(('related', '=', False))

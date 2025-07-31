@@ -403,6 +403,12 @@ class ProductCategory(models.Model):
             vals['aux_03_bool_label'] = None
         return vals
 
+    def copy(self, default=None):
+        default = dict(default or {})
+        default['category_code'] = 0
+        resp = super(ProductCategory, self).copy(default)
+        return resp
+
     def action_select_billable_item_field(self):
         self.ensure_one()
         action = {
