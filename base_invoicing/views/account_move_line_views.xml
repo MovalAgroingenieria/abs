@@ -5,7 +5,8 @@
         <field name="name">account.move.line.view.tree</field>
         <field name="model">account.move.line</field>
         <field name="arch" type="xml">
-            <tree class="o_base_invoicing_account_move_line">
+            <tree class="o_base_invoicing_account_move_line"
+                  create="False" delete="False">
                 <field name="invoiceset_id" string="Invoice Set"
                        optional="show"/>
                 <field name="move_id" string="Invoice"/>

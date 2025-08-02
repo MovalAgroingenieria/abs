@@ -89,6 +89,7 @@
                                 <tree editable="bottom" delete="False"
                                       class="o_base_invoicing_account_invoiceset_productlink">
                                     <field name="product_id" string="Product"
+                                           domain="[('product_tmpl_id.categ_id.supports_mass_billing', '=', True)]"
                                            options="{'no_quick_create':True, 'no_create_edit': True}"/>
                                     <field name="categ_id" string="Category"/>
                                     <field name="lst_price" string="Unit Price"/>

@@ -243,6 +243,23 @@ class AccountInvoiceset(models.Model):
 
     def calculate_invoiceset(self):
         self.ensure_one()
+        invoicesets_in_calculating = self.search(
+            [('state', '=', 'calculating')])
+        if invoicesets_in_calculating:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Warning'),
+                    'message': _('It is not possible to start the calculation '
+                                 'of this invoice set, as another invoice set '
+                                 'is currently being processed. You must wait '
+                                 'until it finishes or interrupt it.'),
+                    'type': 'warning',
+                    'sticky': True,
+                    'next': False,
+                }
+            }
         invoiceset = self
         if not invoiceset.state == 'configured':
             return None
@@ -262,9 +279,12 @@ class AccountInvoiceset(models.Model):
     # It is usually run from "cron".
     @api.model
     def calculate_all_configured_invoiceset(self):
-        configured_invoicesets = self.search([('state', '=', 'configured')])
-        for invoiceset in (configured_invoicesets or []):
-            self.calculation_process(invoiceset.id, from_cron=True)
+        invoicesets_in_calculating = self.search(
+            [('state', '=', 'calculating')])
+        if not invoicesets_in_calculating:
+            configured_invoicesets = self.search([('state', '=', 'configured')])
+            for invoiceset in (configured_invoicesets or []):
+                self.calculation_process(invoiceset.id, from_cron=True)
 
     @api.model
     def calculation_process(self, id_of_invoiceset,
@@ -569,15 +589,6 @@ class AccountInvoicesetProductlink(models.Model):
     _name = 'account.invoiceset.productlink'
     _description = 'Product of invoice set'
 
-    def _get_product_id_domain(self):
-        valid_products = []
-        templ_with_mass_billing = self.env['product.template'].search(
-            [('categ_id.supports_mass_billing', '=', True)])
-        for tmpl in templ_with_mass_billing or []:
-            for product in tmpl.product_variant_ids:
-                valid_products.append(product.id)
-        return [('id', 'in', valid_products)]
-
     # Size of the "name" field in the model.
     MAX_SIZE_PRODUCTLINK_CODE = 100
 
@@ -590,7 +601,6 @@ class AccountInvoicesetProductlink(models.Model):
     product_id = fields.Many2one(
         string='Product',
         comodel_name='product.product',
-        domain=_get_product_id_domain,
         required=True,
         index=True,
         ondelete='restrict',)

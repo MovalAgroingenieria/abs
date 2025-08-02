@@ -409,6 +409,14 @@ class ProductCategory(models.Model):
         resp = super(ProductCategory, self).copy(default)
         return resp
 
+    def unlink(self):
+        for record in self:
+            if record.category_code > 0:
+                raise exceptions.UserError(_(
+                    'It is not possible to delete a coded category.'))
+        res = super(ProductCategory, self).unlink()
+        return res
+
     def action_select_billable_item_field(self):
         self.ensure_one()
         action = {

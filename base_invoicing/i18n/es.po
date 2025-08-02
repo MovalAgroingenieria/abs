@@ -6,14 +6,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-27 16:56+0000\n"
-"PO-Revision-Date: 2025-07-27 16:56+0000\n"
+"POT-Creation-Date: 2025-08-02 11:18+0000\n"
+"PO-Revision-Date: 2025-08-02 11:18+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__supplier_invoice_count
+msgid "# Vendor Bills"
+msgstr ""
 
 #. module: base_invoicing
 #. odoo-python
@@ -73,7 +78,8 @@ msgstr "<span class=\"o_form_label\">Código de lote</span>"
 msgid ""
 "<span class=\"o_form_label\">Sequence for coding the set of invoices</span>"
 msgstr ""
-"<span class=\"o_form_label\">Secuencia para la codificación de los lotes</span>"
+"<span class=\"o_form_label\">Secuencia para la codificación de los "
+"lotes</span>"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view
@@ -928,7 +934,9 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_wizard_confirm_productlink_action
 msgid "Dialog box to confirm a product-link action"
-msgstr "Diálogo para la confirmación de una acción relacionada con un enlace lote-producto"
+msgstr ""
+"Diálogo para la confirmación de una acción relacionada con un enlace lote-"
+"producto"
 
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_wizard_select_field
@@ -1307,7 +1315,7 @@ msgstr "Factura"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_tree
 msgid "Invoice Date"
-msgstr "Fecha de factura"
+msgstr "Fecha factura"
 
 #. module: base_invoicing
 #: model:ir.actions.act_window,name:base_invoicing.account_move_line_action
@@ -1410,6 +1418,35 @@ msgstr ""
 #, python-format
 msgid "It is mandatory to set the billable items model."
 msgstr "Es obligatorio elegir un modelo de elementos facturables."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+#, python-format
+msgid ""
+"It is not possible to delete a calculated invoice set, you must cancel it "
+"first."
+msgstr "No es posible eliminar un lote ya calculado, antes debe cancelarlo."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category.py:0
+#, python-format
+msgid "It is not possible to delete a coded category."
+msgstr "No es posible eliminar una categoría codificada."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+#, python-format
+msgid ""
+"It is not possible to start the calculation of this invoice set, as another "
+"invoice set is currently being processed. You must wait until it finishes or"
+" interrupt it."
+msgstr ""
+"No es posible iniciar el cálculo de este lote, ya que en estos momentos otro "
+"lote está en proceso de cálculo. Debe esperar a que acabe "
+"o interrumpirlo."
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view
@@ -2103,7 +2140,8 @@ msgstr "Secuencia para los códigos de lotes de facturas"
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form
 msgid "Sequence used to assign a default code for each new invoice set"
-msgstr "Secuencia utilizada para asignar un código por defecto a cada nuevo lote"
+msgstr ""
+"Secuencia utilizada para asignar un código por defecto a cada nuevo lote"
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__use_partner_credit_limit
@@ -2490,6 +2528,7 @@ msgstr ""
 
 #. module: base_invoicing
 #. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/account_invoiceset.py:0

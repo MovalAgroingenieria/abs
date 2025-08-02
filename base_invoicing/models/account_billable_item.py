@@ -91,7 +91,7 @@ class AccountBillableItem(models.AbstractModel):
     def exists_active_field(self, model_name):
         resp = False
         active_field = self.env['common.metadata'].get_field(
-            model_name, 'active')
+            model_name, 'active', exclude_related=True)
         if active_field and active_field['ttype'] == 'boolean':
             resp = True
         return resp

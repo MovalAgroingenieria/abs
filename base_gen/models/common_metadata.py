@@ -10,10 +10,12 @@ class CommonMetadata(models.AbstractModel):
 
     # Get the metadata of a field in a model.
     def get_field(self, model_name, field_name,
-                  exclude_related=False):
+                  exclude_nonpersistent=True, exclude_related=False):
         resp = {'model': model_name, 'name': field_name, }
         model_ir_model_fields = self.env['ir.model.fields'].sudo()
         condition = [('model', '=', model_name), ('name', '=', field_name)]
+        if exclude_nonpersistent:
+            condition.append(('store', '=', True))
         if exclude_related:
             condition.append(('related', '=', False))
         field = model_ir_model_fields.search(condition)

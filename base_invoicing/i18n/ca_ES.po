@@ -6,14 +6,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-27 16:56+0000\n"
-"PO-Revision-Date: 2025-07-27 16:56+0000\n"
+"POT-Creation-Date: 2025-08-02 11:18+0000\n"
+"PO-Revision-Date: 2025-08-02 11:18+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__supplier_invoice_count
+msgid "# Vendor Bills"
+msgstr ""
 
 #. module: base_invoicing
 #. odoo-python
@@ -1307,7 +1312,7 @@ msgstr "Factura"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_tree
 msgid "Invoice Date"
-msgstr "Data de factura"
+msgstr "Data factura"
 
 #. module: base_invoicing
 #: model:ir.actions.act_window,name:base_invoicing.account_move_line_action
@@ -1410,6 +1415,36 @@ msgstr ""
 #, python-format
 msgid "It is mandatory to set the billable items model."
 msgstr "És obligatori triar un model d'elements facturables."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+#, python-format
+msgid ""
+"It is not possible to delete a calculated invoice set, you must cancel it "
+"first."
+msgstr ""
+"No és possible eliminar un lot ja calculat, abans heu de cancel·lar-lo."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category.py:0
+#, python-format
+msgid "It is not possible to delete a coded category."
+msgstr "No es pot suprimir una categoria codificada."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+#, python-format
+msgid ""
+"It is not possible to start the calculation of this invoice set, as another "
+"invoice set is currently being processed. You must wait until it finishes or"
+" interrupt it."
+msgstr ""
+"No és possible iniciar el càlcul daquest lot, ja que en aquests moments un altre "
+"lot està en procés de càlcul. Heu d'esperar que acabi "
+"o interrompre'l."
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view
@@ -2490,6 +2525,7 @@ msgstr ""
 
 #. module: base_invoicing
 #. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
