@@ -26,9 +26,6 @@ class AccountInvoiceset(models.Model):
     _set_alphanum_code_to_uppercase = True
     _size_description = 100
 
-    # Indication of whether the stop button has been pressed (background).
-    _stop_order = False
-
     # Modified fields
     alphanum_code = fields.Char(
         string='Code of invoice set',
@@ -321,10 +318,10 @@ class AccountInvoiceset(models.Model):
             suffix = _('(foreground)')
             if background:
                 suffix = _('(background)')
-                self.__class__._stop_order = False
                 tmp_cr = self.pool.cursor()
                 tmp_cr.execute("""UPDATE account_invoiceset_progress
-                               SET invoice_generation_progress = %s
+                               SET invoice_generation_progress = %s,
+                               stop_order = FALSE
                                WHERE invoiceset_id = %s""",
                                (0, id_of_invoiceset))
                 tmp_cr.commit()
@@ -341,14 +338,24 @@ class AccountInvoiceset(models.Model):
                 invoice_generation_progress = 0
                 step = 100 / len(invoice_data)
                 for data_of_the_invoice in (invoice_data or []):
-                    invoice = self.create_invoice(invoiceset, data_of_the_invoice)
+                    invoice = self.create_invoice(invoiceset,
+                                                  data_of_the_invoice)
                     if invoice:
                         number_of_invoices = number_of_invoices + 1
                     if background:
-                        if self._stop_order:
+                        stop_order = False
+                        if tmp_cr:
+                            tmp_cr.execute("""SELECT stop_order FROM
+                            account_invoiceset_progress
+                            WHERE invoiceset_id = %s""", (id_of_invoiceset,))
+                            query_results = tmp_cr.dictfetchall()
+                            if (query_results and
+                               query_results[0].get('stop_order') is not None):
+                                stop_order = query_results[0].get('stop_order')
+                            tmp_cr.commit()
+                        if stop_order:
                             invoiceset.cancel_invoices()
                             number_of_invoices = 0
-                            self.__class__._stop_order = False
                             cancelled = True
                             break
                         elif tmp_cr:
@@ -381,7 +388,8 @@ class AccountInvoiceset(models.Model):
                 self.env.cr.close()
                 if tmp_cr:
                     tmp_cr.execute("""UPDATE account_invoiceset_progress
-                                   SET invoice_generation_progress = %s
+                                   SET invoice_generation_progress = %s,
+                                   stop_order = FALSE
                                    WHERE invoiceset_id = %s""",
                                    (0, id_of_invoiceset))
                     tmp_cr.commit()
@@ -565,7 +573,9 @@ class AccountInvoiceset(models.Model):
 
     def stop_calculation(self):
         self.ensure_one
-        self.__class__._stop_order = True
+        self.env.cr.execute("""UPDATE account_invoiceset_progress
+        SET stop_order = TRUE WHERE invoiceset_id = %s""", (self.id,))
+        self.env.cr.commit()
 
     @api.model
     def background_calculation_active(self, invoiceset_id):
@@ -1153,3 +1163,7 @@ class AccountInvoicesetProgress(models.Model):
         string='Percentage of progress during invoice generation',
         default=0,
         readonly=True,)
+
+    stop_order = fields.Boolean(
+        string='Active stop order',
+        default=False,)
