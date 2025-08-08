@@ -10,3 +10,4 @@ from . import account_billable_item
 from . import res_partner
 from . import res_fee
 from . import account_selectable_item
+from . import product_template

@@ -12,7 +12,7 @@ from odoo import models, fields, api, exceptions, _
 class AccountInvoiceset(models.Model):
     _name = 'account.invoiceset'
     _description = 'Invoice Set'
-    _inherit = ['simple.model', 'mail.thread']
+    _inherit = ['simple.model', 'mail.thread', 'comment.template']
     _order = 'alphanum_code desc'
 
     # Static variables inherited from "simple.model"
@@ -116,6 +116,11 @@ class AccountInvoiceset(models.Model):
         default=False,
         store=True,
         compute='_compute_some_posted_invoice',)
+
+    # For "account_comment_template".
+    partner_id = fields.Many2one(
+        comodel_name='res.partner',
+        default=lambda self: self.env.company.partner_id,)
 
     @api.depends('all_productlinks_configured', 'some_posted_invoice')
     def _compute_state(self):
@@ -473,6 +478,10 @@ class AccountInvoiceset(models.Model):
                         invoice_key = str(partner_id)
                         if groupvalue:
                             invoice_key = invoice_key + '-' + groupvalue
+                        factor_quantity = (productlink.product_id.
+                                           product_tmpl_id.factor_quantity)
+                        if factor_quantity != 1:
+                            quantity = factor_quantity * quantity
                         vals = {
                             'partner_id': partner_id,
                             'invoice_key': invoice_key,
@@ -568,6 +577,10 @@ class AccountInvoiceset(models.Model):
                     line_data['name'] = invoice_line['name']
                 invoice_lines.append((0, 0, line_data))
             vals['invoice_line_ids'] = invoice_lines
+        # Provisional
+        if invoiceset.comment_template_ids:
+            vals['comment_template_ids'] = \
+                [(6, 0, invoiceset.comment_template_ids.ids)]
         invoice = self.env['account.move'].create(vals)
         return invoice
 

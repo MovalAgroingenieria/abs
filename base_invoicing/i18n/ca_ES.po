@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-02 11:18+0000\n"
-"PO-Revision-Date: 2025-08-02 11:18+0000\n"
+"POT-Creation-Date: 2025-08-08 17:48+0000\n"
+"PO-Revision-Date: 2025-08-08 17:48+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -341,6 +341,11 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__active_lang_count
 msgid "Active Lang Count"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__stop_order
+msgid "Active stop order"
 msgstr ""
 
 #. module: base_invoicing
@@ -698,6 +703,21 @@ msgstr "Codi de lot"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__color
 msgid "Color Index"
 msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__comment_template_ids
+msgid "Comment Template"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__base_comment_template_ids
+msgid "Comment Templates"
+msgstr ""
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "Comments"
+msgstr "Comentaris"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__commercial_partner_id
@@ -1063,6 +1083,17 @@ msgid "Existing Product."
 msgstr "Producte existent."
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_product__factor_quantity
+#: model:ir.model.fields,field_description:base_invoicing.field_product_template__factor_quantity
+msgid "Factor applicable to the quantity of product"
+msgstr "Factor aplicable a la quantitat de producte"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_template_form_view
+msgid "Factor for quantities"
+msgstr "Factor per a quantitats"
+
+#. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_res_fee
 msgid "Fee"
 msgstr "Quota"
@@ -1291,6 +1322,11 @@ msgid "Incorrect value for \"Category Code\"."
 msgstr "Valor incorrecte de \"Codi de categoria\"."
 
 #. module: base_invoicing
+#: model:ir.model.constraint,message:base_invoicing.constraint_product_template_factor_quantity_ok
+msgid "Incorrect value for \"Factor applicable to the quantity of product\"."
+msgstr "Valor incorrecte de \"Factor aplicable a la quantitat de producte\"."
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__industry_id
 msgid "Industry"
 msgstr ""
@@ -1442,9 +1478,8 @@ msgid ""
 "invoice set is currently being processed. You must wait until it finishes or"
 " interrupt it."
 msgstr ""
-"No és possible iniciar el càlcul daquest lot, ja que en aquests moments un altre "
-"lot està en procés de càlcul. Heu d'esperar que acabi "
-"o interrompre'l."
+"No és possible iniciar el càlcul daquest lot, ja que en aquests moments un "
+"altre lot està en procés de càlcul. Heu d'esperar que acabi o interrompre'l."
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view
@@ -1779,6 +1814,11 @@ msgid "Parent name"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__partner_id
+msgid "Partner"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contract_ids
 msgid "Partner Contracts"
 msgstr ""
@@ -1898,6 +1938,7 @@ msgstr "Procedir amb l'operació?"
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
+#: model:ir.model,name:base_invoicing.model_product_template
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__product_id
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
@@ -2196,6 +2237,11 @@ msgid "Some posted invoice (y/n)"
 msgstr "Alguna factura publicada (s/n)"
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__base_comment_template_ids
+msgid "Specific partner comments that can be included in reports"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__state
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__state
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__state_id
@@ -2241,21 +2287,26 @@ msgstr ""
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_list_view
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_template_view_tree
 msgid "Supports Lots"
 msgstr "Admet lots"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_search_view
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_template_search_view
 msgid "Supports lots: No"
 msgstr "Admet lots: No"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_search_view
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_template_search_view
 msgid "Supports lots: Yes"
 msgstr "Admet lots: Sí"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__supports_mass_billing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_product__supports_mass_billing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_template__supports_mass_billing
 msgid "Supports massive billing (y/n)"
 msgstr "Admet facturació per lots (s/n)"
 

@@ -21,7 +21,7 @@
                                      style="display: flex; gap: 4px;">
                                     <field name="billable_item_model_id"
                                            options="{'no_quick_create':True, 'no_create_edit': True}"
-                                           attrs="{'readonly': [('category_code', '=', 1)]}"/>
+                                           attrs="{'readonly': [('category_code', '>', 1)]}"/>
                                 </div>
                                 <div class="text-muted mb-4" colspan="2">
                                     Each record in a billable items model contains a potential

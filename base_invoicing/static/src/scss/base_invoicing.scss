@@ -119,6 +119,12 @@
     min-width: 115px;
 }
 
+.o_base_invoicing_product_template [data-name="supports_mass_billing"] {
+    text-align: center;
+    width: 140px;
+    min-width: 140px;
+}
+
 body[data-res-model="account.selectable.item"] .o_add_custom_filter_menu {
     display: none !important;
 }
