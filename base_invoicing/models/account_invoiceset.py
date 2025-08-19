@@ -1082,6 +1082,9 @@ class AccountInvoicesetProductlink(models.Model):
                 sql_insert = sql_insert + ' AND bt.active'
             if plink.billable_item_domain:
                 sql_insert = sql_insert + ' AND ' + plink.billable_item_domain
+            if plink.product_id.product_tmpl_id.link_with_billable_items:
+                sql_insert = sql_insert + ' AND bt.product_id = ' + \
+                             str(plink.product_id.id)
             try:
                 self.env.cr.savepoint()
                 self.env.cr.execute(

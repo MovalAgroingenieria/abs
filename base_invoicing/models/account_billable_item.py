@@ -40,6 +40,12 @@ class AccountBillableItem(models.AbstractModel):
         default=0,
         readonly=1,)
 
+    product_id = fields.Many2one(
+        string='Product',
+        comodel_name='product.product',
+        index=True,
+        ondelete='restrict',)
+
     move_line_ids = fields.One2many(
         string='Invoice Lines',
         comodel_name='account.move.line',

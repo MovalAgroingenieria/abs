@@ -13,6 +13,10 @@ class ProductTemplate(models.Model):
         default=1,
         required=True,)
 
+    link_with_billable_items = fields.Boolean(
+        string='Link product with its billable items (y/n)',
+        default=False,)
+
     supports_mass_billing = fields.Boolean(
         string='Supports massive billing (y/n)',
         related='categ_id.supports_mass_billing',)
