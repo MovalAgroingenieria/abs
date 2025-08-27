@@ -100,8 +100,9 @@ class CommonMetadata(models.AbstractModel):
     # Get the inherited models of a specific model (excluding the model itself)
     def get_inherited_models(self, model_name):
         resp = []
-        for inherited_class in self.env[model_name].__class__.__mro__:
-            class_name = inherited_class.__name__
-            if class_name != model_name and class_name.find('.') != -1:
-                resp.append(class_name)
+        if model_name:
+            for inherited_class in self.env[model_name].__class__.__mro__:
+                class_name = inherited_class.__name__
+                if class_name != model_name and class_name.find('.') != -1:
+                    resp.append(class_name)
         return resp
