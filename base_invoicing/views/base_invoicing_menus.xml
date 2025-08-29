@@ -6,4 +6,15 @@
               sequence="120"
               parent="account.menu_finance_receivables"/>
 
+    <menuitem id="menu_thecnicalactions"
+              name="Technical Actions"
+              sequence="1000"
+              parent="account.menu_finance"
+              groups="base_invoicing.group_account_invoiceset_config"/>
+
+    <menuitem id="menu_thecnicalactions_refresh"
+              name="Refresh"
+              sequence="10"
+              parent="menu_thecnicalactions"/>
+
 </odoo>

@@ -6,14 +6,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-19 16:51+0000\n"
-"PO-Revision-Date: 2025-08-19 16:51+0000\n"
+"POT-Creation-Date: 2025-08-29 11:31+0000\n"
+"PO-Revision-Date: 2025-08-29 11:31+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__supplier_invoice_count
+msgid "# Vendor Bills"
+msgstr ""
 
 #. module: base_invoicing
 #. odoo-python
@@ -1398,6 +1403,12 @@ msgid "Invoice Sets: Selection Settings"
 msgstr "Lots: Configuració de la selecció"
 
 #. module: base_invoicing
+#: model:ir.actions.server,name:base_invoicing.account_invoiceset_refresh_all_invoicesets_in_calculation_process_serveraction
+#: model:ir.ui.menu,name:base_invoicing.menu_thecnicalactions_refresh_invoicesets_in_calculation_process
+msgid "Invoice sets in calculation process stopped (global)"
+msgstr "Lots en procés de càlcul detinguts (tots)"
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__productlink_ids
 msgid "Invoice-Set Lines"
 msgstr "Línies de lot"
@@ -2000,6 +2011,11 @@ msgid "Reference"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.ui.menu,name:base_invoicing.menu_thecnicalactions_refresh
+msgid "Refresh"
+msgstr "Refrescar"
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Refresh selectable items"
 msgstr "Refrescar els elements seleccionables"
@@ -2334,6 +2350,11 @@ msgstr "Impostos"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__vat
 msgid "Tax ID"
 msgstr ""
+
+#. module: base_invoicing
+#: model:ir.ui.menu,name:base_invoicing.menu_thecnicalactions
+msgid "Technical Actions"
+msgstr "Accions tècniques"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_config_billable_item_fields_view_form

@@ -607,6 +607,17 @@ class AccountInvoiceset(models.Model):
         self.move_ids.unlink()
         self.write({'state': 'configured'})
 
+    @api.model
+    def action_refresh_all_invoicesets_in_calculation_process(self):
+        invoicesets = self.search([('state', '=', 'calculating')])
+        if invoicesets:
+            for invoiceset in invoicesets:
+                invoiceset.cancel_invoices()
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'reload',
+            }
+
 
 class AccountInvoicesetProductlink(models.Model):
     _name = 'account.invoiceset.productlink'
