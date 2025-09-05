@@ -63,3 +63,11 @@ class ResPlace(models.Model):
             if record.province_id:
                 region_id = record.province_id.region_id
             record.region_id = region_id
+
+    @api.depends('alphanum_code', 'municipality_id.alphanum_code')
+    def _compute_name(self):
+        for record in self:
+            name = record.alphanum_code
+            if record.municipality_id and record.municipality_id.alphanum_code:
+                name = name + ' (' + record.municipality_id.alphanum_code + ')'
+            record.name = name
