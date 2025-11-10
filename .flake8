@@ -1,0 +1,35 @@
+[flake8]
+# Flake8 configuration with OCA rules and trailing commas
+
+max-line-length = 88
+max-complexity = 16
+
+# Enabled extensions
+enable-extensions = C81,C81,C812,C813,C814,C815,C816
+
+# Ignored rules (compatibility with Black and Odoo)
+ignore = E203,E501,W503,W504
+
+# Files to exclude
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    *.egg-info,
+    .tox,
+    setup.py,
+    __init__.py
+
+# Flake8-commas: Requiere trailing commas
+# C812: missing trailing comma (prohibido por defecto, pero lo queremos)
+# C813: missing trailing comma in Python 3.5+
+# C814: missing trailing comma in Python 3.6+
+# C815: missing trailing comma in Python 2
+# C816: missing trailing comma in comprehension
+
+per-file-ignores =
+    __init__.py:F401
+
