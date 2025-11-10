@@ -1,108 +1,172 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+
+from typing import Any, Dict, List, Optional
 
 from odoo import models
 
 
 class CommonMetadata(models.AbstractModel):
-    _name = 'common.metadata'
-    _description = 'Metadata extraction from Odoo models'
+    _name = "common.metadata"
+    _description = "Metadata extraction utilities for Odoo models"
 
-    # Get the metadata of a field in a model.
-    def get_field(self, model_name, field_name,
-                  exclude_nonpersistent=True, exclude_related=False):
-        resp = {'model': model_name, 'name': field_name, }
-        model_ir_model_fields = self.env['ir.model.fields'].sudo()
-        condition = [('model', '=', model_name), ('name', '=', field_name)]
+    # ------------------------------ Single field ------------------------------
+
+    def get_field(
+        self,
+        model_name: str,
+        field_name: str,
+        exclude_nonpersistent: bool = True,
+        exclude_related: bool = False,
+    ) -> Optional[Dict[str, Any]]:
+        """Return metadata for a single field from ir.model.fields.
+
+        Args:
+            model_name: Technical model name (e.g., 'res.partner').
+            field_name: Field technical name (e.g., 'name').
+            exclude_nonpersistent: If True, only stored fields are considered.
+            exclude_related: If True, exclude related fields.
+
+        Returns:
+            dict with field metadata or None if not found.
+        """
+        domain = [("model", "=", model_name), ("name", "=", field_name)]
         if exclude_nonpersistent:
-            condition.append(('store', '=', True))
+            domain.append(("store", "=", True))
         if exclude_related:
-            condition.append(('related', '=', False))
-        field = model_ir_model_fields.search(condition)
-        if field:
-            field = field[0]
-        else:
-            return False
-        resp['field_description'] = field.field_description
-        resp['ttype'] = field.ttype
-        resp['relation'] = field.relation
-        resp['on_delete'] = field.on_delete
-        resp['relation_field'] = field.relation_field
-        resp['required'] = field.required
-        resp['readonly'] = field.readonly
-        resp['store'] = field.store
-        resp['index'] = field.index
-        resp['copied'] = field.copied
-        resp['domain'] = field.domain
-        return resp
+            domain.append(("related", "=", False))
 
-    # Get the models with any Many2one reference to another model
-    # ("model_name"). The "many2one_name" parameter, if present, sets the name
-    # of the Many2one reference.
-    def get_models_with_many2one(self, model_name, many2one_name='',
-                                 include_model=True):
-        resp = []
-        model_ir_model = self.env['ir.model'].sudo()
-        reference_model = model_ir_model.search([('model', '=', model_name)])
-        if reference_model:
-            if include_model:
-                resp.append(reference_model)
-            all_models = model_ir_model.search(
-                [('model', '!=', model_name), ('transient', '=', False)])
-            for model in all_models:
-                for field in model.field_id:
-                    if (field.ttype == 'many2one' and
-                       field.relation == model_name and
-                       (many2one_name == '' or many2one_name == field.name)):
-                        resp.append(model)
-                        break
-        return resp
+        field = self.env["ir.model.fields"].sudo().search(domain, limit=1)
+        if not field:
+            return None
 
-    # Obtain the metadata of the fields in a model, with a filter based on the
-    # field type (example: "integer,float").
-    def get_fields(self, model_name, field_types, exclude_id=True,
-                   exclude_nonpersistent=True, exclude_related=False):
-        resp = []
-        field_types = field_types.lower()
-        condition = [('model', '=', model_name)]
+        # Access attributes defensively: not all versions expose the same set
+        def safe(attr: str, default=None):
+            return getattr(field, attr, default)
+
+        return {
+            "model": model_name,
+            "name": field_name,
+            "field_description": safe("field_description"),
+            "ttype": safe("ttype"),
+            "relation": safe("relation"),
+            "relation_field": safe("relation_field"),
+            "on_delete": safe("on_delete"),
+            "required": safe("required", False),
+            "readonly": safe("readonly", False),
+            "store": safe("store", False),
+            "index": safe("index", False),
+            # 'copy' is the canonical flag name on fields; older code used 'copied'
+            "copy": safe("copy", True),
+            "domain": safe("domain"),
+            # Useful extras if available:
+            "selection": safe("selection"),  # for selection fields
+            "compute": safe("compute"),  # path to compute method
+            "related": safe("related"),  # related path if any
+            "help": safe("help"),
+        }
+
+    # ------------------------ Models referencing a model -----------------------
+
+    def get_models_with_many2one(
+        self,
+        model_name: str,
+        many2one_name: str = "",
+        include_model: bool = True,
+    ):
+        """Return models having a Many2one referring to `model_name`.
+
+        Args:
+            model_name: Target model for Many2one relation.
+            many2one_name: Optional field name filter (exact).
+            include_model: If True, include the referenced model itself first.
+
+        Returns:
+            recordset of ir.model (unique, ordered).
+        """
+        ir_model = self.env["ir.model"].sudo()
+        ir_model_fields = self.env["ir.model.fields"].sudo()
+
+        # Start with the referenced model (optional)
+        models_rs = ir_model.browse()
+        ref_model = ir_model.search([("model", "=", model_name)], limit=1)
+        if ref_model and include_model:
+            models_rs |= ref_model
+
+        # Find all Many2one fields that point to model_name
+        domain = [("ttype", "=", "many2one"), ("relation", "=", model_name)]
+        if many2one_name:
+            domain.append(("name", "=", many2one_name))
+        # Exclude transient models via the model relation
+        m2o_fields = ir_model_fields.search(domain)
+        if not m2o_fields:
+            return models_rs
+
+        # Collect unique model_ids, excluding the referenced model itself
+        model_ids = {fld.model_id.id for fld in m2o_fields if fld.model != model_name}
+        if model_ids:
+            models_rs |= ir_model.browse(sorted(model_ids))
+        return models_rs
+
+    # ----------------------------- Multiple fields -----------------------------
+
+    def get_fields(
+        self,
+        model_name: str,
+        field_types: str,
+        exclude_id: bool = True,
+        exclude_nonpersistent: bool = True,
+        exclude_related: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Return (name, field_description) for fields of given types.
+
+        Args:
+            model_name: Technical model name.
+            field_types: Comma-separated list (e.g., "integer,float").
+            exclude_id: Exclude the 'id' pseudo-field.
+            exclude_nonpersistent: If True, only stored fields.
+            exclude_related: If True, exclude related fields.
+
+        Returns:
+            List of dicts with 'name' and 'field_description'.
+        """
+        types_list = [
+            t.strip().lower() for t in (field_types or "").split(",") if t.strip()
+        ]
+        domain = [("model", "=", model_name)]
         if exclude_id:
-            condition.append(('name', '!=', 'id'))
+            domain.append(("name", "!=", "id"))
         if exclude_nonpersistent:
-            condition.append(('store', '=', True))
+            domain.append(("store", "=", True))
         if exclude_related:
-            condition.append(('related', '=', False))
-        additional_condition = self._get_condition(field_types)
-        if additional_condition:
-            condition = condition + additional_condition
-        model_ir_model_fields = self.env['ir.model.fields'].sudo()
-        fields = model_ir_model_fields.search(condition)
-        for field in fields:
-            resp.append({
-                'name': field.name,
-                'field_description': field.field_description
-            })
-        return resp
+            domain.append(("related", "=", False))
+        if types_list:
+            domain.append(("ttype", "in", types_list))
 
-    def _get_condition(self, field_types):
-        resp = []
-        if field_types:
-            pos_sep = field_types.find(',')
-            if pos_sep == -1:
-                resp.append(('ttype', '=', field_types))
-            else:
-                current_field_type = field_types[:pos_sep]
-                remaining_field_types = field_types[pos_sep+1:]
-                resp.append('|')
-                resp.append(('ttype', '=', current_field_type))
-                resp = resp + self._get_condition(remaining_field_types)
-        return resp
+        fields_rs = self.env["ir.model.fields"].sudo().search(domain)
+        return [
+            {"name": f.name, "field_description": f.field_description}
+            for f in fields_rs
+        ]
 
-    # Get the inherited models of a specific model (excluding the model itself)
-    def get_inherited_models(self, model_name):
-        resp = []
-        if model_name:
-            for inherited_class in self.env[model_name].__class__.__mro__:
-                class_name = inherited_class.__name__
-                if class_name != model_name and class_name.find('.') != -1:
-                    resp.append(class_name)
-        return resp
+    # --------------------------- Inheritance chain ----------------------------
+
+    def get_inherited_models(self, model_name: str) -> List[str]:
+        """Return inherited model names in the MRO (excluding the model itself).
+
+        Notes:
+            - Uses _name from classes in the MRO; safer than Python class names.
+            - Order follows Python MRO from closest parent to base models.
+        """
+        result: List[str] = []
+        if not model_name:
+            return result
+
+        model = self.env[model_name]
+        for klass in model.__class__.__mro__:
+            parent_name = getattr(klass, "_name", None)
+            if parent_name and parent_name != model_name and parent_name not in result:
+                result.append(parent_name)
+        return result
