@@ -1,1 +1,1 @@
-from . import test_common_format, test_common_image
+from . import test_common_format, test_common_image, test_common_log

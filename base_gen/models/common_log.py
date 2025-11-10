@@ -32,51 +32,36 @@ class CommonLog(models.AbstractModel):
         *,
         extra: Optional[dict] = None,
     ) -> None:
-        """Log a message with optional context.
-
-        Args:
-            message: The log message (required).
-            source: Logger name; defaults to this module's logger.
-            module: Optional module name to append (business context).
-            model: Optional model name to append (business context).
-            method: Optional method name to append (business context).
-            message_type: One of DEBUG/INFO/WARNING/ERROR/CRITICAL.
-            extra: Structured fields passed to logging (appear in record.extra).
-
-        Notes:
-            - `extra` is useful for JSON logging handlers or for attaching
-              correlation ids (e.g., request_id, partner_id, move_id).
-            - When `module`/`model`/`method` are provided, they are also added
-              into `extra` and appended to the message suffix for readability.
-        """
+        """Log a message with optional context."""
         if not message:
             return  # nothing to log
 
         level_name = (message_type or "INFO").upper()
         level = _LEVELS.get(level_name)
         if level is None:
-            # Fallback to INFO on invalid level names
             level_name = "INFO"
             level = logging.INFO
 
         logger = logging.getLogger(source or __name__)
 
-        # Build human-readable suffix and normalized extra payload
+        # Build human-readable suffix
         parts = []
-        payload = dict(extra or {})
         if module:
             parts.append(f"module: {module}")
-            payload.setdefault("module", module)
         if model:
             parts.append(f"model: {model}")
-            payload.setdefault("model", model)
         if method:
             parts.append(f"method: {method}")
-            payload.setdefault("method", method)
 
-        msg = message
-        if parts:
-            msg = f"{message} ({', '.join(parts)})"
+        msg = message if not parts else f"{message} ({', '.join(parts)})"
 
-        # Emit log with selected level
-        logger.log(level, msg, extra=payload or None)
+        # Build safe extra payload (avoid LogRecord reserved attrs like 'module')
+        payload = dict(extra or {})
+        if module:
+            payload.setdefault("ctx_module", module)
+        if model:
+            payload.setdefault("ctx_model", model)
+        if method:
+            payload.setdefault("ctx_method", method)
+
+        logger.log(level, msg, extra=(payload or None))
