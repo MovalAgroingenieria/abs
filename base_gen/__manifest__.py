@@ -13,6 +13,4 @@
         "base",
     ],
     "data": [],
-    "installable": True,
-    "application": False,
 }
