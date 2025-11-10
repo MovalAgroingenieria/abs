@@ -3,7 +3,7 @@
 {
     "name": "Base-General Module",
     "summary": "General porpuse tools for any module",
-    "version": "18.0.1.0.0",
+    "version": "18.0.2.0.0",
     "author": "Moval Agroingeniería",
     "license": "AGPL-3",
     "category": "Hidden",
