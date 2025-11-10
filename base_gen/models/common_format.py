@@ -3,8 +3,10 @@
 
 import base64
 import datetime as dt
+import re
 from datetime import date as _date
 from typing import Iterable, Optional
+from zoneinfo import ZoneInfo
 
 import babel
 from Crypto.Cipher import AES
@@ -26,33 +28,79 @@ class CommonFormat(models.AbstractModel):
     ) -> str:
         """Format an integer according to the active or provided language."""
         lang = lang or self.env.context.get("lang") or self.env.lang or "es_ES"
-        # formatLang handles grouping and locale rules consistently
-        return tools.formatLang(
-            self.env, integer_number, digits=0, grouping=True, lang_code=lang
-        )
+        # Pass language through context; formatLang reads it from env.context
+        env_lang = self.env(context=dict(self.env.context, lang=lang))
+        return tools.formatLang(env_lang, integer_number, digits=0, grouping=True)
 
     def transform_float_to_locale(
         self, float_number: float, precision: int, lang: Optional[str] = None
     ) -> str:
         """Format a float with a given precision respecting locale."""
         lang = lang or self.env.context.get("lang") or self.env.lang or "es_ES"
-        # digits accepts either an int or a (digits, precision) tuple
-        return tools.formatLang(
-            self.env, float_number, digits=precision, grouping=True, lang_code=lang
-        )
+        env_lang = self.env(context=dict(self.env.context, lang=lang))
+        # digits can be an int for decimal places in v18
+        return tools.formatLang(env_lang, float_number, digits=precision, grouping=True)
+
+    # --- helper to sanitize/normalize a date-only pattern for Babel (CLDR) ---
+    def _sanitize_date_pattern(self, pattern: Optional[str]) -> str:
+        """Return a CLDR date-only pattern safe for babel.format_date.
+
+        - Strips time tokens if present (H, h, m, s, S, a).
+        - Converts common strftime directives (%d/%m/%Y etc.) to CLDR.
+        - Falls back to a safe default when the input is empty or unusable.
+        """
+        if not pattern:
+            return "yyyy-MM-dd"
+
+        pat = str(pattern).strip()
+
+        # If it looks like strftime (has %), map the most common tokens to CLDR
+        if "%" in pat:
+            mappings = {
+                r"%Y": "yyyy",
+                r"%y": "yy",
+                r"%m": "MM",
+                r"%d": "dd",
+                r"%b": "MMM",
+                r"%B": "MMMM",
+                r"%e": "d",  # day without leading zero
+            }
+            for k, v in mappings.items():
+                pat = pat.replace(k, v)
+            # Remove time-related directives if any slipped in
+            pat = re.sub(r"(%H|%I|%M|%S|%p)", "", pat)
+
+        # Strip CLDR time tokens if present
+        # (H/h = hour, m = minute, s/S = seconds/fraction, a = am/pm)
+        pat = re.sub(r"[HhmsaS]", "", pat)
+
+        # Collapse duplicate separators that may result from stripping
+        pat = re.sub(r"\s+", " ", pat)
+        pat = re.sub(r"([/\-\.,:])\1+", r"\1", pat).strip()
+
+        # Ensure we still have a date-like pattern; else return a safe default
+        if not re.search(r"[yY].*[M].*[d]|[d].*[M].*[y]|[M].*[d].*[y]", pat):
+            return "yyyy-MM-dd"
+        return pat
 
     # ------------------------------- Dates -------------------------------
 
     def transform_date_to_locale(self, value: _date, lang: Optional[str] = None) -> str:
-        """Format a date object using the language's date_format."""
+        """Format a date object using a sanitized, date-only pattern per language."""
         if not value:
             return ""
         lang_code = lang or self.env.context.get("lang") or self.env.lang or "es_ES"
-        lang_rec = self.env["res.lang"].search([("code", "=", lang_code)], limit=1)
-        fmt = (
-            lang_rec.date_format if lang_rec and lang_rec.date_format else "yyyy-MM-dd"
-        )
-        # value is a date object; format_date expects a date and a CLDR pattern
+
+        # Try to read res.lang; be defensive across setups
+        fmt_db = None
+        try:
+            lang_rec = self.env["res.lang"].search([("code", "=", lang_code)], limit=1)
+            if lang_rec:
+                fmt_db = getattr(lang_rec, "date_format", None)
+        except Exception:  # pylint: disable=broad-exception-caught
+            fmt_db = None
+
+        fmt = self._sanitize_date_pattern(fmt_db)
         return babel.dates.format_date(value, format=fmt, locale=lang_code)
 
     # ---------------------------- Translations ---------------------------
@@ -79,33 +127,26 @@ class CommonFormat(models.AbstractModel):
     def encrypt_data(self, params: Iterable[str], cipher_key: str) -> str:
         """Encrypt 'param1-param2-...' with AES-CBC.
 
-        Notes:
-        - Uses PKCS#7 padding (block=16).
-        - IV is 16-byte ASCII based on Europe/Madrid time rounded to :00 or :30.
-          This keeps your legacy behavior but with correct block handling.
-        - 'cipher_key' must be 16/24/32 bytes long (AES-128/192/256).
-
-        Returns:
-            Base64-encoded ciphertext (str).
+        - PKCS#7 padding (block=16).
+        - IV: Europe/Madrid time redondeada a :00 / :30 ->
+        16 bytes ASCII 'YYYY-MM-DDTHH:MM'.
+        - 'cipher_key' de 16/24/32 bytes (AES-128/192/256).
         """
-        # Build plaintext
+        # Plaintext con padding PKCS#7
         credentials = "-".join(params).encode("utf-8")
         plaintext = pad(credentials, block_size=16, style="pkcs7")
 
-        # IV: 'YYYY-MM-DDTHH:MM' -> 16 chars; round minutes to 00/30
-        now_utc = dt.datetime.utcnow().replace(tzinfo=tools.UTC)
-        now_local = tools.datetime_to_string(
-            tools.convert_utc_to_tz(now_utc, "Europe/Madrid")
-        )
-        # now_local like 'YYYY-MM-DD HH:MM:SS'; normalize to 'YYYY-MM-DDTHH:MM'
-        iv_base = (now_local[:16]).replace(" ", "T")
-        minute = int(iv_base[14:16])
+        # Hora local Europe/Madrid sin depender de odoo.tools
+        now_local = dt.datetime.now(ZoneInfo("Europe/Madrid"))
+        # Base 'YYYY-MM-DDTHH:MM'
+        iv_base = now_local.strftime("%Y-%m-%dT%H:%M")
+        minute = now_local.minute
         rounded_minute = "00" if minute < 30 else "30"
-        iv_text = iv_base[:14] + rounded_minute  # 16 chars
-        iv = iv_text.encode("utf-8")
+        # Construir IV de 16 bytes ASCII
+        iv_text = f"{iv_base[:14]}{rounded_minute}"  # YYYY-MM-DDTHH: + MM
+        iv = iv_text.encode("ascii")  # 16 bytes exactos
 
-        # Key must be a valid AES length (16/24/32). Let Crypto raise if not.
-        key = cipher_key.encode("utf-8")
+        key = cipher_key.encode("utf-8")  # dejar que Crypto valide tamaño
 
         cipher = AES.new(key, AES.MODE_CBC, iv)
         cipher_text = cipher.encrypt(plaintext)
