@@ -1,4 +1,4 @@
-# 2024 Moval Agroingeniería
+# 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 import base64
@@ -9,7 +9,7 @@ from typing import Iterable, Optional
 import babel
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
-from odoo import _, api, models, tools
+from odoo import models, tools
 
 
 class CommonFormat(models.AbstractModel):
@@ -138,9 +138,9 @@ class CommonFormat(models.AbstractModel):
         if lang_code.endswith("_ES") or lang_code.startswith("es"):
             # Use translation for 'of' in case you localize to other romance langs
             # e.g., _('of') could be mapped if you maintain i18n terms.
-            text = f"{day} {_('of')} {month}"
+            text = f"{day} {self.env._('of')} {month}"
             if year:
-                text = f"{text} {_('of')} {year}"
+                text = f"{text} {self.env._('of')} {year}"
             return text
 
         # Default English-like phrase
