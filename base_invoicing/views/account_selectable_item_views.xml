@@ -2,10 +2,10 @@
 <odoo>
 
     <record id="account_selectable_item_view_tree" model="ir.ui.view">
-        <field name="name">account.selectable.item.view.tree</field>
+        <field name="name">account.selectable.item.view.list</field>
         <field name="model">account.selectable.item</field>
         <field name="arch" type="xml">
-            <tree default_order="partner_id, quantity"
+            <list default_order="partner_id, quantity"
                   create="False" delete="False"
                   decoration-info="selected == True and (state == 'draft' or state == 'configured')"
                   decoration-muted="selected == False"
@@ -58,7 +58,7 @@
                        invisible="context.get('hide_aux_03_bool', False)"/>
                 <field name="rendered_aux_desc" string="Additional Information"
                        invisible="context.get('hide_rendered_aux_desc', False)"/>
-            </tree>
+            </list>
         </field>
     </record>
 

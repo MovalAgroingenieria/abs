@@ -2,11 +2,11 @@
 <odoo>
 
     <record id="product_template_view_tree" model="ir.ui.view">
-        <field name="name">product.template.view.tree.inherit.base_invoicing</field>
+        <field name="name">product.template.view.list.inherit.base_invoicing</field>
         <field name="model">product.template</field>
         <field name="inherit_id" ref="account.product_template_view_tree"/>
         <field name="arch" type="xml">
-            <xpath expr="//tree" position="attributes">
+            <xpath expr="//list" position="attributes">
                 <attribute name="class">o_base_invoicing_product_template</attribute>
             </xpath>
             <xpath expr="//field[@name='supplier_taxes_id']" position="after">

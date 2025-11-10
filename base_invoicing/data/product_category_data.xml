@@ -9,7 +9,7 @@
         </record>
     </data>
 
-    <data noupdate="0">
+    <data>
         <record id="product_category_01" model="product.category">
             <field name="category_code">1</field>
             <field name="billable_item_model_id" ref="base_invoicing.model_res_fee"/>

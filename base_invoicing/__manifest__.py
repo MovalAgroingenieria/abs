@@ -4,7 +4,7 @@
 {
     'name': 'Massive Invoicing',
     'summary': 'Massive invoicing based on billing sets',
-    'version': '16.0.1.0.0',
+    'version': "18.0.1.0.0",
     'category': 'Accounting/Accounting',
     'website': 'https://www.moval.es',
     'author': 'Moval Agroingeniería',

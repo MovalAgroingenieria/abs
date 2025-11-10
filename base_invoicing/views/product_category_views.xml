@@ -203,7 +203,7 @@
                                     of type "Integer", a third of type "Float", and a final
                                     field of type "Boolean". Assigning a value to any of
                                     these fields will cause the corresponding informational
-                                    column to be displayed in the tree view of selectable
+                                    column to be displayed in the list view of selectable
                                     items (when configuring a lot). Further below, two
                                     additional groups of auxiliary fields are shown, serving
                                     the same purpose as this first group.
@@ -398,7 +398,7 @@
         <field name="model">product.category</field>
         <field name="inherit_id" ref="product.product_category_list_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//tree" position="attributes">
+            <xpath expr="//list" position="attributes">
                 <attribute name="class">o_base_invoicing_product_category</attribute>
             </xpath>
             <xpath expr="//field[@name='display_name']" position="after">

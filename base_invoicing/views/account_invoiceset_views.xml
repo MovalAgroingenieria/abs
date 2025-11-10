@@ -87,7 +87,7 @@
                         <page name="page_productlinks" string="Products">
                             <field name="productlink_ids" nolabel="1"
                                    attrs="{'readonly': [('state', '!=', 'draft'), ('state', '!=', 'configured')]}">
-                                <tree editable="bottom" delete="False"
+                                <list editable="bottom" delete="False"
                                       class="o_base_invoicing_account_invoiceset_productlink">
                                     <field name="product_id" string="Product"
                                            domain="[('product_tmpl_id.categ_id.supports_mass_billing', '=', True)]"
@@ -110,7 +110,7 @@
                                     <button name="action_delete_line"
                                             title="Delete this line" type="object" class="oe_stat_button"
                                             icon="fa-trash"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page name="page_notes" string="Notes">
@@ -123,20 +123,16 @@
                         </page>
                     </notebook>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"
-                           widget="mail_followers"/>
-                    <field name="message_ids" widget="mail_thread"/>
-                </div>
+                <chatter/>
             </form>
         </field>
     </record>
 
     <record id="account_invoiceset_view_tree" model="ir.ui.view">
-        <field name="name">account.invoiceset.view.tree</field>
+        <field name="name">account.invoiceset.view.list</field>
         <field name="model">account.invoiceset</field>
             <field name="arch" type="xml">
-            <tree default_order="alphanum_code desc"
+            <list default_order="alphanum_code desc"
                   class="o_base_invoicing_account_invoiceset"
                   decoration-info="state == 'draft'"
                   decoration-warning="state == 'calculating'">
@@ -162,7 +158,7 @@
                        decoration-muted="state == 'calculated'"
                        decoration-success="state == 'committed'"
                        optional="show"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -246,10 +242,10 @@
     <record id="account_invoiceset_action" model="ir.actions.act_window">
         <field name="name">Invoice Sets</field>
         <field name="res_model">account.invoiceset</field>
-        <field name="view_mode">tree,form,kanban</field>
+        <field name="view_mode">list,form,kanban</field>
         <field name="view_ids"
          eval="[(5, 0),
-                (0, 0, {'view_mode': 'tree',
+                (0, 0, {'view_mode': 'list',
                         'view_id': ref('account_invoiceset_view_tree')}),
                 (0, 0, {'view_mode': 'form',
                         'view_id': ref('account_invoiceset_view_form')}),
