@@ -45,14 +45,36 @@ class CommonImage(models.AbstractModel):
         image: Image.Image,
         out_format: str = "PNG",
         return_base64: bool = True,
+        jpeg_background: Tuple[int, int, int] = (255, 255, 255),
     ) -> Union[bytes, io.BytesIO, str]:
-        """Serialize PIL Image to bytes/BytesIO/base64 for Odoo binary fields."""
+        """Serialize PIL Image to bytes/base64 for Odoo binary fields.
+
+        - PNG/WebP admiten alpha; JPEG no.
+        - Si el formato es JPEG/JPG y la imagen tiene alpha, se aplana sobre
+          `jpeg_background` (blanco por defecto).
+        """
+        fmt = (out_format or "PNG").upper()
+        im = image
+
+        if fmt in {"JPEG", "JPG"}:
+            # Flatten alpha if present
+            if im.mode in {"RGBA", "LA"}:
+                bg = Image.new("RGB", im.size, jpeg_background)
+                # Use alpha channel as mask
+                alpha = im.split()[-1]  # last channel (A)
+                bg.paste(im.convert("RGBA"), mask=alpha)
+                im = bg
+            elif im.mode not in {"RGB", "L"}:
+                im = im.convert("RGB")
+
         out = io.BytesIO()
-        image.save(out, format=(out_format or "PNG").upper())
+        # Opcional: parámetros de calidad sin romper PNG
+        save_kwargs = {}
+        if fmt in {"JPEG", "JPG"}:
+            save_kwargs.update({"quality": 95, "subsampling": 0, "optimize": True})
+        im.save(out, format=fmt, **save_kwargs)
         data = out.getvalue()
-        if return_base64:
-            return base64.b64encode(data).decode("ascii")
-        return data
+        return base64.b64encode(data).decode("ascii") if return_base64 else data
 
     # ----------------------------- public API -----------------------------
 
