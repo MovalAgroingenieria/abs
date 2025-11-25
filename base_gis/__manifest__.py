@@ -4,7 +4,7 @@
 {
     "name": "Base-GIS Module",
     "summary": "Additional GIS tools",
-    "version": "16.0.1.0.0",
+    "version": "17.0.1.0.0",
     "author": "Moval Agroingeniería",
     "license": "AGPL-3",
     "website": "https://moval.es",
