@@ -4,7 +4,7 @@
 {
     "name": "Administrative Divisions",
     "summary": "Management of a country's administrative divisions",
-    "version": "16.0.1.0.1",
+    "version": "17.0.1.0.0",
     "author": "Moval Agroingeniería",
     "license": "AGPL-3",
     "website": "https://moval.es",
