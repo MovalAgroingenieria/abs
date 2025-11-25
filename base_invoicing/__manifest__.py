@@ -13,7 +13,7 @@
     'installable': True,
     'post_init_hook': 'post_init_hook',
     'uninstall_hook': 'uninstall_hook',
-    'depends': [
+    'depends_old': [
         'product',
         'analytic',
         'portal',
@@ -21,7 +21,7 @@
         'account_comment_template',
         'base_gen',
     ],
-    'data': [
+    'data_old': [
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',

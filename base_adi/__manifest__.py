@@ -9,11 +9,11 @@
     "license": "AGPL-3",
     "website": "https://moval.es",
     "category": "Hidden",
-    "depends": [
+    "depends_old": [
         "base_gen",
         "base_gis",
     ],
-    "data": [
+    "data_old": [
         "views/res_admregion_views.xml",
         "views/res_province_views.xml",
         "views/res_municipality_views.xml",

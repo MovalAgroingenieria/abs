@@ -9,10 +9,10 @@
     "license": "AGPL-3",
     "website": "https://moval.es",
     "category": "Hidden",
-    "depends": [
+    "depends_old": [
         "base",
     ],
-    "data": [],
+    "data_old": [],
     "installable": True,
     "application": False,
 }
