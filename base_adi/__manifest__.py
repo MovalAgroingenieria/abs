@@ -9,7 +9,7 @@
     "license": "AGPL-3",
     "website": "https://moval.es",
     "category": "Hidden",
-    "depends_old": [
+    "depends": [
         "base_gen",
         "base_gis",
     ],
