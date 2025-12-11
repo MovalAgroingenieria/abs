@@ -151,14 +151,16 @@ class SimpleModel(models.AbstractModel):
     # --------------------------------- Names ----------------------------------
 
     @api.model
-    def name_search(self, name="", args=None, operator="ilike", limit=100):
+    def _name_search(self, name='', args=None, operator='ilike', limit=100, order=None, name_get_uid=None):
         """Search by description (numeric mode) or alphanum_code (default)."""
         args = args or []
+
         if self.set_num_code:
-            recs = self.search([("description", operator, name)] + args, limit=limit)
+            domain = [("description", operator, name)] + args
         else:
-            recs = self.search([("alphanum_code", operator, name)] + args, limit=limit)
-        return recs.name_get()  # keep compatibility with Odoo internals
+            domain = [("alphanum_code", operator, name)] + args
+
+        return self._search(domain, limit=limit, order=order, access_rights_uid=name_get_uid)
 
     # --------------------------------- CRUD -----------------------------------
 
