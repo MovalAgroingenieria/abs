@@ -14,5 +14,6 @@
         "python": [
             "Crypto.Cipher",
         ],
+        'python': ['Pillow>=10.0.0'],
     },
 }

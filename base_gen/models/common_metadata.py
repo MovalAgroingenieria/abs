@@ -15,11 +15,11 @@ class CommonMetadata(models.AbstractModel):
     # ------------------------------ Single field ------------------------------
 
     def get_field(
-        self,
-        model_name: str,
-        field_name: str,
-        exclude_nonpersistent: bool = True,
-        exclude_related: bool = False,
+            self,
+            model_name: str,
+            field_name: str,
+            exclude_nonpersistent: bool = True,
+            exclude_related: bool = False,
     ) -> Optional[Dict[str, Any]]:
         """Return metadata for a single field from ir.model.fields.
 
@@ -71,10 +71,10 @@ class CommonMetadata(models.AbstractModel):
     # ------------------------ Models referencing a model -----------------------
 
     def get_models_with_many2one(
-        self,
-        model_name: str,
-        many2one_name: str = "",
-        include_model: bool = True,
+            self,
+            model_name: str,
+            many2one_name: str = "",
+            include_model: bool = True,
     ):
         """Return models having a Many2one referring to `model_name`.
 
@@ -113,12 +113,12 @@ class CommonMetadata(models.AbstractModel):
     # ----------------------------- Multiple fields -----------------------------
 
     def get_fields(
-        self,
-        model_name: str,
-        field_types: str,
-        exclude_id: bool = True,
-        exclude_nonpersistent: bool = True,
-        exclude_related: bool = False,
+            self,
+            model_name: str,
+            field_types: str,
+            exclude_id: bool = True,
+            exclude_nonpersistent: bool = True,
+            exclude_related: bool = False,
     ) -> List[Dict[str, Any]]:
         """Return (name, field_description) for fields of given types.
 
@@ -164,9 +164,38 @@ class CommonMetadata(models.AbstractModel):
         if not model_name:
             return result
 
-        model = self.env[model_name]
-        for klass in model.__class__.__mro__:
-            parent_name = getattr(klass, "_name", None)
-            if parent_name and parent_name != model_name and parent_name not in result:
-                result.append(parent_name)
-        return result
+        try:
+            model = self.env[model_name]
+
+            # Get the class hierarchy (MRO) for this model
+            # The first element is the model's own class, which we want to skip
+            mro_classes = model.__class__.__mro__
+
+            # Skip the first class (it's the model itself)
+            # Start from index 1 to exclude 'self'
+            for klass in mro_classes[1:]:
+                parent_name = getattr(klass, "_name", None)
+                if parent_name and parent_name not in result:
+                    # Double-check we're not adding the model itself
+                    if parent_name != model_name:
+                        result.append(parent_name)
+                    else:
+                        # This shouldn't happen if we skip index 0, but just in case
+                        continue
+
+            # Additionally, check _inherit for v18 compatibility
+            # This handles models that inherit using _inherit attribute
+            if hasattr(model, '_inherit'):
+                inherits = model._inherit
+                if isinstance(inherits, str):
+                    if inherits != model_name and inherits not in result:
+                        result.append(inherits)
+                elif isinstance(inherits, (list, tuple)):
+                    for inh in inherits:
+                        if inh != model_name and inh not in result:
+                            result.append(inh)
+
+            return result
+        except KeyError:
+            # Model doesn't exist in registry
+            return result

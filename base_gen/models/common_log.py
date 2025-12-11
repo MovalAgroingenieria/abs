@@ -22,17 +22,27 @@ class CommonLog(models.AbstractModel):
     _description = "Common helpers for logging messages with optional context"
 
     def register_in_log(
-        self,
-        message: str,
-        source: str = "",
-        module: str = "",
-        model: str = "",
-        method: str = "",
-        message_type: str = "INFO",
-        *,
-        extra: Optional[dict] = None,
+            self,
+            message: str,
+            source: str = "",
+            module: str = "",
+            model: str = "",
+            method: str = "",
+            message_type: str = "INFO",
+            *,
+            extra: Optional[dict] = None,
     ) -> None:
-        """Log a message with optional context."""
+        """Log a message with optional context.
+
+        Args:
+            message: The main log message
+            source: Logger source/name (defaults to __name__)
+            module: Module name for context
+            model: Model name for context
+            method: Method name for context
+            message_type: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            extra: Additional context data for the log record
+        """
         if not message:
             return  # nothing to log
 
@@ -64,4 +74,8 @@ class CommonLog(models.AbstractModel):
         if method:
             payload.setdefault("ctx_method", method)
 
-        logger.log(level, msg, extra=(payload or None))
+        # Ensure payload is None if empty to avoid logging issues
+        log_extra = payload if payload else None
+
+        # Log with appropriate level and extra context
+        logger.log(level, msg, extra=log_extra)

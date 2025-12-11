@@ -11,8 +11,7 @@ from zoneinfo import ZoneInfo
 import babel
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
-from odoo import models, tools
-
+from odoo import models, tools, _
 
 class CommonFormat(models.AbstractModel):
     _name = "common.format"
@@ -24,7 +23,7 @@ class CommonFormat(models.AbstractModel):
     # ------------------------------ Numbers ------------------------------
 
     def transform_integer_to_locale(
-        self, integer_number: int, lang: Optional[str] = None
+            self, integer_number: int, lang: Optional[str] = None
     ) -> str:
         """Format an integer according to the active or provided language."""
         lang = lang or self.env.context.get("lang") or self.env.lang or "es_ES"
@@ -33,7 +32,7 @@ class CommonFormat(models.AbstractModel):
         return tools.formatLang(env_lang, integer_number, digits=0, grouping=True)
 
     def transform_float_to_locale(
-        self, float_number: float, precision: int, lang: Optional[str] = None
+            self, float_number: float, precision: int, lang: Optional[str] = None
     ) -> str:
         """Format a float with a given precision respecting locale."""
         lang = lang or self.env.context.get("lang") or self.env.lang or "es_ES"
@@ -106,21 +105,39 @@ class CommonFormat(models.AbstractModel):
     # ---------------------------- Translations ---------------------------
 
     def get_value_from_translation(
-        self, module: str, src: str, lang: Optional[str] = None
+            self, module: str, src: str, lang: Optional[str] = None
     ) -> str:
-        """Return the translated value for (module, src, lang) if present, else src."""
-        lang_code = lang or self.env.context.get("lang") or self.env.lang
-        if not lang_code:
+        """Return the translated value for (module, src, lang) if present, else src.
+
+        Uses Odoo v18's standard translation mechanism.
+        """
+        # Handle None source
+        if src is None:
+            return ""
+
+        # Get language code
+        lang_code = lang or self.env.context.get("lang") or self.env.lang or "en_US"
+
+        # Early return for invalid inputs
+        if not lang_code or not module or not src:
             return src
-        tr = (
-            self.sudo()
-            .env["ir.translation"]
-            .search(
-                [("lang", "=", lang_code), ("module", "=", module), ("src", "=", src)],
-                limit=1,
-            )
-        )
-        return tr.value or src
+
+        try:
+            # In Odoo v18, the standard way is to use _(source) with language context
+            # Create a new environment with the desired language
+            ctx = dict(self.env.context, lang=lang_code) if self.env.context else {'lang': lang_code}
+            env_with_lang = self.env(context=ctx)
+
+            # Get translation using standard _() function
+            # Odoo's translation system will handle module context automatically
+            translated = env_with_lang._(src)
+
+            # If no translation found, it returns the original string
+            return translated
+
+        except Exception:
+            # Fallback to original string on any error
+            return src
 
     # ------------------------------- Crypto ------------------------------
 
@@ -155,7 +172,7 @@ class CommonFormat(models.AbstractModel):
     # -------------------------- Human-friendly ---------------------------
 
     def get_date_as_text(
-        self, value: Optional[_date], with_year: bool = True, lang: Optional[str] = None
+            self, value: Optional[_date], with_year: bool = True, lang: Optional[str] = None
     ) -> str:
         """Return a human-readable date phrase in the chosen language.
 
@@ -177,11 +194,14 @@ class CommonFormat(models.AbstractModel):
 
         # Spanish-like locales: use 'de' separators
         if lang_code.endswith("_ES") or lang_code.startswith("es"):
-            # Use translation for 'of' in case you localize to other romance langs
-            # e.g., _('of') could be mapped if you maintain i18n terms.
-            text = f"{day} {self.env._('of')} {month}"
+            # Use the new translation method
+            of_translation = self.get_value_from_translation("base", "de", lang_code)
+            if of_translation == "de":  # Fallback if not found
+                of_translation = "de"
+
+            text = f"{day} {of_translation} {month}"
             if year:
-                text = f"{text} {self.env._('of')} {year}"
+                text = f"{text} {of_translation} {year}"
             return text
 
         # Default English-like phrase

@@ -38,14 +38,15 @@ class CommonImage(models.AbstractModel):
 
         with Image.open(buf) as im:
             # .copy() to detach from buffer; ensure RGBA for alpha-composite
+            # Use Image.Resampling.LANCZOS for Pillow >= 10.0.0
             return im.convert("RGBA").copy()
 
     def _dump_image(
-        self,
-        image: Image.Image,
-        out_format: str = "PNG",
-        return_base64: bool = True,
-        jpeg_background: Tuple[int, int, int] = (255, 255, 255),
+            self,
+            image: Image.Image,
+            out_format: str = "PNG",
+            return_base64: bool = True,
+            jpeg_background: Tuple[int, int, int] = (255, 255, 255),
     ) -> Union[bytes, io.BytesIO, str]:
         """Serialize PIL Image to bytes/base64 for Odoo binary fields.
 
@@ -68,65 +69,78 @@ class CommonImage(models.AbstractModel):
                 im = im.convert("RGB")
 
         out = io.BytesIO()
-        # Opcional: parámetros de calidad sin romper PNG
+        # Optional: quality parameters without breaking PNG
         save_kwargs = {}
         if fmt in {"JPEG", "JPG"}:
             save_kwargs.update({"quality": 95, "subsampling": 0, "optimize": True})
-        im.save(out, format=fmt, **save_kwargs)
+
+        try:
+            im.save(out, format=fmt, **save_kwargs)
+        except KeyError:
+            # Format not supported, fallback to PNG
+            if fmt != "PNG":
+                # Log warning or handle gracefully
+                # self.env.cr.logger.warning(f"Format {fmt} not supported, falling back to PNG")
+                fmt = "PNG"
+                out = io.BytesIO()  # Reset buffer
+                im.save(out, format=fmt, **save_kwargs)
+            else:
+                raise
+
         data = out.getvalue()
         return base64.b64encode(data).decode("ascii") if return_base64 else data
 
     # ----------------------------- public API -----------------------------
 
     def merge_img(
-        self,
-        background_img: BinaryLike,
-        foreground_png: BinaryLike,
-        *,
-        format_output_img: str = "PNG",
-        position: Point = (0, 0),
-        fit_foreground: bool = False,
-        keep_aspect: bool = True,
-        return_base64: bool = True,
+            self,
+            background_img: BinaryLike,
+            foreground_png: BinaryLike,
+            *,
+            format_output_img: str = "PNG",
+            position: Point = (0, 0),
+            fit_foreground: bool = False,
+            keep_aspect: bool = True,
+            return_base64: bool = True,
     ) -> Optional[Union[str, bytes]]:
-        """Alpha-composite foreground over background.
+        """Alpha-composite the foreground over the background.
 
         Args:
             background_img: bytes/base64/BytesIO of the background image.
             foreground_png: bytes/base64/BytesIO of the foreground (with alpha).
             format_output_img: output format (e.g. 'PNG', 'JPEG').
             position: (x, y) where the foreground's top-left corner is pasted.
-            fit_foreground: if True, resize foreground to background size.
+            fit_foreground: if True, resize foreground to match the background size.
             keep_aspect: when fitting, preserve aspect ratio (letterbox/pad).
-            return_base64: if True, return base64 string (best for Binary fields).
+            return_base64: if True, return a base64 string (recommended for Binary fields).
 
         Returns:
-            base64 string (default) or raw bytes of the merged image.
-            Returns None if any input is missing.
-
-        Notes:
-            - PNG is recommended to preserve transparency in the composite.
-            - For JPEG output, transparency will be flattened against background.
+            A base64 string (default) or raw bytes of the merged image.
+            Returns None if any input is missing or invalid.
         """
         if not background_img or not foreground_png:
             return None
 
-        bg = self._as_image(background_img)  # RGBA
-        fg = self._as_image(foreground_png)  # RGBA
+        try:
+            bg = self._as_image(background_img)  # RGBA
+            fg = self._as_image(foreground_png)  # RGBA
+        except (ValueError, TypeError):  # empty payload, invalid base64, unsupported type, etc.
+            # Optionally log something here
+            return None
 
         if fit_foreground:
             if keep_aspect:
-                # Fit preserving aspect ratio, padding with transparency
-                fg = ImageOps.contain(fg, bg.size)  # max-fit inside bg
+                # Fit while preserving aspect ratio, padding with transparency
+                fg = ImageOps.contain(fg, bg.size)
             else:
-                fg = fg.resize(bg.size, resample=Image.LANCZOS)
+                # Modern resample constant for Pillow >= 10.0.0
+                fg = fg.resize(bg.size, resample=Image.Resampling.LANCZOS)
             position = (0, 0)
 
-        # Create a copy to avoid mutating original
+        # Copy background to avoid mutating the original image
         canvas = bg.copy()
 
-        # If position causes overflow, paste will clip automatically.
-        # Use mask=fg to respect alpha channel
+        # Pasting with mask preserves alpha
         canvas.paste(fg, position, fg)
 
         return self._dump_image(

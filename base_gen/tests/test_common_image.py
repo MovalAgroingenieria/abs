@@ -7,7 +7,7 @@ import io
 
 from PIL import Image
 
-# Odoo test base (SavepointCase puede no existir en algunos builds)
+# Odoo test base (SavepointCase can be missing in some builds)
 try:
     from odoo.tests.common import SavepointCase
 except ImportError:  # pragma: no cover
@@ -192,3 +192,40 @@ class TestCommonImage(SavepointCase):
         im_jpg = self._open_result(res_jpg)
         self.assertEqual(im_jpg.mode, "RGB")
         self.assertEqual(im_jpg.size, (64, 48))
+
+    def test_merge_with_transparent_background(self):
+        """Test merging with transparent background (RGBA)."""
+        transparent_bg = _img_rgba((64, 48), (0, 0, 0, 0))  # Fully transparent
+        transparent_bg_b64 = _to_b64(_to_png_bytes(transparent_bg))
+
+        result = self.common.merge_img(
+            transparent_bg_b64,
+            self.fg_red_b64,
+            format_output_img="PNG",
+            return_base64=True
+        )
+        im = self._open_result(result)
+        self.assertEqual(im.mode, "RGBA")  # Should preserve transparency
+
+    def test_merge_with_webp_format(self):
+        """Test WebP output format support (common in modern systems)."""
+        # WebP is widely supported in Pillow
+        result = self.common.merge_img(
+            self.bg_b64,
+            self.fg_red_b64,
+            format_output_img="WEBP",
+            return_base64=True
+        )
+        im = self._open_result(result)
+        self.assertEqual(im.size, (64, 48))
+
+    def test_error_handling(self):
+        """Test error handling in merge_img."""
+        # Test with invalid image data
+        invalid_b64 = "invalid_base64_string"
+        result = self.common.merge_img(invalid_b64, self.fg_red_b64)
+        self.assertIsNone(result)
+
+        # Test with empty strings
+        result = self.common.merge_img("", self.fg_red_b64)
+        self.assertIsNone(result)

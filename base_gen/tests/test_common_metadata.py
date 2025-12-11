@@ -127,3 +127,9 @@ class TestCommonMetadata(SavepointCase):
         self.assertEqual(len(inherited), len(set(inherited)))
         # In most DBs, partner inherits from several mixins; length should be >= 1
         self.assertGreaterEqual(len(inherited), 1)
+
+    def test_with_v18_features(self):
+        # Test with Odoo v18's new field types if any
+        metadata = self.meta.get_field('res.partner', 'name')
+        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata['name'], 'name')
