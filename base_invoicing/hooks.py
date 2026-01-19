@@ -1,11 +1,13 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import api, SUPERUSER_ID
+from odoo import SUPERUSER_ID
 
 
-def post_init_hook(cr, registry):
-    env = api.Environment(cr, SUPERUSER_ID, {})
+def post_init_hook(env):
+    """Executed right after module installation."""
+    env = env(user=SUPERUSER_ID)
+
     params = env["ir.config_parameter"].sudo()
     params.set_param(
         "base_invoicing.mass_invoicing_seq_invoiceset_code_id",
@@ -18,8 +20,10 @@ def post_init_hook(cr, registry):
     partners.write({"fee_ids": [(0, 0, {})]})
 
 
-def uninstall_hook(cr, registry):
-    env = api.Environment(cr, SUPERUSER_ID, {})
+def uninstall_hook(env):
+    """Executed right after module uninstallation."""
+    env = env(user=SUPERUSER_ID)
+
     params = env["ir.config_parameter"].sudo().search(
         [("key", "=like", "base_invoicing.%")]
     )

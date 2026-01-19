@@ -1,98 +1,83 @@
 /** @odoo-module **/
 
-import { registry } from "@web/core/registry";
-import { FormController } from '@web/views/form/form_controller';
-import { formView } from '@web/views/form/form_view';
-import { useService } from "@web/core/utils/hooks";
+import {registry} from "@web/core/registry";
+import {FormController} from "@web/views/form/form_controller";
+import {formView} from "@web/views/form/form_view";
+import {useService} from "@web/core/utils/hooks";
 
 const INTERVAL = 2000;
-let previous_background = false;
-let current_background = false;
-let refresh_interval = false;
 
 export class MassiveInvoicingFormController extends FormController {
     setup() {
         super.setup();
-        this.orm = useService('orm');
-        if (!this._intervalId) {
-            this._intervalId = setInterval(() => {
-                previous_background = current_background;
-                this.orm.call('account.invoiceset',
-                              'background_calculation_active',
-                              [[this.props.resId]]
-                    ).then((result) => {
-                        current_background = result;
-                        if (current_background ||
-                            (!current_background && previous_background)) {
-                            this.model.load();
-                        }
-                    });
-            }, INTERVAL);
+        this.orm = useService("orm");
+        this._previousBackground = false;
+        this._currentBackground = false;
+        this._refreshInterval = false;
+
+        this._startInterval(this.props.resId);
+    }
+
+    _startInterval(resId) {
+        this._clearInterval();
+        if (!resId) {
+            return;
+        }
+
+        this._intervalId = setInterval(async () => {
+            this._previousBackground = this._currentBackground;
+            this._currentBackground = await this.orm.call(
+                "account.invoiceset",
+                "background_calculation_active",
+                [[resId]]
+            );
+
+            if (
+                this._currentBackground ||
+                (!this._currentBackground && this._previousBackground)
+            ) {
+                this.model.load();
+            }
+        }, INTERVAL);
+    }
+
+    _clearInterval() {
+        if (this._intervalId) {
+            clearInterval(this._intervalId);
+            this._intervalId = false;
         }
     }
 
     async beforeLeave() {
         await super.beforeLeave();
-        if (this._intervalId) {
-            clearInterval(this._intervalId);
-        }
+        this._clearInterval();
     }
 
-    async onPagerUpdate({ offset, resIds }) {
-        await super.onPagerUpdate({ offset, resIds });
-        if (this._intervalId) {
-            clearInterval(this._intervalId);
-        }
-        previous_background = false;
-        current_background = false;
-        this._intervalId = setInterval(() => {
-            previous_background = current_background;
-            this.orm.call('account.invoiceset',
-                          'background_calculation_active',
-                          [[resIds[offset]]]
-                ).then((result) => {
-                    current_background = result;
-                    if (current_background ||
-                        (!current_background && previous_background)) {
-                        this.model.load();
-                    }
-                });
-        }, INTERVAL);
+    async onPagerUpdate({offset, resIds}) {
+        await super.onPagerUpdate({offset, resIds});
+        this._previousBackground = false;
+        this._currentBackground = false;
+        this._startInterval(resIds[offset]);
     }
 
     async deleteRecord() {
         await super.deleteRecord();
-        refresh_interval = true;
+        this._refreshInterval = true;
     }
 
     updateURL() {
         super.updateURL();
-        if (refresh_interval) {
-            refresh_interval = false;
-            if (this._intervalId) {
-                clearInterval(this._intervalId);
-            }
-            previous_background = false;
-            current_background = false;
-            this._intervalId = setInterval(() => {
-                previous_background = current_background;
-                this.orm.call('account.invoiceset',
-                              'background_calculation_active',
-                              [[this.model.root.resId]]
-                    ).then((result) => {
-                        current_background = result;
-                        if (current_background ||
-                            (!current_background && previous_background)) {
-                            this.model.load();
-                        }
-                    });
-            }, INTERVAL);
+
+        if (this._refreshInterval) {
+            this._refreshInterval = false;
+            this._previousBackground = false;
+            this._currentBackground = false;
+            this._startInterval(this.model.root.resId);
         }
     }
+}
 
-};
-
-registry.category('views').add('invoiceset_view_form', {
+registry.category("views").add("invoiceset_view_form", {
     ...formView,
     Controller: MassiveInvoicingFormController,
 });

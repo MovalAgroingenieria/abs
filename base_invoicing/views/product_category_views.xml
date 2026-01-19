@@ -7,388 +7,365 @@
         <field name="inherit_id" ref="product.product_category_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
-                <span attrs="{'invisible': [('category_code', '&lt;', 2)]}"><span>(Category #</span><field name="category_code" nolabel="1"/><span>)</span></span>
-                <span attrs="{'invisible': [('category_code', '!=', 1)]}"><span>(Standard Category)</span></span>
+                <span invisible="category_code != 1">
+                    <span>(Standard Category)</span>
+                </span>
+                <span invisible="category_code &lt; 2">
+                    <span>(Category #</span>
+                    <field name="category_code" nolabel="1"/>
+                    <span>)</span>
+                </span>
             </xpath>
+
             <xpath expr="//group[@name='first']" position="after">
-                    <notebook name="slave_data_notebook" colspan="4">
-                        <page name="page_calculation_config" string="Invoice Sets: Calculation Settings">
-                            <group name="group_calculation_config">
-                                <span name="billable_item_model_id_label" class="o_form_label o_td_label">
-                                    Billable items model
-                                </span>
-                                <div name="div_billable_item_model_id" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="billable_item_model_id"
-                                           options="{'no_quick_create':True, 'no_create_edit': True}"
-                                           attrs="{'readonly': [('category_code', '>', 1)]}"/>
+                <notebook name="slave_data_notebook" colspan="4">
+                    <page name="page_calculation_config" string="Invoice Sets: Calculation Settings">
+                        <group name="group_calculation_config">
+
+                            <span name="billable_item_model_id_label" class="o_form_label o_td_label">
+                                Billable items model
+                            </span>
+                            <div name="div_billable_item_model_id" class="o_address_format"
+                                 style="display: flex; gap: 4px;">
+                                <field name="billable_item_model_id"
+                                       options="{'no_quick_create': True, 'no_create_edit': True}"
+                                       readonly="category_code &gt; 1"/>
+                            </div>
+
+                            <div class="text-muted mb-4" colspan="2">
+                                Each record in a billable items model contains a potential
+                                reference to an invoice line. The reference to the client
+                                partner on that invoice line is in the "partner_id" field
+                                of the billable items model. If the billable items model is
+                                "res.partner," the reference to the client partner is
+                                the record's "id" (required field for batch-based billing).
+                            </div>
+
+                            <span name="billable_item_quantity_field_label" class="o_form_label o_td_label"
+                                  invisible="category_code == 1">
+                                Quantity Field (name / label)
+                            </span>
+                            <div name="div_billable_item_quantity_field" class="o_address_format"
+                                 style="display: flex; gap: 4px;"
+                                 invisible="category_code == 1">
+                                <field name="billable_item_quantity_field" style="max-width:150px"/>
+                                <div name="button_billable_item_quantity_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the quantity field"
+                                            icon="fa-table"
+                                            context="{'field': 'billable_item_quantity_field', 'types': 'integer,float'}"/>
                                 </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    Each record in a billable items model contains a potential
-                                    reference to an invoice line. The reference to the client
-                                    partner on that invoice line is in the "partner_id" field
-                                    of the billable items model. If the billable items model is
-                                    "res.partner," the reference to the client partner is
-                                    the record's "id" (REQUIRED field for batch-based billing).
+                                <span style="margin-top:3px">/</span>
+                                <field name="billable_item_quantity_label"/>
+                            </div>
+
+                            <div class="text-muted mb-4" colspan="2" invisible="category_code == 1">
+                                The billable items model must have a numeric field ("Integer" or "Float")
+                                containing the billable amount. If this field is not specified, the billable
+                                amount for each record will be assumed to be 1.
+                            </div>
+
+                            <span name="billable_item_group_field_label" class="o_form_label o_td_label"
+                                  invisible="category_code == 1">
+                                Field for grouping
+                            </span>
+                            <div name="div_billable_item_group_field" class="o_address_format"
+                                 style="display: flex; gap: 4px;"
+                                 invisible="category_code == 1">
+                                <field name="billable_item_group_field" style="max-width:150px"/>
+                                <div name="button_billable_item_group_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the field for grouping"
+                                            icon="fa-table"
+                                            context="{'field': 'billable_item_group_field', 'types': 'boolean,char,date,selection,many2one'}"/>
                                 </div>
-                                <span name="billable_item_quantity_field_label" class="o_form_label o_td_label"
-                                      attrs="{'invisible': [('category_code', '=', 1)]}">
-                                    Quantity Field (name / label)
-                                </span>
-                                <div name="div_billable_item_quantity_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;"
-                                     attrs="{'invisible': [('category_code', '=', 1)]}">
-                                    <field name="billable_item_quantity_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_billable_item_quantity_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the quantity field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'billable_item_quantity_field',
-                                                          'types': 'integer,float'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="billable_item_quantity_label"/>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2"
-                                     attrs="{'invisible': [('category_code', '=', 1)]}">
-                                    The billable items model must have a numeric field
-                                    ("Integer" or "Float") containing the billable amount.
-                                    If this field is not specified, the billable amount
-                                    for each record in the billable items model will be
-                                    assumed to be 1 (optional field).
-                                </div>
-                                <span name="billable_item_group_field_label" class="o_form_label o_td_label"
-                                      attrs="{'invisible': [('category_code', '=', 1)]}">
-                                    Field for grouping
-                                </span>
-                                <div name="div_billable_item_group_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;"
-                                     attrs="{'invisible': [('category_code', '=', 1)]}">
-                                    <field name="billable_item_group_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_billable_item_group_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the field for grouping"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'billable_item_group_field',
-                                                          'types': 'boolean,char,date,selection,many2one'}"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2"
-                                     attrs="{'invisible': [('category_code', '=', 1)]}">
-                                    If instead of creating one invoice per customer it's necessary
-                                    to create an invoice for each combination of customer and another
-                                    grouping field, then that additional grouping field must be
-                                    specified here (optional field).
-                                </div>
-                                <span name="billable_item_detail_desc_label" class="o_form_label o_td_label">
-                                    Template for invoice lines
-                                </span>
-                                <div name="div_billable_item_detail_desc" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="billable_item_detail_desc"/>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    The template to be applied for the invoice line description must be
-                                    specified here. This is a Jinja2 template. Example: "Annual fee for
-                                    member {{billable_item.billing_partner_id.display_name}}" (optional field).
-                                    Important: regardless of the billable items model, in the Jinja2 template
-                                    we must refer to it as "billable_item". All fields used in the template
-                                    must belong to the billable items model. The '|' character will be
-                                    replaced by a new line.
-                                </div>
-                                <span name="billable_item_domain_label" class="o_form_label o_td_label">
-                                    Pre-filter Condition
-                                </span>
-                                <div name="div_billable_item_domain" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="billable_item_domain"/>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    Prefilter condition applied to potentially billable items. It uses
-                                    SQL-Where syntax. Example (initially include for invoicing only
-                                    partners who are neither internal users nor companies):
-                                    "partner_share and not is_company".
-                                </div>
-                            </group>
-                        </page>
-                        <page name="page_selection_config" string="Invoice Sets: Selection Settings"
-                              attrs="{'invisible': [('billable_item_model_id', '=', False)]}">
-                            <group name="group_selection_config">
-                                <div class="container" colspan="2">
-                                    <div class="row mb-2">
-                                        <div class="col text-center">
-                                            <h4 class="text-decoration-underline">GROUP 1</h4>
-                                        </div>
+                            </div>
+
+                            <div class="text-muted mb-4" colspan="2" invisible="category_code == 1">
+                                If you need one invoice per customer and an additional grouping criterion,
+                                set the extra grouping field here.
+                            </div>
+
+                            <span name="billable_item_detail_desc_label" class="o_form_label o_td_label">
+                                Template for invoice lines
+                            </span>
+                            <div name="div_billable_item_detail_desc" class="o_address_format"
+                                 style="display: flex; gap: 4px;">
+                                <field name="billable_item_detail_desc"/>
+                            </div>
+
+                            <div class="text-muted mb-4" colspan="2">
+                                Jinja2 template for the invoice line description. Use "billable_item" as the variable.
+                                The '|' character will be replaced by a new line.
+                            </div>
+
+                            <span name="billable_item_domain_label" class="o_form_label o_td_label">
+                                Pre-filter Condition
+                            </span>
+                            <div name="div_billable_item_domain" class="o_address_format"
+                                 style="display: flex; gap: 4px;">
+                                <field name="billable_item_domain"/>
+                            </div>
+
+                            <div class="text-muted mb-4" colspan="2">
+                                Prefilter condition applied to potentially billable items (SQL-Where syntax).
+                                Example: "partner_share and not is_company".
+                            </div>
+
+                        </group>
+                    </page>
+
+                    <page name="page_selection_config" string="Invoice Sets: Selection Settings"
+                          invisible="not billable_item_model_id">
+                        <group name="group_selection_config">
+                            <div class="container" colspan="2">
+                                <div class="row mb-2">
+                                    <div class="col text-center">
+                                        <h4 class="text-decoration-underline">GROUP 1</h4>
                                     </div>
                                 </div>
-                                <span name="aux_01_char_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type char (name / label)
-                                </span>
-                                <div name="div_aux_01_char_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_01_char_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_01_char_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the char field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_01_char_field',
-                                                          'types': 'char'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_01_char_label"/>
+                            </div>
+
+                            <span name="aux_01_char_field_label" class="o_form_label o_td_label">
+                                Aux. field of type char (name / label)
+                            </span>
+                            <div name="div_aux_01_char_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_01_char_field" style="max-width:150px"/>
+                                <div name="button_aux_01_char_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the char field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_01_char_field', 'types': 'char'}"/>
                                 </div>
-                                <span name="aux_01_int_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type integer (name / label)
-                                </span>
-                                <div name="div_aux_01_int_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_01_int_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_01_int_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the integer field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_01_int_field',
-                                                          'types': 'integer'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_01_int_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_01_char_label"/>
+                            </div>
+
+                            <span name="aux_01_int_field_label" class="o_form_label o_td_label">
+                                Aux. field of type integer (name / label)
+                            </span>
+                            <div name="div_aux_01_int_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_01_int_field" style="max-width:150px"/>
+                                <div name="button_aux_01_int_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the integer field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_01_int_field', 'types': 'integer'}"/>
                                 </div>
-                                <span name="aux_01_float_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type float (name / label)
-                                </span>
-                                <div name="div_aux_01_float_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_01_float_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_01_float_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the float field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_01_float_field',
-                                                          'types': 'float'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_01_float_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_01_int_label"/>
+                            </div>
+
+                            <span name="aux_01_float_field_label" class="o_form_label o_td_label">
+                                Aux. field of type float (name / label)
+                            </span>
+                            <div name="div_aux_01_float_field" class="o_address_format"
+                                 style="display: flex; gap: 4px;">
+                                <field name="aux_01_float_field" style="max-width:150px"/>
+                                <div name="button_aux_01_float_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the float field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_01_float_field', 'types': 'float'}"/>
                                 </div>
-                                <span name="aux_01_bool_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type boolean (name / label)
-                                </span>
-                                <div name="div_aux_01_bool_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_01_bool_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_01_bool_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the bool field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_01_bool_field',
-                                                          'types': 'boolean'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_01_bool_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_01_float_label"/>
+                            </div>
+
+                            <span name="aux_01_bool_field_label" class="o_form_label o_td_label">
+                                Aux. field of type boolean (name / label)
+                            </span>
+                            <div name="div_aux_01_bool_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_01_bool_field" style="max-width:150px"/>
+                                <div name="button_aux_01_bool_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the bool field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_01_bool_field', 'types': 'boolean'}"/>
                                 </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    The fields above are auxiliary data from the billable
-                                    items model. There is one field of type "Char", another
-                                    of type "Integer", a third of type "Float", and a final
-                                    field of type "Boolean". Assigning a value to any of
-                                    these fields will cause the corresponding informational
-                                    column to be displayed in the list view of selectable
-                                    items (when configuring a lot). Further below, two
-                                    additional groups of auxiliary fields are shown, serving
-                                    the same purpose as this first group.
-                                </div>
-                                <div class="container" colspan="2">
-                                    <div class="row mt-2 mb-2">
-                                        <div class="col text-center">
-                                            <h4 class="text-decoration-underline">GROUP 2</h4>
-                                        </div>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_01_bool_label"/>
+                            </div>
+
+                            <div class="text-muted mb-4" colspan="2">
+                                Setting any of these fields will show the corresponding informational columns
+                                in the selectable items list view.
+                            </div>
+
+                            <div class="container" colspan="2">
+                                <div class="row mt-2 mb-2">
+                                    <div class="col text-center">
+                                        <h4 class="text-decoration-underline">GROUP 2</h4>
                                     </div>
                                 </div>
-                                <span name="aux_02_char_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type char (name / label)
-                                </span>
-                                <div name="div_aux_02_char_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_02_char_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_02_char_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the char field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_02_char_field',
-                                                          'types': 'char'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_02_char_label"/>
+                            </div>
+
+                            <span name="aux_02_char_field_label" class="o_form_label o_td_label">
+                                Aux. field of type char (name / label)
+                            </span>
+                            <div name="div_aux_02_char_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_02_char_field" style="max-width:150px"/>
+                                <div name="button_aux_02_char_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the char field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_02_char_field', 'types': 'char'}"/>
                                 </div>
-                                <span name="aux_02_int_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type integer (name / label)
-                                </span>
-                                <div name="div_aux_02_int_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_02_int_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_02_int_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the integer field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_02_int_field',
-                                                          'types': 'integer'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_02_int_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_02_char_label"/>
+                            </div>
+
+                            <span name="aux_02_int_field_label" class="o_form_label o_td_label">
+                                Aux. field of type integer (name / label)
+                            </span>
+                            <div name="div_aux_02_int_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_02_int_field" style="max-width:150px"/>
+                                <div name="button_aux_02_int_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the integer field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_02_int_field', 'types': 'integer'}"/>
                                 </div>
-                                <span name="aux_02_float_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type float (name / label)
-                                </span>
-                                <div name="div_aux_02_float_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_02_float_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_02_float_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the float field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_02_float_field',
-                                                          'types': 'float'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_02_float_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_02_int_label"/>
+                            </div>
+
+                            <span name="aux_02_float_field_label" class="o_form_label o_td_label">
+                                Aux. field of type float (name / label)
+                            </span>
+                            <div name="div_aux_02_float_field" class="o_address_format"
+                                 style="display: flex; gap: 4px;">
+                                <field name="aux_02_float_field" style="max-width:150px"/>
+                                <div name="button_aux_02_float_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the float field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_02_float_field', 'types': 'float'}"/>
                                 </div>
-                                <span name="aux_02_bool_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type boolean (name / label)
-                                </span>
-                                <div name="div_aux_02_bool_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_02_bool_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_02_bool_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the bool field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_02_bool_field',
-                                                          'types': 'boolean'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_02_bool_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_02_float_label"/>
+                            </div>
+
+                            <span name="aux_02_bool_field_label" class="o_form_label o_td_label">
+                                Aux. field of type boolean (name / label)
+                            </span>
+                            <div name="div_aux_02_bool_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_02_bool_field" style="max-width:150px"/>
+                                <div name="button_aux_02_bool_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the bool field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_02_bool_field', 'types': 'boolean'}"/>
                                 </div>
-                                <div class="container" colspan="2">
-                                    <div class="row mt-2 mb-2">
-                                        <div class="col text-center">
-                                            <h4 class="text-decoration-underline">GROUP 3</h4>
-                                        </div>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_02_bool_label"/>
+                            </div>
+
+                            <div class="container" colspan="2">
+                                <div class="row mt-2 mb-2">
+                                    <div class="col text-center">
+                                        <h4 class="text-decoration-underline">GROUP 3</h4>
                                     </div>
                                 </div>
-                                <span name="aux_03_char_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type char (name / label)
-                                </span>
-                                <div name="div_aux_03_char_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_03_char_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_03_char_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the char field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_03_char_field',
-                                                          'types': 'char'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_03_char_label"/>
+                            </div>
+
+                            <span name="aux_03_char_field_label" class="o_form_label o_td_label">
+                                Aux. field of type char (name / label)
+                            </span>
+                            <div name="div_aux_03_char_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_03_char_field" style="max-width:150px"/>
+                                <div name="button_aux_03_char_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the char field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_03_char_field', 'types': 'char'}"/>
                                 </div>
-                                <span name="aux_03_int_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type integer (name / label)
-                                </span>
-                                <div name="div_aux_03_int_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_03_int_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_03_int_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the integer field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_03_int_field',
-                                                          'types': 'integer'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_03_int_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_03_char_label"/>
+                            </div>
+
+                            <span name="aux_03_int_field_label" class="o_form_label o_td_label">
+                                Aux. field of type integer (name / label)
+                            </span>
+                            <div name="div_aux_03_int_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_03_int_field" style="max-width:150px"/>
+                                <div name="button_aux_03_int_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the integer field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_03_int_field', 'types': 'integer'}"/>
                                 </div>
-                                <span name="aux_03_float_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type float (name / label)
-                                </span>
-                                <div name="div_aux_03_float_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_03_float_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_03_float_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the float field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_03_float_field',
-                                                          'types': 'float'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_03_float_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_03_int_label"/>
+                            </div>
+
+                            <span name="aux_03_float_field_label" class="o_form_label o_td_label">
+                                Aux. field of type float (name / label)
+                            </span>
+                            <div name="div_aux_03_float_field" class="o_address_format"
+                                 style="display: flex; gap: 4px;">
+                                <field name="aux_03_float_field" style="max-width:150px"/>
+                                <div name="button_aux_03_float_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the float field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_03_float_field', 'types': 'float'}"/>
                                 </div>
-                                <span name="aux_03_bool_label_label" class="o_form_label o_td_label">
-                                    Aux. field of type boolean (name / label)
-                                </span>
-                                <div name="div_aux_03_bool_field" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_03_bool_field"
-                                           style="max-width:150px"/>
-                                    <div name="button_aux_03_bool_field">
-                                        <button name="action_select_billable_item_field"
-                                                title="Select the bool field"
-                                                type="object" icon="fa-table"
-                                                context="{'field': 'aux_03_bool_field',
-                                                          'types': 'boolean'}"
-                                        />
-                                    </div>
-                                    <span style="margin-top:3px">/</span>
-                                    <field name="aux_03_bool_label"/>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_03_float_label"/>
+                            </div>
+
+                            <span name="aux_03_bool_field_label" class="o_form_label o_td_label">
+                                Aux. field of type boolean (name / label)
+                            </span>
+                            <div name="div_aux_03_bool_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_03_bool_field" style="max-width:150px"/>
+                                <div name="button_aux_03_bool_field">
+                                    <button name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the bool field"
+                                            icon="fa-table"
+                                            context="{'field': 'aux_03_bool_field', 'types': 'boolean'}"/>
                                 </div>
-                                <div class="container" colspan="2">
-                                    <div class="row mt-2 mb-2">
-                                        <div class="col text-center">
-                                            <h4 class="text-decoration-underline">ADDITIONAL FIELDS</h4>
-                                        </div>
+                                <span style="margin-top:3px">/</span>
+                                <field name="aux_03_bool_label"/>
+                            </div>
+
+                            <div class="container" colspan="2">
+                                <div class="row mt-2 mb-2">
+                                    <div class="col text-center">
+                                        <h4 class="text-decoration-underline">ADDITIONAL FIELDS</h4>
                                     </div>
                                 </div>
-                                <span name="aux_desc_label" class="o_form_label o_td_label">
-                                    Template for selection lines
-                                </span>
-                                <div name="div_aux_desc" class="o_address_format"
-                                     style="display: flex; gap: 4px;">
-                                    <field name="aux_desc"/>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    Jinja2 template for an auxiliary description in the tree view
-                                    of selectable items. All fields used must belong to the selectable
-                                    items model, which should be referenced as "billable_item". The
-                                    '|' character will be replaced by a new line.
-                                </div>
-                            </group>
-                        </page>
-                    </notebook>
+                            </div>
+
+                            <span name="aux_desc_label" class="o_form_label o_td_label">
+                                Template for selection lines
+                            </span>
+                            <div name="div_aux_desc" class="o_address_format" style="display: flex; gap: 4px;">
+                                <field name="aux_desc"/>
+                            </div>
+
+                            <div class="text-muted mb-4" colspan="2">
+                                Jinja2 template for an auxiliary description in the selectable items list.
+                                Use "billable_item" as the variable. The '|' character will be replaced by a new line.
+                            </div>
+                        </group>
+                    </page>
+                </notebook>
             </xpath>
         </field>
     </record>
@@ -402,9 +379,7 @@
                 <attribute name="class">o_base_invoicing_product_category</attribute>
             </xpath>
             <xpath expr="//field[@name='display_name']" position="after">
-                <field name="supports_mass_billing"
-                       string="Supports Lots"
-                       class="text-center"/>
+                <field name="supports_mass_billing" string="Supports Lots" class="text-center"/>
             </xpath>
         </field>
     </record>
@@ -415,11 +390,9 @@
         <field name="inherit_id" ref="product.product_category_search_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='parent_id']" position="after">
-                <filter name="supports_mass_billing_yes"
-                        string="Supports lots: Yes"
+                <filter name="supports_mass_billing_yes" string="Supports lots: Yes"
                         domain="[('supports_mass_billing', '=', True)]"/>
-                <filter name="supports_mass_billing_no"
-                        string="Supports lots: No"
+                <filter name="supports_mass_billing_no" string="Supports lots: No"
                         domain="[('supports_mass_billing', '=', False)]"/>
             </xpath>
         </field>

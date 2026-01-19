@@ -1,138 +1,115 @@
-.o_base_invoicing_product_category [data-name="supports_mass_billing"] {
+.o_base_invoicing_product_category {
+  [data-name="supports_mass_billing"] {
     text-align: center;
     width: 140px;
     min-width: 140px;
+  }
 }
 
-.o_base_invoicing_account_invoiceset [data-name="alphanum_code"] {
+.o_base_invoicing_account_invoiceset {
+  [data-name="alphanum_code"] {
     width: 100px;
     min-width: 100px;
-}
+  }
 
-.o_base_invoicing_account_invoiceset [data-name="invoice_date"] {
+  [data-name="invoice_date"],
+  [data-name="invoice_date_due"] {
     width: 120px;
     min-width: 120px;
-}
+  }
 
-.o_base_invoicing_account_invoiceset [data-name="invoice_date_due"] {
-    width: 120px;
-    min-width: 120px;
-}
-
-.o_base_invoicing_account_invoiceset [data-name="invoice_user_id"] {
+  [data-name="invoice_user_id"],
+  [data-name="journal_id"],
+  [data-name="payment_term_id"] {
     width: 150px;
     min-width: 150px;
-}
+  }
 
-.o_base_invoicing_account_invoiceset [data-name="number_of_invoices"] {
+  [data-name="number_of_invoices"],
+  [data-name="state"] {
     width: 120px;
     min-width: 120px;
+  }
 }
 
-.o_base_invoicing_account_invoiceset [data-name="journal_id"] {
-    width: 150px;
-    min-width: 150px;
-}
-
-.o_base_invoicing_account_invoiceset [data-name="payment_term_id"] {
-    width: 150px;
-    min-width: 150px;
-}
-
-.o_base_invoicing_account_invoiceset [data-name="state"] {
-    width: 120px;
-    min-width: 120px;
-}
-
-.o_base_invoicing_account_invoiceset_productlink [data-name="categ_id"] {
+.o_base_invoicing_account_invoiceset_productlink {
+  [data-name="categ_id"] {
     width: 250px;
     min-width: 250px;
-}
+  }
 
-.o_base_invoicing_account_invoiceset_productlink [data-name="lst_price"] {
+  [data-name="lst_price"],
+  [data-name="number_of_selected_items"] {
     width: 110px;
     min-width: 110px;
-}
-
-.o_base_invoicing_account_invoiceset_productlink [data-name="number_of_selected_items"] {
-    width: 110px;
-    min-width: 110px;
+  }
 }
 
 .o_list_button {
-    text-align: center;
-    width:30px;
+  text-align: center;
+  width: 30px;
 }
 
-.o_base_invoicing_account_move_line [data-name="invoiceset_id"] {
+.o_base_invoicing_account_move_line {
+  [data-name="invoiceset_id"] {
     width: 225px;
     min-width: 225px;
-}
+  }
 
-.o_base_invoicing_account_move_line [data-name="move_id"] {
+  [data-name="move_id"] {
     width: 150px;
     min-width: 150px;
-}
+  }
 
-.o_base_invoicing_account_move_line [data-name="partner_id"] {
+  [data-name="partner_id"] {
     width: 210px;
     min-width: 210px;
-}
+  }
 
-.o_base_invoicing_account_move_line [data-name="date"] {
+  [data-name="date"] {
     width: 120px;
     min-width: 120px;
-}
+  }
 
-.o_base_invoicing_account_move_line [data-name="quantity"] {
+  [data-name="quantity"] {
     width: 100px;
     min-width: 100px;
-}
+  }
 
-.o_base_invoicing_account_move_line [data-name="price_unit"] {
+  [data-name="price_unit"],
+  [data-name="price_subtotal"],
+  [data-name="price_taxes"],
+  [data-name="price_total"],
+  [data-name="parent_state"] {
     width: 100px;
     min-width: 100px;
+  }
 }
 
-.o_base_invoicing_account_move_line [data-name="price_subtotal"] {
-    width: 100px;
-    min-width: 100px;
-}
-
-.o_base_invoicing_account_move_line [data-name="price_taxes"] {
-    width: 100px;
-    min-width: 100px;
-}
-
-.o_base_invoicing_account_move_line [data-name="price_total"] {
-    width: 100px;
-    min-width: 100px;
-}
-
-.o_base_invoicing_account_move_line [data-name="parent_state"] {
-    width: 100px;
-    min-width: 100px;
-}
-
-.o_base_invoicing_account_selectable_item [data-name="selected_message"] {
+.o_base_invoicing_account_selectable_item {
+  [data-name="selected_message"] {
     width: 115px;
     min-width: 115px;
+  }
 }
 
-.o_base_invoicing_product_template [data-name="supports_mass_billing"] {
+.o_base_invoicing_product_template {
+  [data-name="supports_mass_billing"] {
     text-align: center;
     width: 140px;
     min-width: 140px;
+  }
 }
 
-body[data-res-model="account.selectable.item"] .o_add_custom_filter_menu {
+body[data-res-model="account.selectable.item"] {
+  .o_add_custom_filter_menu,
+  .o_favorite_menu {
     display: none !important;
+  }
 }
 
-body[data-res-model="account.selectable.item"] .o_favorite_menu {
+body[data-res-model-hide-selectors="account.selectable.item"] {
+  .o_filter_menu {
     display: none !important;
-}
-
-body[data-res-model-hide-selectors="account.selectable.item"] .o_filter_menu {
-    display: none !important;
+  }
 }

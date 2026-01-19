@@ -1,3 +1,9 @@
+# 2025-2026 Moval Agroingeniería
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+
+from odoo.tests.common import new_test_user, TransactionCase, HttpCase
+
+
 class TestMassInvoicingSettings(TransactionCase):
 
     def test_mass_invoicing_background_param(self):

@@ -1,3 +1,9 @@
+# 2025-2026 Moval Agroingeniería
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+
+from odoo.tests.common import new_test_user, TransactionCase, HttpCase
+
+
 class TestInvoicesetSequence(TransactionCase):
 
     def test_invoiceset_uses_configured_sequence(self):

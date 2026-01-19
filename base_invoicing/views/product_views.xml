@@ -10,8 +10,7 @@
                 <attribute name="class">o_base_invoicing_product_template</attribute>
             </xpath>
             <xpath expr="//field[@name='supplier_taxes_id']" position="after">
-                <field name="supports_mass_billing" string="Supports Lots"
-                       class="text-center"/>
+                <field name="supports_mass_billing" string="Supports Lots" class="text-center"/>
             </xpath>
         </field>
     </record>
@@ -25,13 +24,12 @@
                 <field name="sale_ok" invisible="1"/>
                 <field name="supports_mass_billing" invisible="1"/>
                 <page name="invoicesets" string="Invoice Sets"
-                      attrs="{'invisible': ['|', ('sale_ok', '=', False), ('supports_mass_billing', '=', False)]}">
+                      invisible="not sale_ok or not supports_mass_billing">
                     <group name="invoicesets_left">
                         <field name="factor_quantity" string="Factor for quantities"/>
                         <field name="link_with_billable_items" string="Link product with its billable items"/>
                     </group>
-                    <group name="invoicesets_right">
-                    </group>
+                    <group name="invoicesets_right"/>
                 </page>
             </xpath>
         </field>

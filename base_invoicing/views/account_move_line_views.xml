@@ -1,30 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="account_move_line_view_tree" model="ir.ui.view">
+    <record id="account_move_line_view_list" model="ir.ui.view">
         <field name="name">account.move.line.view.list</field>
         <field name="model">account.move.line</field>
         <field name="arch" type="xml">
-            <list class="o_base_invoicing_account_move_line"
-                  create="False" delete="False">
-                <field name="invoiceset_id" string="Invoice Set"
-                       optional="show"/>
+            <list class="o_base_invoicing_account_move_line" create="false" delete="false">
+                <field name="invoiceset_id" string="Invoice Set" optional="show"/>
                 <field name="move_id" string="Invoice"/>
                 <field name="partner_id" string="Customer"/>
                 <field name="date" string="Invoice Date"/>
-                <field name="product_id" string="Product"
-                       optional="show"/>
-                <field name="name" string="Detail"
-                       optional="hide"/>
+                <field name="product_id" string="Product" optional="show"/>
+                <field name="name" string="Detail" optional="hide"/>
                 <field name="quantity" string="Quantity"/>
                 <field name="price_unit" string="Unit Price"/>
                 <field name="price_subtotal" string="Untaxed" sum="Total"/>
-                <field name="price_taxes" string="Tax" sum="Total"
-                       optional="hide"/>
-                <field name="price_total" string="Total" sum="Total"
-                       optional="hide"/>
-                <field name="parent_state" string="Status"
-                       widget="badge" decoration-success="parent_state == 'posted'" decoration-info="parent_state == 'draft'"
+                <field name="price_taxes" string="Tax" sum="Total" optional="hide"/>
+                <field name="price_total" string="Total" sum="Total" optional="hide"/>
+                <field name="parent_state"
+                       string="Status"
+                       widget="badge"
+                       decoration-success="parent_state == 'posted'"
+                       decoration-info="parent_state == 'draft'"
                        optional="show"/>
             </list>
         </field>
@@ -40,61 +37,49 @@
                 <field name="partner_id" string="Customer"/>
                 <field name="product_id" string="Product"/>
                 <field name="name" string="Detail"/>
-                <filter name="my_invoice_lines"
-                        string="My invoice lines"
-                        domain="[('invoice_user_id', '=', uid)]"/>
+
+                <filter name="my_invoice_lines" string="My invoice lines" domain="[('invoice_user_id', '=', uid)]"/>
+
                 <separator/>
-                <filter name="parent_state_draft"
-                        string="Draft"
-                        domain="[('parent_state', '=', 'draft')]"/>
-                <filter name="parent_state_posted"
-                        string="Posted"
-                        domain="[('parent_state', '=', 'posted')]"/>
-                <filter name="parent_state_cancel"
-                        string="Cancelled"
-                        domain="[('parent_state', '=', 'cancel')]"/>
+
+                <filter name="parent_state_draft" string="Draft" domain="[('parent_state', '=', 'draft')]"/>
+                <filter name="parent_state_posted" string="Posted" domain="[('parent_state', '=', 'posted')]"/>
+                <filter name="parent_state_cancel" string="Cancelled" domain="[('parent_state', '=', 'cancel')]"/>
+
                 <separator/>
-                <filter name="date" string="Invoice Date"
-                        date="date"/>
+
+                <filter name="date" string="Invoice Date" date="date"/>
+
                 <separator/>
-                <filter string="From invoice set"
-                        name="from_invoiceset_yes"
-                        domain="[('invoiceset_id', '!=', False)]"/>
-                <filter string="Not from invoice set"
-                        name="from_invoiceset_no"
+
+                <filter string="From invoice set" name="from_invoiceset_yes" domain="[('invoiceset_id', '!=', False)]"/>
+                <filter string="Not from invoice set" name="from_invoiceset_no"
                         domain="[('invoiceset_id', '=', False)]"/>
+
                 <group expand="0">
-                    <filter name="grouped_by_invoiceset_id"
-                            string="Invoice Set"
-                     context="{'group_by':'invoiceset_id'}"/>
-                    <filter name="grouped_by_move_id"
-                            string="Invoice"
-                     context="{'group_by':'move_id'}"/>
+                    <filter name="grouped_by_invoiceset_id" string="Invoice Set"
+                            context="{'group_by': 'invoiceset_id'}"/>
+                    <filter name="grouped_by_move_id" string="Invoice" context="{'group_by': 'move_id'}"/>
+
                     <separator/>
-                    <filter name="grouped_by_partner_id"
-                            string="Customer"
-                     context="{'group_by':'partner_id'}"/>
-                    <filter name="grouped_by_invoice_user_id"
-                            string="Sales Person"
-                     context="{'group_by':'invoice_user_id'}"/>
-                    <filter name="grouped_by_parent_state"
-                            string="Status"
-                     context="{'group_by':'parent_state'}"/>
+
+                    <filter name="grouped_by_partner_id" string="Customer" context="{'group_by': 'partner_id'}"/>
+                    <filter name="grouped_by_invoice_user_id" string="Sales Person"
+                            context="{'group_by': 'invoice_user_id'}"/>
+                    <filter name="grouped_by_parent_state" string="Status" context="{'group_by': 'parent_state'}"/>
+
                     <separator/>
-                    <filter name="grouped_by_categ_id"
-                            string="Category"
-                     context="{'group_by':'categ_id'}"/>
-                    <filter name="grouped_by_product_id"
-                            string="Product"
-                     context="{'group_by':'product_id'}"/>
+
+                    <filter name="grouped_by_categ_id" string="Category" context="{'group_by': 'categ_id'}"/>
+                    <filter name="grouped_by_product_id" string="Product" context="{'group_by': 'product_id'}"/>
+
                     <separator/>
-                    <filter name="grouped_by_journal_id"
-                            string="Journal"
-                     context="{'group_by':'journal_id'}"/>
+
+                    <filter name="grouped_by_journal_id" string="Journal" context="{'group_by': 'journal_id'}"/>
+
                     <separator/>
-                    <filter name="grouped_by_date"
-                            string="Date"
-                     context="{'group_by':'date'}"/>
+
+                    <filter name="grouped_by_date" string="Date" context="{'group_by': 'date'}"/>
                 </group>
             </search>
         </field>
@@ -113,45 +98,57 @@
                 <field name="quantity"/>
                 <field name="price_subtotal"/>
                 <field name="parent_state"/>
+                <field name="currency_id"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_global_click">
                             <div class="row">
                                 <div class="col-6 o_kanban_record_headings">
                                     <strong>
-                                        <span>
-                                            <field name="move_id"/>
-                                        </span>
+                                        <field name="move_id"/>
                                     </strong>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <strong><i class="fa fa-clock-o" aria-label="Date" role="img" title="Date"/> <t t-esc="record.date.value"/></strong>
+                                    <strong>
+                                        <i class="fa fa-clock-o" aria-label="Date" role="img" title="Date"/>
+                                        <t t-esc="record.date.value"/>
+                                    </strong>
                                 </div>
                             </div>
-                            <div class="row" attrs="{'invisible': [('invoiceset_id', '=', False)]}">
-                                <div class="col-12">
-                                    <span>Invoice Set </span><span><field name="invoiceset_id"/></span>
+
+                            <t t-if="record.invoiceset_id.value">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span class="text-muted">Invoice Set</span>
+                                        <span>
+                                            <field name="invoiceset_id"/>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            </t>
+
                             <div class="row mt-2">
                                 <div class="col-12">
-                                    <span><field name="partner_id"/></span>
+                                    <field name="partner_id"/>
                                 </div>
                             </div>
+
                             <div class="row">
                                 <div class="col-12">
-                                    <span><field name="product_id"/></span>
-                                    <span>. Quantity: </span>
-                                    <span><field name="quantity"/></span>
+                                    <field name="product_id"/>
+                                    <span class="text-muted">. Quantity:</span>
+                                    <field name="quantity"/>
                                 </div>
                             </div>
+
                             <div class="row">
                                 <div class="col-6">
-                                    <span><field name="price_subtotal" widget='monetary'/></span>
-                                    <span><field name="currency_id" invisible="1"/></span>
+                                    <field name="price_subtotal" widget="monetary"/>
                                 </div>
                                 <div class="col-6 text-end">
-                                    <field name="parent_state" widget="label_selection" options="{'classes': {'draft': 'info', 'posted': 'success', 'cancel': 'danger'}}"/>
+                                    <field name="parent_state"
+                                           widget="label_selection"
+                                           options="{'classes': {'draft': 'info', 'posted': 'success', 'cancel': 'danger'}}"/>
                                 </div>
                             </div>
                         </div>
@@ -162,10 +159,10 @@
     </record>
 
     <record id="account_move_line_view_graph" model="ir.ui.view">
-        <field name="name">account.move.line.view..graph</field>
+        <field name="name">account.move.line.view.graph</field>
         <field name="model">account.move.line</field>
         <field name="arch" type="xml">
-            <graph string="Invoice Lines" stacked="0" sample="1">
+            <graph string="Invoice Lines" sample="1">
                 <field name="categ_id"/>
                 <field name="product_id"/>
                 <field name="price_subtotal" type="measure"/>
@@ -174,34 +171,30 @@
     </record>
 
     <record id="account_move_line_view_pivot" model="ir.ui.view">
-         <field name="name">account.move.line.view.pivot</field>
-         <field name="model">account.move.line</field>
-         <field name="arch" type="xml">
-             <pivot string="Global Invoicing" sample="1">
-                 <field name="categ_id" type="col"/>
-                 <field name="product_id" type="col"/>
-                 <field name="date" type="row"/>
-                 <field name="price_subtotal" type="measure"/>
-                 <field name="price_taxes" type="measure"/>
-                 <field name="price_total" type="measure"/>
-             </pivot>
-         </field>
+        <field name="name">account.move.line.view.pivot</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Global Invoicing" sample="1">
+                <field name="categ_id" type="col"/>
+                <field name="product_id" type="col"/>
+                <field name="date" type="row"/>
+                <field name="price_subtotal" type="measure"/>
+                <field name="price_taxes" type="measure"/>
+                <field name="price_total" type="measure"/>
+            </pivot>
+        </field>
     </record>
 
     <record id="account_move_line_action" model="ir.actions.act_window">
         <field name="name">Invoice Lines</field>
         <field name="res_model">account.move.line</field>
-        <field name="view_mode">list,kanban,graph</field>
+        <field name="view_mode">list,kanban,graph,pivot</field>
         <field name="view_ids"
-         eval="[(5, 0),
-                (0, 0, {'view_mode': 'list',
-                        'view_id': ref('account_move_line_view_tree')}),
-                (0, 0, {'view_mode': 'kanban',
-                        'view_id': ref('account_move_line_view_kanban')}),
-                (0, 0, {'view_mode': 'graph',
-                        'view_id': ref('account_move_line_view_graph')}),
-                (0, 0, {'view_mode': 'pivot',
-                        'view_id': ref('account_move_line_view_pivot')})]"/>
+               eval="[(5, 0),
+                      (0, 0, {'view_mode': 'list', 'view_id': ref('account_move_line_view_list')}),
+                      (0, 0, {'view_mode': 'kanban', 'view_id': ref('account_move_line_view_kanban')}),
+                      (0, 0, {'view_mode': 'graph', 'view_id': ref('account_move_line_view_graph')}),
+                      (0, 0, {'view_mode': 'pivot', 'view_id': ref('account_move_line_view_pivot')})]"/>
         <field name="search_view_id" ref="account_move_line_view_search"/>
         <field name="domain">[('credit', '&gt;', 0), ('quantity', '&gt;', 0)]</field>
         <field name="context">{'search_default_from_invoiceset_yes': 1}</field>
@@ -213,8 +206,8 @@
     </record>
 
     <menuitem id="account_move_line_menu"
-        parent="base_invoicing.menu_finance_receivables_massive_invoicing"
-        action="account_move_line_action"
-        sequence="20"/>
+              parent="base_invoicing.menu_finance_receivables_massive_invoicing"
+              action="account_move_line_action"
+              sequence="20"/>
 
 </odoo>

@@ -2,36 +2,30 @@
 <odoo>
 
     <record id="wizard_confirm_productlink_action_view_form" model="ir.ui.view">
-        <field name="name">Wizard to confirm a product-link operation</field>
+        <field name="name">wizard.confirm.productlink.action.form</field>
         <field name="model">wizard.confirm.productlink.action</field>
         <field name="arch" type="xml">
-            <form string="Data of the confirmation">
-                <script>
-                    $(document).ready(function(){
-                        $('.modal-dialog').css({'width': '400px'});
-                    });
-                </script>
-                <div>
-                    <h4>Confirmation</h4>
-                    <hr class="mb-4"/>
-                </div>
-                <group name="group_confirm_productlink_action">
-                    <div colspan="2">
-                        <field name="confirm_message" nolabel="1"
-                               readonly="1"/>
-                    </div>
-                    <div colspan="2">
-                        <h5 class="mt-2">Proceed with the operation?</h5>
+            <form string="Confirmation">
+                <group>
+                    <field name="confirm_message"
+                           nolabel="1"
+                           readonly="1"/>
+
+                    <separator/>
+
+                    <div class="o_form_label">
+                        Proceed with the operation?
                     </div>
                 </group>
+
                 <footer>
                     <button name="execute_operation"
                             type="object"
                             string="Apply"
                             class="btn-primary"/>
                     <button string="Cancel"
-                            class="btn-default"
-                            special="cancel"/>
+                            special="cancel"
+                            class="btn-secondary"/>
                 </footer>
             </form>
         </field>

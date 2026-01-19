@@ -2,23 +2,14 @@
 <odoo>
 
     <record id="wizard_select_field_view_form" model="ir.ui.view">
-        <field name="name">Wizard to select a field</field>
+        <field name="name">wizard.select.field.form</field>
         <field name="model">wizard.select.field</field>
         <field name="arch" type="xml">
-            <form string="Data of the model">
-                <script>
-                    $(document).ready(function(){
-                        $('.modal-dialog').css({'width': '400px'});
-                    });
-                </script>
-                <div>
-                    <h4>Field Selection</h4>
-                    <hr class="mb-4"/>
-                </div>
-                <group name="group_field_data">
+            <form string="Field selection">
+                <group>
                     <field name="selected_field_id"
                            string="Field"
-                           options="{'no_quick_create':True, 'no_create_edit': True}"
+                           options="{'no_quick_create': true, 'no_create_edit': true}"
                            required="1"/>
                 </group>
                 <footer>
@@ -27,8 +18,8 @@
                             string="Apply"
                             class="btn-primary"/>
                     <button string="Cancel"
-                            class="btn-default"
-                            special="cancel"/>
+                            special="cancel"
+                            class="btn-secondary"/>
                 </footer>
             </form>
         </field>
