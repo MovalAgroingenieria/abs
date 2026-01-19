@@ -1,77 +1,92 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import models, fields, api
+from odoo import api, fields, models
 
 
 class WizardConfigBillableItemFields(models.TransientModel):
-    _name = 'wizard.config.billable.item.fields'
-    _description = ('Dialog box to configure the fields of the'
-                    'billable items model')
+    _name = "wizard.config.billable.item.fields"
+    _description = "Configure billable item fields"
 
     info_billable_item_model_id = fields.Char(
-        string='Billable-items Model',)
-
+        string="Billable-items Model",
+        readonly=True,
+    )
     info_billable_item_quantity_field = fields.Char(
-        string='Quantity Field',)
+        string="Quantity Field",
+        readonly=True,
+    )
 
     billable_item_group_field = fields.Char(
-        string='Field for grouping',)
-
+        string="Field for grouping",
+    )
     billable_item_detail_desc = fields.Char(
-        string='Template for invoice lines',
-        translate=True,)
-
+        string="Template for invoice lines",
+        translate=True,
+    )
     billable_item_domain = fields.Char(
-        string='Pre-filter on billable items',)
+        string="Pre-filter on billable items",
+    )
 
     category_code = fields.Integer(
-        string='Category Code',)
-
+        string="Category Code",
+        readonly=True,
+    )
     editable = fields.Boolean(
-        string='Editable Wizard (y/n)',)
+        string="Editable Wizard (y/n)",
+        readonly=True,
+    )
 
     @api.model
-    def default_get(self, var_fields):
-        resp = None
-        record = self.env['account.invoiceset.productlink'].browse(
-            self.env.context['active_id'])
-        if record:
-            info_billable_item_model_id = \
-                record.billable_item_model_id.sudo().model + ' (' + \
-                record.billable_item_model_id.sudo().name + ')'
-            info_billable_item_quantity_field = \
-                record.billable_item_quantity_field
-            if info_billable_item_quantity_field:
-                info_billable_item_quantity_field = \
-                    info_billable_item_quantity_field + \
-                    ' (' + record.billable_item_quantity_label + ')'
-            resp = {
-                'info_billable_item_model_id':
-                    info_billable_item_model_id,
-                'info_billable_item_quantity_field':
-                    info_billable_item_quantity_field,
-                'billable_item_group_field':
-                    record.billable_item_group_field,
-                'billable_item_detail_desc':
-                    record.billable_item_detail_desc,
-                'billable_item_domain':
-                    record.billable_item_domain,
-                'category_code':
-                    record.categ_id.category_code,
-                'editable':
-                    (record.invoiceset_id.state == 'draft' or
-                     record.invoiceset_id.state == 'configured')
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+
+        active_id = self.env.context.get("active_id")
+        if not active_id:
+            return res
+
+        productlink = self.env["account.invoiceset.productlink"].browse(active_id)
+        if not productlink.exists():
+            return res
+
+        model = productlink.billable_item_model_id
+        quantity_field = productlink.billable_item_quantity_field
+
+        res.update(
+            {
+                "info_billable_item_model_id": (
+                    f"{model.model} ({model.name})" if model else False
+                ),
+                "info_billable_item_quantity_field": (
+                    f"{quantity_field} ({productlink.billable_item_quantity_label})"
+                    if quantity_field
+                    else False
+                ),
+                "billable_item_group_field": productlink.billable_item_group_field,
+                "billable_item_detail_desc": productlink.billable_item_detail_desc,
+                "billable_item_domain": productlink.billable_item_domain,
+                "category_code": productlink.categ_id.category_code,
+                "editable": productlink.invoiceset_id.state
+                            in ("draft", "configured"),
             }
-        return resp
+        )
+        return res
 
     def set_config_fields(self):
-        self.ensure_one
-        record = self.env['account.invoiceset.productlink'].browse(
-            self.env.context['active_id'])
-        if record:
-            record.write({
-                'billable_item_group_field': self.billable_item_group_field,
-                'billable_item_detail_desc': self.billable_item_detail_desc,
-                'billable_item_domain': self.billable_item_domain,
-            })
+        self.ensure_one()
+
+        active_id = self.env.context.get("active_id")
+        if not active_id:
+            return
+
+        productlink = self.env["account.invoiceset.productlink"].browse(active_id)
+        if not productlink.exists():
+            return
+
+        productlink.write(
+            {
+                "billable_item_group_field": self.billable_item_group_field,
+                "billable_item_detail_desc": self.billable_item_detail_desc,
+                "billable_item_domain": self.billable_item_domain,
+            }
+        )
