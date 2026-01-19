@@ -1,14 +1,15 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import models, fields
+from odoo import fields, models
 
 
 class AccountMove(models.Model):
-    _inherit = ['account.move']
+    _inherit = "account.move"
 
     invoiceset_id = fields.Many2one(
-        string='Invoice Set',
-        comodel_name='account.invoiceset',
+        comodel_name="account.invoiceset",
+        string="Invoice Set",
         index=True,
-        ondelete='restrict',)
+        ondelete="restrict",
+    )
