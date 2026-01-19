@@ -14,14 +14,18 @@ Massive Invoicing
 Description
 ===========
 
-Massive invoicing based on billing sets.
+This module provides massive invoicing functionality based on invoice sets.
 
-Functionality:
+It allows generating multiple customer invoices in a single operation,
+using quantities obtained from configurable billable item models linked
+to partners.
 
-* Create a set of invoices (in draft state), in a single step, from quantities obtained from models containing a partner reference.
-* Parameterize the selection of the billable item model and, within it, the numeric field that establishes the quantity.
-* Facilitate the selection of billable items using a customizable model and views.
-* Integrate products associated with a specific billing model and field into a single category.
+Main features:
+
+* Generate multiple draft invoices from a single invoice set.
+* Configure the billable item model and the field used as quantity source.
+* Provide assisted selection of billable items through configurable models and views.
+* Link products to specific billing models and fields via product categories.
 
 Credits
 =======
@@ -41,12 +45,13 @@ Contributors
 * Juanu Sandoval <jsandoval@moval.es>
 * Salvador Sánchez <ssanchez@moval.es>
 * Jorge Vera <jvera@moval.es>
+* César Andrés <candres@moval.es>
 
 Maintainer
 ----------
 
 .. image:: https://services.moval.es/static/images/logo_moval_small.png
-   :target: http://moval.es
+   :target: https://www.moval.es
    :alt: Moval Agroingeniería
 
 This module is maintained by Moval Agroingeniería.
