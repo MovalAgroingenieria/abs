@@ -147,7 +147,6 @@ class AccountInvoiceset(models.Model):
                 productlink.populated for productlink in record.productlink_ids
             )
 
-    @api.depends("id")
     def _compute_invoice_generation_progress(self):
         progress_model = self.env["account.invoiceset.progress"].sudo()
         for record in self:

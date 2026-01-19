@@ -8,11 +8,11 @@ class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
     mass_invoicing_seq_invoiceset_code_id = fields.Many2one(
-        comodel_name="ir.sequence",
-        config_parameter="base_invoicing.mass_invoicing_seq_invoiceset_code_id",
-        string="Sequence for the codes of invoice set",
+        related="company_id.mass_invoicing_seq_invoiceset_code_id",
+        readonly=False,
     )
+
     mass_invoicing_run_background = fields.Boolean(
-        config_parameter="base_invoicing.mass_invoicing_run_background",
-        string="Calculate the invoice set in background (y/n)",
+        related="company_id.mass_invoicing_run_background",
+        readonly=False,
     )

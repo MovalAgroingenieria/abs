@@ -11,3 +11,4 @@ from . import res_partner
 from . import res_fee
 from . import account_selectable_item
 from . import product_template
+import res_company_ext
