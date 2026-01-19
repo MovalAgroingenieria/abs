@@ -2,58 +2,57 @@
 <odoo>
 
     <record id="wizard_config_billable_item_fields_view_form" model="ir.ui.view">
-        <field name="name">Wizard to configure the billable items fields</field>
+        <field name="name">wizard.config.billable.item.fields.form</field>
         <field name="model">wizard.config.billable.item.fields</field>
         <field name="arch" type="xml">
-            <form string="Data of the configuration">
-                <script>
-                    $(document).ready(function(){
-                        $('.modal-dialog').css({'width': '400px'});
-                    });
-                </script>
-                <div>
-                    <h4>Billing Settings</h4>
-                    <hr class="mb-4"/>
-                </div>
-                <group name="group_config_data">
+            <form string="Billing settings">
+                <group>
                     <field name="category_code" invisible="1"/>
-                    <field name="info_billable_item_model_id"
-                           string="Billable items model" readonly="1"/>
-                    <field name="info_billable_item_quantity_field"
-                           string="Quantity Field" readonly="1"
-                           attrs="{'invisible': [('category_code', '=', 1)]}"/>
-                    <field name="billable_item_detail_desc"
-                           string="Template (lines)"
-                           widget="text" rows="4"
-                           readonly="1"/>
-                    <div style="text-align:center" colspan="2"
-                         attrs="{'invisible': [('editable', '=', False)]}">
-                        <h2 class="mb-2">●︎ ●︎ ●︎</h2>
-                    </div>
                     <field name="editable" invisible="1"/>
-                    <field name="billable_item_group_field"
-                           string="Field for grouping"
-                           attrs="{'invisible': [('category_code', '=', 1)],
-                                   'readonly': [('editable', '=', False)]}"/>
-                    <field name="billable_item_domain"
-                           string="Pre-filter"
-                           widget="text" rows="3"
-                           attrs="{'readonly': [('editable', '=', False)]}"/>
+
+                    <group>
+                        <field name="info_billable_item_model_id"
+                               string="Billable items model"
+                               readonly="1"/>
+                        <field name="info_billable_item_quantity_field"
+                               string="Quantity field"
+                               readonly="1"
+                               modifiers="{'invisible': [['category_code', '=', 1]]}"/>
+                    </group>
+
+                    <group>
+                        <field name="billable_item_detail_desc"
+                               string="Template (lines)"
+                               widget="text"
+                               rows="4"
+                               readonly="1"/>
+                    </group>
+
+                    <group modifiers="{'invisible': [['editable', '=', false]]}">
+                        <separator string="Editable configuration"/>
+                        <field name="billable_item_group_field"
+                               string="Field for grouping"
+                               modifiers="{
+                                   'invisible': [['category_code', '=', 1]],
+                                   'readonly': [['editable', '=', false]]
+                               }"/>
+                        <field name="billable_item_domain"
+                               string="Pre-filter"
+                               widget="text"
+                               rows="3"
+                               modifiers="{'readonly': [['editable', '=', false]]}"/>
+                    </group>
                 </group>
+
                 <footer>
                     <button name="set_config_fields"
                             type="object"
                             string="Apply"
                             class="btn-primary"
-                            attrs="{'invisible': [('editable', '=', False)]}"/>
+                            modifiers="{'invisible': [['editable', '=', false]]}"/>
                     <button string="Cancel"
-                            class="btn-default"
                             special="cancel"
-                            attrs="{'invisible': [('editable', '=', False)]}"/>
-                    <button string="Cancel"
-                            class="btn-primary"
-                            special="cancel"
-                            attrs="{'invisible': [('editable', '=', True)]}"/>
+                            class="btn-secondary"/>
                 </footer>
             </form>
         </field>
