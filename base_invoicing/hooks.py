@@ -1,12 +1,15 @@
-# 2025 Moval Agroingeniería
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# Copyright 2025 Moval Agroingeniería
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
-from odoo import SUPERUSER_ID
+from odoo import SUPERUSER_ID, api
 
 
 def post_init_hook(env):
-    """Executed right after module installation."""
-    env = env(user=SUPERUSER_ID)
+    """Initialize module parameters and legacy fee records.
+
+    In Odoo 18 the hook is called with an Environment, not (cr, registry).
+    """
+    env = api.Environment(env.cr, SUPERUSER_ID, dict(env.context or {}))
 
     params = env["ir.config_parameter"].sudo()
     params.set_param(
@@ -15,15 +18,19 @@ def post_init_hook(env):
     )
     params.set_param("base_invoicing.mass_invoicing_run_background", True)
 
-    # Ensure fees exist for partners (legacy behavior kept)
-    partners = env["res.partner"].with_context(active_test=False).search([])
-    partners.write({"fee_ids": [(0, 0, {})]})
+    # Legacy behavior: ensure at least one fee per partner.
+    # Create fee records only for partners that do not have any.
+    partners = env["res.partner"].with_context(active_test=False).sudo().search([])
+    partners_without_fee = partners.filtered(lambda p: not p.fee_ids)
+    if partners_without_fee:
+        env["res.fee"].sudo().create(
+            [{"partner_id": partner.id} for partner in partners_without_fee]
+        )
 
 
 def uninstall_hook(env):
-    """Executed right after module uninstallation."""
-    env = env(user=SUPERUSER_ID)
-
+    """Cleanup configuration parameters on uninstall."""
+    env = api.Environment(env.cr, SUPERUSER_ID, dict(env.context or {}))
     params = env["ir.config_parameter"].sudo().search(
         [("key", "=like", "base_invoicing.%")]
     )

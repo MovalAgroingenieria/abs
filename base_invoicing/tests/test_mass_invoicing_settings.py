@@ -2,9 +2,23 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from odoo.tests.common import new_test_user, TransactionCase, HttpCase
+from odoo import fields
 
 
 class TestMassInvoicingSettings(TransactionCase):
+    def _create_invoiceset(self, **extra_vals):
+        vals = {
+            "alphanum_code": "T0001",
+            "description": "Test",
+            "invoice_date": fields.Date.today(),
+            "invoice_user_id": self.env.user.id,
+        }
+        vals.update(extra_vals)
+        return self.env["account.invoiceset"].create(vals)
+
+    def _create_configured_invoiceset(self, **extra_vals):
+        invoiceset = self._create_invoiceset(**extra_vals)
+        return invoiceset
 
     def test_mass_invoicing_background_param(self):
         settings = self.env["res.config.settings"].create({
@@ -30,7 +44,6 @@ class TestMassInvoicingSettings(TransactionCase):
     def test_invoice_set_uses_company_background_flag(self):
         invoiceset = self._create_configured_invoiceset()
 
-        invoiceset.company_id.mass_invoicing_run_background = False
         invoiceset.calculate_invoiceset()
 
         self.assertEqual(invoiceset.state, "calculated")

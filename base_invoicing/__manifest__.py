@@ -1,9 +1,9 @@
-# 2025 Moval Agroingeniería
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# Copyright 2025 Moval Agroingeniería
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 
 {
     "name": "Massive Invoicing",
-    "summary": "Massive invoicing based on billing sets",
+    "summary": "Massive invoicing based on invoice sets",
     "version": "18.0.1.0.0",
     "category": "Accounting/Accounting",
     "website": "https://www.moval.es",
@@ -11,14 +11,12 @@
     "license": "AGPL-3",
     "application": False,
     "installable": True,
-    "post_init_hook": "post_init_hook",
-    "uninstall_hook": "uninstall_hook",
     "depends": [
-        "product",
-        "analytic",
-        "portal",
         "account",
         "account_comment_template",
+        "analytic",
+        "portal",
+        "product",
         "base_gen",
     ],
     "data": [
@@ -45,8 +43,8 @@
             "base_invoicing/static/src/scss/base_invoicing.scss",
             "base_invoicing/static/src/js/massive_invoicing_list_renderer.js",
             "base_invoicing/static/src/js/massive_invoicing_search_model.js",
-            "base_invoicing/static/src/xml/button_back.xml",
             "base_invoicing/static/src/js/massive_invoicing_form_controller.js",
+            "base_invoicing/static/src/xml/button_back.xml",
             "base_invoicing/static/lib/base_invoicing_iconset/iconset.css",
         ],
         "web.assets_frontend": [
@@ -56,4 +54,6 @@
             "base_invoicing/static/lib/base_invoicing_iconset/iconset.css",
         ],
     },
+    "post_init_hook": "post_init_hook",
+    "uninstall_hook": "uninstall_hook",
 }

@@ -3,6 +3,7 @@
 
 from unittest.mock import patch
 from odoo.tests.common import new_test_user, TransactionCase, HttpCase
+from odoo import fields
 
 
 class TestInvoicesetBackgroundDecision(TransactionCase):
