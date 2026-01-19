@@ -8,8 +8,6 @@ from odoo.exceptions import UserError, ValidationError
 class ProductCategory(models.Model):
     _inherit = "product.category"
 
-    name = fields.Char(translate=True)
-
     category_code = fields.Integer(
         string="Category Code",
         default=0,
@@ -45,9 +43,9 @@ class ProductCategory(models.Model):
         string="Supports massive billing (y/n)",
         compute="_compute_supports_mass_billing",
         store=True,
-        default=False,
     )
 
+    # Auxiliary fields (definitions only, labels are computed)
     aux_01_char_field = fields.Char(string="Aux. field of type char #1")
     aux_01_char_label = fields.Char(
         string="Label of the aux. field of type char #1",
@@ -157,23 +155,34 @@ class ProductCategory(models.Model):
         ),
     ]
 
+    # -------------------------------------------------------------------------
+    # Helpers
+    # -------------------------------------------------------------------------
+
     def _get_billable_item_model_id_domain(self):
         models_with_partner = self.env["common.metadata"].get_models_with_many2one(
-            "res.partner", many2one_name="partner_id", include_model=True
+            "res.partner",
+            many2one_name="partner_id",
+            include_model=True,
         )
         return [("id", "in", (models_with_partner or self.env["ir.model"]).ids)]
 
     def _get_field_label(self, model_name, field_name):
         if not model_name or not field_name:
             return False
-        field_metadata = self.env["common.metadata"].get_field(model_name, field_name)
-        return field_metadata and field_metadata.get("field_description") or False
+        field = self.env["common.metadata"].get_field(model_name, field_name)
+        return field and field.get("field_description") or False
+
+    # -------------------------------------------------------------------------
+    # Computes
+    # -------------------------------------------------------------------------
 
     @api.depends("billable_item_model_id", "billable_item_quantity_field")
     def _compute_billable_item_quantity_label(self):
         for record in self:
             record.billable_item_quantity_label = record._get_field_label(
-                record.billable_item_model_id.model, record.billable_item_quantity_field
+                record.billable_item_model_id.model,
+                record.billable_item_quantity_field,
             )
 
     @api.depends("billable_item_model_id")
@@ -198,30 +207,90 @@ class ProductCategory(models.Model):
     )
     def _compute_aux_labels(self):
         for record in self:
-            model_name = record.billable_item_model_id.model
-            record.aux_01_char_label = record._get_field_label(model_name, record.aux_01_char_field)
-            record.aux_01_int_label = record._get_field_label(model_name, record.aux_01_int_field)
-            record.aux_01_float_label = record._get_field_label(model_name, record.aux_01_float_field)
-            record.aux_01_bool_label = record._get_field_label(model_name, record.aux_01_bool_field)
+            model = record.billable_item_model_id.model
+            for idx in ("01", "02", "03"):
+                for t in ("char", "int", "float", "bool"):
+                    field_name = f"aux_{idx}_{t}_field"
+                    label_name = f"aux_{idx}_{t}_label"
+                    record[label_name] = record._get_field_label(
+                        model, record[field_name]
+                    )
 
-            record.aux_02_char_label = record._get_field_label(model_name, record.aux_02_char_field)
-            record.aux_02_int_label = record._get_field_label(model_name, record.aux_02_int_field)
-            record.aux_02_float_label = record._get_field_label(model_name, record.aux_02_float_field)
-            record.aux_02_bool_label = record._get_field_label(model_name, record.aux_02_bool_field)
-
-            record.aux_03_char_label = record._get_field_label(model_name, record.aux_03_char_field)
-            record.aux_03_int_label = record._get_field_label(model_name, record.aux_03_int_field)
-            record.aux_03_float_label = record._get_field_label(model_name, record.aux_03_float_field)
-            record.aux_03_bool_label = record._get_field_label(model_name, record.aux_03_bool_field)
+    # -------------------------------------------------------------------------
+    # ORM
+    # -------------------------------------------------------------------------
 
     @api.constrains("category_code")
     def _check_category_code(self):
         for record in self:
             if record.category_code <= 0:
                 continue
-            dupes = self.search([("category_code", "=", record.category_code)])
-            if len(dupes) > 1:
+            if self.search_count(
+                    [("category_code", "=", record.category_code)]
+            ) > 1:
                 raise ValidationError(_("Repeated category code."))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            self._sanitize_vals(vals)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        self._sanitize_vals(vals)
+        return super().write(vals)
+
+    def _sanitize_vals(self, vals):
+        if vals.get("billable_item_model_id") is False:
+            reset_fields = [
+                "billable_item_quantity_field",
+                "billable_item_quantity_label",
+                "billable_item_group_field",
+                "billable_item_detail_desc",
+                "billable_item_domain",
+                "aux_01_char_field",
+                "aux_01_char_label",
+                "aux_01_int_field",
+                "aux_01_int_label",
+                "aux_01_float_field",
+                "aux_01_float_label",
+                "aux_01_bool_field",
+                "aux_01_bool_label",
+                "aux_02_char_field",
+                "aux_02_char_label",
+                "aux_02_int_field",
+                "aux_02_int_label",
+                "aux_02_float_field",
+                "aux_02_float_label",
+                "aux_02_bool_field",
+                "aux_02_bool_label",
+                "aux_03_char_field",
+                "aux_03_char_label",
+                "aux_03_int_field",
+                "aux_03_int_label",
+                "aux_03_float_field",
+                "aux_03_float_label",
+                "aux_03_bool_field",
+                "aux_03_bool_label",
+            ]
+            for field in reset_fields:
+                vals[field] = False
+        return vals
+
+    def copy(self, default=None):
+        default = dict(default or {})
+        default["category_code"] = 0
+        return super().copy(default)
+
+    def unlink(self):
+        for record in self:
+            if record.category_code > 0:
+                raise UserError(_("It is not possible to delete a coded category."))
+        return super().unlink()
+
+    # -------------------------------------------------------------------------
+    # Display
+    # -------------------------------------------------------------------------
 
     def name_get(self):
         if self.env.context.get("short_name_categories"):
@@ -235,73 +304,22 @@ class ProductCategory(models.Model):
                 for record in self
             ]
 
-        names = super().name_get()
         res = []
-        for rec_id, name in names:
+        for rec_id, name in super().name_get():
             category = self.browse(rec_id)
             if category.category_code > 0:
-                suffix = _("standard cat.") if category.category_code == 1 else f"{_('cat. #')}{category.category_code}"
+                suffix = (
+                    _("standard cat.")
+                    if category.category_code == 1
+                    else f"{_('cat. #')}{category.category_code}"
+                )
                 name = f"{name} ({suffix})"
             res.append((rec_id, name))
         return res
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            self._update_vals(vals)
-        return super().create(vals_list)
-
-    def write(self, vals):
-        self._update_vals(vals)
-        return super().write(vals)
-
-    def _update_vals(self, vals):
-        if vals.get("billable_item_model_id") is False:
-            vals.update(
-                {
-                    "billable_item_quantity_field": False,
-                    "billable_item_quantity_label": False,
-                    "billable_item_group_field": False,
-                    "billable_item_detail_desc": False,
-                    "billable_item_domain": False,
-                    "aux_01_char_field": False,
-                    "aux_01_char_label": False,
-                    "aux_01_int_field": False,
-                    "aux_01_int_label": False,
-                    "aux_01_float_field": False,
-                    "aux_01_float_label": False,
-                    "aux_01_bool_field": False,
-                    "aux_01_bool_label": False,
-                    "aux_02_char_field": False,
-                    "aux_02_char_label": False,
-                    "aux_02_int_field": False,
-                    "aux_02_int_label": False,
-                    "aux_02_float_field": False,
-                    "aux_02_float_label": False,
-                    "aux_02_bool_field": False,
-                    "aux_02_bool_label": False,
-                    "aux_03_char_field": False,
-                    "aux_03_char_label": False,
-                    "aux_03_int_field": False,
-                    "aux_03_int_label": False,
-                    "aux_03_float_field": False,
-                    "aux_03_float_label": False,
-                    "aux_03_bool_field": False,
-                    "aux_03_bool_label": False,
-                }
-            )
-        return vals
-
-    def copy(self, default=None):
-        default = dict(default or {})
-        default["category_code"] = 0
-        return super().copy(default)
-
-    def unlink(self):
-        for record in self:
-            if record.category_code > 0:
-                raise UserError(_("It is not possible to delete a coded category."))
-        return super().unlink()
+    # -------------------------------------------------------------------------
+    # Actions
+    # -------------------------------------------------------------------------
 
     def action_select_billable_item_field(self):
         self.ensure_one()
@@ -318,22 +336,23 @@ class ProductCategory(models.Model):
                 },
             }
 
-        name_value = _(
-            "Model: %s (%s)"
-        ) % (self.billable_item_model_id.model, self.billable_item_model_id.name)
-
         return {
             "type": "ir.actions.act_window",
-            "name": name_value,
+            "name": _("Model: %s (%s)")
+                    % (self.billable_item_model_id.model, self.billable_item_model_id.name),
             "res_model": "wizard.select.field",
             "view_mode": "form",
             "target": "new",
         }
 
+    # -------------------------------------------------------------------------
+    # Validation helper
+    # -------------------------------------------------------------------------
+
     @api.model
     def _check_field(self, model_name, field_name, admissible_types):
-        field_metadata = self.env["common.metadata"].get_field(model_name, field_name)
-        if not field_metadata:
+        field = self.env["common.metadata"].get_field(model_name, field_name)
+        if not field:
             return False
-        admissible = {t.strip() for t in admissible_types.lower().split(",") if t.strip()}
-        return field_metadata.get("ttype") in admissible
+        allowed = {t.strip() for t in admissible_types.lower().split(",") if t.strip()}
+        return field.get("ttype") in allowed
