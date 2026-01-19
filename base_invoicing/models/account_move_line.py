@@ -1,114 +1,101 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import models, fields, api
+from collections import defaultdict
+
+from odoo import api, fields, models
 
 
 class AccountMoveLine(models.Model):
-    _inherit = ['account.move.line']
+    _inherit = "account.move.line"
 
     invoiceset_id = fields.Many2one(
-        string='Invoice Set',
-        comodel_name='account.invoiceset',
+        comodel_name="account.invoiceset",
+        compute="_compute_invoiceset_id",
         store=True,
         index=True,
-        compute='_compute_invoiceset_id',)
-
+        string="Invoice Set",
+    )
     categ_id = fields.Many2one(
-        string='Product Category',
-        comodel_name='product.category',
+        comodel_name="product.category",
+        compute="_compute_categ_id",
         store=True,
-        compute='_compute_categ_id',)
-
+        string="Product Category",
+    )
     invoice_user_id = fields.Many2one(
-        string='Sales Person',
-        comodel_name='res.users',
+        comodel_name="res.users",
+        compute="_compute_invoice_user_id",
         store=True,
-        compute='_compute_invoice_user_id',)
-
+        string="Sales Person",
+    )
     price_taxes = fields.Monetary(
-        string='Tax',
+        compute="_compute_price_taxes",
         store=True,
-        compute='_compute_price_taxes',
-        currency_field='currency_id',)
+        currency_field="currency_id",
+        string="Tax",
+    )
 
-    billable_item_model = fields.Char(
-        string='Billable item model: name',)
-
+    billable_item_model = fields.Char(string="Billable item model: name")
     billable_item_res_id = fields.Many2oneReference(
-        string='Billable item model: reference',
-        model_field='billable_item_model',)
+        model_field="billable_item_model",
+        string="Billable item model: reference",
+    )
 
-    @api.depends('move_id')
+    @api.depends("move_id.invoiceset_id")
     def _compute_invoiceset_id(self):
-        for record in self:
-            invoiceset_id = None
-            if record.move_id and record.move_id.invoiceset_id:
-                invoiceset_id = record.move_id.invoiceset_id
-            record.invoiceset_id = invoiceset_id
+        for line in self:
+            line.invoiceset_id = line.move_id.invoiceset_id
 
-    @api.depends('product_id')
+    @api.depends("product_id.product_tmpl_id.categ_id")
     def _compute_categ_id(self):
-        for record in self:
-            categ_id = None
-            if (record.product_id and
-               record.product_id.product_tmpl_id.categ_id):
-                categ_id = record.product_id.product_tmpl_id.categ_id
-            record.categ_id = categ_id
+        for line in self:
+            line.categ_id = line.product_id.product_tmpl_id.categ_id
 
-    @api.depends('move_id')
+    @api.depends("move_id.invoice_user_id")
     def _compute_invoice_user_id(self):
-        for record in self:
-            invoice_user_id = None
-            if record.move_id and record.move_id.invoice_user_id:
-                invoice_user_id = record.move_id.invoice_user_id
-            record.invoice_user_id = invoice_user_id
+        for line in self:
+            line.invoice_user_id = line.move_id.invoice_user_id
 
-    @api.depends('price_total')
+    @api.depends("price_total", "price_subtotal", "credit")
     def _compute_price_taxes(self):
-        for record in self:
-            price_taxes = 0
-            if record.credit > 0:
-                price_taxes = record.price_total - record.price_subtotal
-            record.price_taxes = price_taxes
+        for line in self:
+            line.price_taxes = (
+                line.price_total - line.price_subtotal if line.credit > 0 else 0.0
+            )
 
     @api.model_create_multi
     def create(self, vals_list):
-        for vals in vals_list:
-            if ('billable_item_model' in vals and
-               'billable_item_res_id' in vals):
-                billable_item_model = vals['billable_item_model']
-                billable_item_res_id = vals['billable_item_res_id']
-                if billable_item_model and billable_item_res_id:
-                    with_abstract_model = \
-                        (self.env['account.billable.item'].
-                         inherits_from_account_billable_item(
-                            billable_item_model))
-                    if (billable_item_model and billable_item_res_id and
-                       with_abstract_model):
-                        my_billable_item = \
-                            self.env[billable_item_model].sudo().browse(
-                                billable_item_res_id)
-                        if my_billable_item:
-                            my_billable_item.number_of_invoices = \
-                                my_billable_item.number_of_invoices + 1
-        move_lines = super(AccountMoveLine, self).create(vals_list)
-        return move_lines
+        lines = super().create(vals_list)
+        lines._update_billable_item_invoice_count(delta=1)
+        return lines
 
     def unlink(self):
-        for record in self:
-            billable_item_model = record.billable_item_model
-            billable_item_res_id = record.billable_item_res_id
-            if billable_item_model and billable_item_res_id:
-                with_abstract_model = \
-                    (self.env['account.billable.item'].
-                     inherits_from_account_billable_item(billable_item_model))
-                if with_abstract_model:
-                    my_billable_item = \
-                        self.env[billable_item_model].sudo().browse(
-                            billable_item_res_id)
-                    if my_billable_item:
-                        my_billable_item.number_of_invoices = \
-                            max(my_billable_item.number_of_invoices - 1, 0)
-        res = super(AccountMoveLine, self).unlink()
+        billable_lines = self.filtered(lambda l: l.billable_item_model and l.billable_item_res_id)
+        res = super().unlink()
+        billable_lines._update_billable_item_invoice_count(delta=-1)
         return res
+
+    def _update_billable_item_invoice_count(self, delta):
+        if not delta:
+            return
+
+        by_model = defaultdict(list)
+        for line in self:
+            if not line.billable_item_model or not line.billable_item_res_id:
+                continue
+            by_model[line.billable_item_model].append(line.billable_item_res_id)
+
+        billable_item_abstract = self.env["account.billable.item"]
+        for model_name, res_ids in by_model.items():
+            if not billable_item_abstract.inherits_from_account_billable_item(model_name):
+                continue
+            records = self.env[model_name].sudo().browse(res_ids).exists()
+            if not records:
+                continue
+
+            if delta > 0:
+                for rec in records:
+                    rec.write({"number_of_invoices": rec.number_of_invoices + delta})
+            else:
+                for rec in records:
+                    rec.write({"number_of_invoices": max(rec.number_of_invoices + delta, 0)})
