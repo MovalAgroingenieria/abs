@@ -1,8 +1,9 @@
-# 2025 Moval Agroingeniería
+# 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from jinja2 import Template, TemplateError
-from odoo import _, api, fields, models
+
+from odoo import api, fields, models
 
 
 class AccountSelectableItem(models.Model):
@@ -13,20 +14,27 @@ class AccountSelectableItem(models.Model):
         comodel_name="account.invoiceset.productlink",
         ondelete="cascade",
         string="Product of invoice set",
+        index=True,
+        required=True,
     )
-    billable_item_model = fields.Char(string="Billable item model: name")
+    billable_item_model = fields.Char(string="Billable item model: name", index=True)
     billable_item_res_id = fields.Many2oneReference(
         model_field="billable_item_model",
         string="Billable item model: reference",
     )
-    partner_id = fields.Many2one(comodel_name="res.partner", string="Customer")
+    partner_id = fields.Many2one(
+        comodel_name="res.partner",
+        string="Customer",
+        index=True,
+    )
     quantity = fields.Float(digits=(32, 4), string="Quantity")
 
     state = fields.Selection(
         related="productlink_id.invoiceset_id.state",
         string="State",
+        readonly=True,
     )
-    selected = fields.Boolean(string="Selected (y/n)")
+    selected = fields.Boolean(string="Selected")
     selected_message = fields.Char(
         compute="_compute_selected_message",
         string="Selected (message)",
@@ -51,11 +59,15 @@ class AccountSelectableItem(models.Model):
     aux_03_float = fields.Float(digits=(32, 4), string="Aux. field of type float #3")
     aux_03_bool = fields.Boolean(string="Aux. field of type boolean #3")
 
+    # -------------------------------------------------------------------------
+    # Computes
+    # -------------------------------------------------------------------------
+
     @api.depends("selected")
     def _compute_selected_message(self):
         for record in self:
             record.selected_message = (
-                _("Selected") if record.selected else _("Excluded")
+                record.env._("Selected") if record.selected else record.env._("Excluded")
             )
 
     @api.depends(
@@ -66,17 +78,11 @@ class AccountSelectableItem(models.Model):
     def _compute_rendered_aux_desc(self):
         for record in self:
             template_src = record.productlink_id.categ_id.aux_desc
-            if (
-                not template_src
-                or not record.billable_item_model
-                or not record.billable_item_res_id
-            ):
+            if not template_src or not record.billable_item_model or not record.billable_item_res_id:
                 record.rendered_aux_desc = ""
                 continue
 
-            billable_item = self.env[record.billable_item_model].browse(
-                record.billable_item_res_id
-            )
+            billable_item = record.env[record.billable_item_model].browse(record.billable_item_res_id)
             if not billable_item.exists():
                 record.rendered_aux_desc = ""
                 continue
@@ -84,12 +90,16 @@ class AccountSelectableItem(models.Model):
             try:
                 rendered = Template(template_src).render(billable_item=billable_item)
             except TemplateError as err:
-                rendered = _("Error in template: %s") % str(err)
+                rendered = record.env._("Error in template: %s") % str(err)
 
             if "|" in template_src:
                 rendered = rendered.replace("|", "\n")
 
             record.rendered_aux_desc = rendered
+
+    # -------------------------------------------------------------------------
+    # Actions
+    # -------------------------------------------------------------------------
 
     def action_select_items(self):
         self.write({"selected": True})
@@ -99,14 +109,21 @@ class AccountSelectableItem(models.Model):
         self.write({"selected": False})
         self._update_productlink_populated()
 
+    # -------------------------------------------------------------------------
+    # Helpers
+    # -------------------------------------------------------------------------
+
     def _update_productlink_populated(self):
         productlinks = self.mapped("productlink_id").exists()
         if not productlinks:
             return
 
-        selectable_item_model = self.env["account.selectable.item"]
+        data = self.env["account.selectable.item"].read_group(
+            [("productlink_id", "in", productlinks.ids), ("selected", "=", True)],
+            ["productlink_id"],
+            ["productlink_id"],
+        )
+        counts = {d["productlink_id"][0]: d["productlink_id_count"] for d in data}
+
         for productlink in productlinks:
-            count_selected = selectable_item_model.search_count(
-                [("productlink_id", "=", productlink.id), ("selected", "=", True)]
-            )
-            productlink.write({"populated": bool(count_selected)})
+            productlink.write({"populated": bool(counts.get(productlink.id, 0))})
