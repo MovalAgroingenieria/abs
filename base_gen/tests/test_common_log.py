@@ -1,3 +1,4 @@
+# 2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from unittest.mock import patch
@@ -7,7 +8,7 @@ from odoo.tests.common import TransactionCase
 
 class TestCommonLog(TransactionCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pylint: disable=invalid-name
         super().setUpClass()
         cls.Log = cls.env["common.log"]
 

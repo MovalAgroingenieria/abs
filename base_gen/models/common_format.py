@@ -11,7 +11,6 @@ from zoneinfo import ZoneInfo
 import babel.dates
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
-
 from odoo import models, tools
 
 
@@ -91,7 +90,9 @@ class CommonFormat(models.AbstractModel):
 
     # ------------------------------- Dates -------------------------------
 
-    def transform_date_to_locale(self, value: date_type, lang: Optional[str] = None) -> str:
+    def transform_date_to_locale(
+        self, value: date_type, lang: Optional[str] = None
+    ) -> str:
         """Format a date using a sanitized pattern from res.lang when possible."""
         if not value:
             return ""
@@ -111,30 +112,26 @@ class CommonFormat(models.AbstractModel):
     def get_value_from_translation(
         self, module: str, src: str, lang: Optional[str] = None
     ) -> str:
-        """Return translated string for the given language, fallback to src.
-
-        Note: Since Odoo 16, ir.translation is not available.
-        """
+        """Return translated string for the given language, fallback to src."""
         if src is None:
             return ""
-        if not src:
-            return src
-        if not module:
+        if not src or not module:
             return src
 
         lang_code = self._get_valid_lang_code(lang)
         env_lang = self.env(context=dict(self.env.context, lang=lang_code))
 
         env_translate = getattr(env_lang, "_", None)
-        if callable(env_translate):
-            try:
-                return env_translate(src, module=module)
-            except TypeError:
-                return env_translate(src)
-            except Exception:  # noqa: BLE001
-                return src
+        if not callable(env_translate):
+            return src
 
-        return src
+        # Do not pass module kwarg: signature differs
+        # across versions and is not required
+        try:
+            return env_translate(src)
+        except TypeError:
+            # Fallback for unexpected signatures
+            return src
 
     # ------------------------------- Crypto ------------------------------
 
@@ -157,7 +154,10 @@ class CommonFormat(models.AbstractModel):
     # -------------------------- Human-friendly ---------------------------
 
     def get_date_as_text(
-        self, value: Optional[date_type], with_year: bool = True, lang: Optional[str] = None
+        self,
+        value: Optional[date_type],
+        with_year: bool = True,
+        lang: Optional[str] = None,
     ) -> str:
         """Return a human-readable date phrase in the chosen language."""
         if not value:
@@ -167,7 +167,9 @@ class CommonFormat(models.AbstractModel):
 
         day = babel.dates.format_date(value, "d", locale=lang_code)
         month = babel.dates.format_date(value, "LLLL", locale=lang_code)
-        year = babel.dates.format_date(value, "y", locale=lang_code) if with_year else ""
+        year = (
+            babel.dates.format_date(value, "y", locale=lang_code) if with_year else ""
+        )
 
         if lang_code.endswith("_ES") or lang_code.startswith("es"):
             text = f"{day} de {month}"

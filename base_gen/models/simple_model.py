@@ -151,26 +151,19 @@ class SimpleModel(models.AbstractModel):
     # --------------------------------- Names ----------------------------------
 
     @api.model
-    def _name_search(
-        self,
-        name="",
-        args=None,
-        operator="ilike",
-        limit=100,
-        order=None,
-        name_get_uid=None,
-    ):
+    def name_search(self, name="", args=None, operator="ilike", limit=100):
         """Search by description (numeric mode) or alphanum_code (default)."""
-        args = args or []
+        domain = list(args or [])
 
-        if self.set_num_code:
-            domain = [("description", operator, name)] + args
-        else:
-            domain = [("alphanum_code", operator, name)] + args
+        if name:
+            field_name = "description" if self._set_num_code else "alphanum_code"
+            domain = [(field_name, operator, name)] + domain
 
-        return self._search(
-            domain, limit=limit, order=order, access_rights_uid=name_get_uid
+        # Use search_fetch to avoid extra reads (v17+)
+        recs = self.search_fetch(
+            domain, ["display_name"], limit=limit, order="display_name"
         )
+        return [(rec.id, rec.display_name) for rec in recs]
 
     # --------------------------------- CRUD -----------------------------------
 

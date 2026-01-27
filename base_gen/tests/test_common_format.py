@@ -1,5 +1,6 @@
-# 2025 Moval Agroingeniería
+# 2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=protected-access
 
 import base64
 from datetime import date as date_type
@@ -9,7 +10,7 @@ from odoo.tests.common import TransactionCase
 
 class TestCommonFormat(TransactionCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pylint: disable=invalid-name
         super().setUpClass()
         cls.common = cls.env["common.format"]
 
@@ -61,9 +62,15 @@ class TestCommonFormat(TransactionCase):
         self.assertEqual(out, src)
 
     def test_get_value_from_translation_invalid_inputs(self):
-        self.assertEqual(self.common.get_value_from_translation(None, None, lang=None), "")
-        self.assertEqual(self.common.get_value_from_translation("", "Hello", lang="en_US"), "Hello")
-        self.assertEqual(self.common.get_value_from_translation("base", "", lang="en_US"), "")
+        self.assertEqual(
+            self.common.get_value_from_translation(None, None, lang=None), ""
+        )
+        self.assertEqual(
+            self.common.get_value_from_translation("", "Hello", lang="en_US"), "Hello"
+        )
+        self.assertEqual(
+            self.common.get_value_from_translation("base", "", lang="en_US"), ""
+        )
 
     # ------------------------------ crypto -----------------------------
 

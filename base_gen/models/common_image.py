@@ -1,4 +1,4 @@
-# 2025 Moval Agroingeniería
+# 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 # pylint: disable=too-many-arguments
 
@@ -94,7 +94,7 @@ class CommonImage(models.AbstractModel):
 
         try:
             im.save(out, format=fmt, **save_kwargs)
-        except Exception:  # noqa: BLE001
+        except TypeError:  # noqa: BLE001
             # Fallback to PNG for unsupported/invalid formats
             out = io.BytesIO()
             im.save(out, format="PNG")

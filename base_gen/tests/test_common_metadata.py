@@ -1,11 +1,14 @@
+# 2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from odoo.tests.common import TransactionCase
 
+# pylint: disable=protected-access
+
 
 class TestCommonMetadata(TransactionCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pylint: disable=invalid-name
         super().setUpClass()
         cls.Meta = cls.env["common.metadata"]
 
@@ -28,7 +31,9 @@ class TestCommonMetadata(TransactionCase):
     def test_get_models_with_many2one(self):
         # Many models have a Many2one to res.lang (lang field is often char though),
         # so use a target that is commonly referenced by m2o: res.company
-        models_rs = self.Meta.get_models_with_many2one("res.company", include_model=True)
+        models_rs = self.Meta.get_models_with_many2one(
+            "res.company", include_model=True
+        )
         self.assertTrue(models_rs)
         self.assertTrue(any(m.model == "res.company" for m in models_rs))
 

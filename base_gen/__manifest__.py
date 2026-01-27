@@ -11,9 +11,6 @@
         "base",
     ],
     "external_dependencies": {
-        "python": [
-            "Crypto.Cipher",
-        ],
-        "python": ["Pillow>=10.0.0"],
+        "python": ["Crypto.Cipher", "Pillow>=10.0.0"],
     },
 }

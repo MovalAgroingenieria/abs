@@ -112,7 +112,9 @@ class CommonMetadata(models.AbstractModel):
         if not model_name:
             return []
 
-        types_list = [t.strip().lower() for t in (field_types or "").split(",") if t.strip()]
+        types_list = [
+            t.strip().lower() for t in (field_types or "").split(",") if t.strip()
+        ]
         domain = [("model", "=", model_name)]
         if exclude_id:
             domain.append(("name", "!=", "id"))
