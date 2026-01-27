@@ -1,7 +1,8 @@
 # 2024-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=duplicate-code
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -78,7 +79,7 @@ class ResMunicipality(models.Model):
             )
             if duplicate:
                 raise ValidationError(
-                    _(
+                    self.env._(
                         "There is already another municipality in this province "
                         "with the same name."
                     )
@@ -98,15 +99,14 @@ class ResMunicipality(models.Model):
         for record in self:
             record.number_of_places = count_by_municipality.get(record.id, 0)
 
-    def name_get(self):
-        result = []
+    @api.depends("alphanum_code", "province_id")
+    def _compute_display_name(self):
         add_province = self.env.context.get("municipality_with_province", False)
         for record in self:
             name = record.alphanum_code
             if add_province and record.province_id:
                 name = f"{name} ({record.province_id.alphanum_code})"
-            result.append((record.id, name))
-        return result
+            record.display_name = name
 
     def action_show_places(self):
         self.ensure_one()
@@ -128,7 +128,7 @@ class ResMunicipality(models.Model):
 
         return {
             "type": "ir.actions.act_window",
-            "name": _("Places"),
+            "name": self.env._("Places"),
             "res_model": "res.place",
             "view_mode": "list,form",
             "views": views or [(False, "list"), (False, "form")],

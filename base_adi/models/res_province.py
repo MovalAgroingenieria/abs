@@ -1,7 +1,7 @@
-# 2024 Moval Agroingeniería
+# 2024-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import _, fields, models
+from odoo import fields, models
 
 
 class ResProvince(models.Model):
@@ -82,7 +82,7 @@ class ResProvince(models.Model):
 
         return {
             "type": "ir.actions.act_window",
-            "name": _("Municipalities"),
+            "name": self.env._("Municipalities"),
             "res_model": "res.municipality",
             "view_mode": "list,form",
             "views": views or [(False, "list"), (False, "form")],

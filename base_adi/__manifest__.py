@@ -25,6 +25,4 @@
             "base_adi/static/src/scss/base_adi.scss",
         ],
     },
-    "installable": True,
-    "application": False,
 }

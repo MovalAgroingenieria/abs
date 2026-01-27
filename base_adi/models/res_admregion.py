@@ -1,7 +1,8 @@
 # 2024-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=duplicate-code
 
-from odoo import _, fields, models
+from odoo import fields, models
 
 
 class ResAdmregion(models.Model):
@@ -98,7 +99,7 @@ class ResAdmregion(models.Model):
 
         return {
             "type": "ir.actions.act_window",
-            "name": _("Provinces"),
+            "name": self.env._("Provinces"),
             "res_model": "res.province",
             "view_mode": "list,form",
             "views": views or [(False, "list"), (False, "form")],

@@ -1,11 +1,14 @@
+# 2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=duplicate-code
+# pylint: disable=too-many-branches
 
 from odoo.tests.common import TransactionCase
 
 
 class TestResAdmregion(TransactionCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pylint: disable=invalid-name
         super().setUpClass()
         cls.Region = cls.env["res.admregion"]
         cls.Province = cls.env["res.province"]
@@ -58,7 +61,8 @@ class TestResAdmregion(TransactionCase):
                     record = comodel.create(self._required_values_for(comodel))
                 vals[name] = record.id
             else:
-                # Skip unsupported required types (e.g. binary) unless caller provides it.
+                # Skip unsupported required types
+                # (e.g. binary) unless caller provides it.
                 pass
 
         vals.update(extra_vals)
