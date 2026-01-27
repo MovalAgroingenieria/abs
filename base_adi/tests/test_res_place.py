@@ -23,7 +23,14 @@ class TestResPlace(TransactionCase):
                 continue
             if name in extra_vals:
                 continue
-            if name in ("id", "create_uid", "create_date", "write_uid", "write_date", "display_name"):
+            if name in (
+                "id",
+                "create_uid",
+                "create_date",
+                "write_uid",
+                "write_date",
+                "display_name",
+            ):
                 continue
 
             if field.type in ("char", "text", "html"):
@@ -39,7 +46,11 @@ class TestResPlace(TransactionCase):
             elif field.type == "datetime":
                 vals[name] = "2026-01-01 00:00:00"
             elif field.type == "selection":
-                selection = field.selection(self.env) if callable(field.selection) else field.selection
+                selection = (
+                    field.selection(self.env)
+                    if callable(field.selection)
+                    else field.selection
+                )
                 vals[name] = selection[0][0] if selection else False
             elif field.type == "many2one":
                 comodel = self.env[field.comodel_name]
@@ -53,7 +64,9 @@ class TestResPlace(TransactionCase):
 
     def _create_municipality_chain(self):
         region = self.Region.create({"alphanum_code": "R1"})
-        province = self.Province.create(self._required_values_for(self.Province, {"region_id": region.id}))
+        province = self.Province.create(
+            self._required_values_for(self.Province, {"region_id": region.id})
+        )
         municipality = self.Municipality.create(
             {"alphanum_code": "M1", "province_id": province.id}
         )

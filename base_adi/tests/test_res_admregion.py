@@ -21,7 +21,14 @@ class TestResAdmregion(TransactionCase):
                 continue
             if name in extra_vals:
                 continue
-            if name in ("id", "create_uid", "create_date", "write_uid", "write_date", "display_name"):
+            if name in (
+                "id",
+                "create_uid",
+                "create_date",
+                "write_uid",
+                "write_date",
+                "display_name",
+            ):
                 continue
 
             if field.type in ("char", "text", "html"):
@@ -37,7 +44,11 @@ class TestResAdmregion(TransactionCase):
             elif field.type in ("datetime",):
                 vals[name] = "2026-01-01 00:00:00"
             elif field.type in ("selection",):
-                selection = field.selection(self.env) if callable(field.selection) else field.selection
+                selection = (
+                    field.selection(self.env)
+                    if callable(field.selection)
+                    else field.selection
+                )
                 vals[name] = selection[0][0] if selection else False
             elif field.type == "many2one":
                 comodel = self.env[field.comodel_name]
@@ -57,8 +68,12 @@ class TestResAdmregion(TransactionCase):
         region = self.Region.create({"alphanum_code": "North"})
         self.assertEqual(region.number_of_provinces, 0)
 
-        p1 = self.Province.create(self._required_values_for(self.Province, {"region_id": region.id}))
-        p2 = self.Province.create(self._required_values_for(self.Province, {"region_id": region.id}))
+        p1 = self.Province.create(
+            self._required_values_for(self.Province, {"region_id": region.id})
+        )
+        p2 = self.Province.create(
+            self._required_values_for(self.Province, {"region_id": region.id})
+        )
         self.assertTrue(p1 and p2)
 
         region.invalidate_recordset(["number_of_provinces"])

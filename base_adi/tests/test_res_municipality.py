@@ -24,7 +24,14 @@ class TestResMunicipality(TransactionCase):
                 continue
             if name in extra_vals:
                 continue
-            if name in ("id", "create_uid", "create_date", "write_uid", "write_date", "display_name"):
+            if name in (
+                "id",
+                "create_uid",
+                "create_date",
+                "write_uid",
+                "write_date",
+                "display_name",
+            ):
                 continue
 
             if field.type in ("char", "text", "html"):
@@ -40,7 +47,11 @@ class TestResMunicipality(TransactionCase):
             elif field.type == "datetime":
                 vals[name] = "2026-01-01 00:00:00"
             elif field.type == "selection":
-                selection = field.selection(self.env) if callable(field.selection) else field.selection
+                selection = (
+                    field.selection(self.env)
+                    if callable(field.selection)
+                    else field.selection
+                )
                 vals[name] = selection[0][0] if selection else False
             elif field.type == "many2one":
                 comodel = self.env[field.comodel_name]
@@ -54,7 +65,9 @@ class TestResMunicipality(TransactionCase):
 
     def _create_region_province(self):
         region = self.Region.create({"alphanum_code": "R1"})
-        province = self.Province.create(self._required_values_for(self.Province, {"region_id": region.id}))
+        province = self.Province.create(
+            self._required_values_for(self.Province, {"region_id": region.id})
+        )
         return region, province
 
     def test_related_region_id(self):
@@ -71,8 +84,12 @@ class TestResMunicipality(TransactionCase):
         )
         self.assertEqual(municipality.number_of_places, 0)
 
-        p1 = self.Place.create(self._required_values_for(self.Place, {"municipality_id": municipality.id}))
-        p2 = self.Place.create(self._required_values_for(self.Place, {"municipality_id": municipality.id}))
+        p1 = self.Place.create(
+            self._required_values_for(self.Place, {"municipality_id": municipality.id})
+        )
+        p2 = self.Place.create(
+            self._required_values_for(self.Place, {"municipality_id": municipality.id})
+        )
         self.assertTrue(p1 and p2)
 
         municipality.invalidate_recordset(["number_of_places"])
@@ -83,7 +100,9 @@ class TestResMunicipality(TransactionCase):
         self.Municipality.create({"alphanum_code": "Dup", "province_id": province.id})
 
         with self.assertRaises(ValidationError):
-            self.Municipality.create({"alphanum_code": "Dup", "province_id": province.id})
+            self.Municipality.create(
+                {"alphanum_code": "Dup", "province_id": province.id}
+            )
 
     def test_name_get_with_context(self):
         _region, province = self._create_region_province()

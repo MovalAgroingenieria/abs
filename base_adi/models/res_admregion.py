@@ -71,16 +71,24 @@ class ResAdmregion(models.Model):
             ["region_id"],
         )
         count_by_region = {
-            item["region_id"][0]: item["region_id_count"] for item in grouped if item.get("region_id")
+            item["region_id"][0]: item["region_id_count"]
+            for item in grouped
+            if item.get("region_id")
         }
         for record in self:
             record.number_of_provinces = count_by_region.get(record.id, 0)
 
     def action_show_provinces(self):
         self.ensure_one()
-        tree_view = self.env.ref("base_adi.res_province_view_tree", raise_if_not_found=False)
-        form_view = self.env.ref("base_adi.res_province_view_form", raise_if_not_found=False)
-        search_view = self.env.ref("base_adi.res_province_view_search", raise_if_not_found=False)
+        tree_view = self.env.ref(
+            "base_adi.res_province_view_tree", raise_if_not_found=False
+        )
+        form_view = self.env.ref(
+            "base_adi.res_province_view_form", raise_if_not_found=False
+        )
+        search_view = self.env.ref(
+            "base_adi.res_province_view_search", raise_if_not_found=False
+        )
 
         views = []
         if tree_view:

@@ -64,9 +64,15 @@ class ResProvince(models.Model):
 
     def action_show_municipalities(self):
         self.ensure_one()
-        tree_view = self.env.ref("base_adi.res_municipality_view_tree", raise_if_not_found=False)
-        form_view = self.env.ref("base_adi.res_municipality_view_form", raise_if_not_found=False)
-        search_view = self.env.ref("base_adi.res_municipality_view_search", raise_if_not_found=False)
+        tree_view = self.env.ref(
+            "base_adi.res_municipality_view_tree", raise_if_not_found=False
+        )
+        form_view = self.env.ref(
+            "base_adi.res_municipality_view_form", raise_if_not_found=False
+        )
+        search_view = self.env.ref(
+            "base_adi.res_municipality_view_search", raise_if_not_found=False
+        )
 
         views = []
         if tree_view:
