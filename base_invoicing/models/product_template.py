@@ -1,8 +1,8 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import fields, models
-
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
@@ -24,10 +24,8 @@ class ProductTemplate(models.Model):
         readonly=True,
     )
 
-    _sql_constraints = [
-        (
-            "factor_quantity_ok",
-            "CHECK (factor_quantity >= 0)",
-            'Incorrect value for "Factor applicable to the quantity of product".',
-        ),
-    ]
+    @api.constrains("factor_quantity")
+    def _check_factor_quantity_non_negative(self):
+        for rec in self:
+            if rec.factor_quantity is not False and rec.factor_quantity < 0:
+                raise ValidationError(rec.env._("Factor quantity must be >= 0."))
