@@ -16,15 +16,17 @@ class TestInvoicesetSequence(TransactionCase):
                 "code": "test.invoiceset",
                 "prefix": "TEST/",
                 "padding": 4,
-                "company_id": company.id,  # important in v18 (company-specific sequences)
+                "company_id": company.id,
             }
         )
 
-        icp = self.env["ir.config_parameter"].sudo()
-        icp.set_param(
-            "base_invoicing.mass_invoicing_seq_invoiceset_code_id",
-            str(seq.id),
+        settings = self.env["res.config.settings"].with_company(company).create(
+            {
+                "mass_invoicing_seq_invoiceset_code_id": seq.id,
+            }
         )
+        settings.set_values()
+
 
         invoiceset = (
             self.env["account.invoiceset"]

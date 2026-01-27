@@ -120,8 +120,32 @@ class AccountSelectableItem(models.Model):
     # Helpers
     # -------------------------------------------------------------------------
 
-    def _update_productlink_populated(self):
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._update_productlink_populated()
+        return records
+
+    def write(self, vals):
+        if not {"selected", "productlink_id"} & set(vals):
+            return super().write(vals)
+        productlinks_before = self.mapped("productlink_id").exists()
+        res = super().write(vals)
+        productlinks_after = self.mapped("productlink_id").exists()
+        self._update_productlink_populated_for_links(productlinks_before | productlinks_after)
+        return res
+
+    def unlink(self):
         productlinks = self.mapped("productlink_id").exists()
+        res = super().unlink()
+        self._update_productlink_populated_for_links(productlinks)
+        return res
+
+    def _update_productlink_populated(self):
+        self._update_productlink_populated_for_links(self.mapped("productlink_id").exists())
+
+    def _update_productlink_populated_for_links(self, productlinks):
+        productlinks = productlinks.exists()
         if not productlinks:
             return
 

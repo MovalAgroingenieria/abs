@@ -82,76 +82,47 @@ class AccountMoveLine(models.Model):
         return lines
 
     def unlink(self):
-        self = self.exists()
-        payload = self._billable_payload()
-        res = super().unlink()
+        lines = self.exists()
+        payload = lines._billable_payload()
+        res = super(AccountMoveLine, lines).unlink()
+        # apply after unlink using payload; never touch `lines` fields again
         self._billable_apply_payload(payload, delta=-1)
         return res
 
     def _billable_payload(self):
         """Return {model_name: set(res_id)} only with valid refs."""
         payload = defaultdict(set)
-        for line in self:
-            if line.billable_item_model and line.billable_item_res_id:
-                payload[line.billable_item_model].add(line.billable_item_res_id)
+        for line in self.exists():
+            model_name = line.billable_item_model
+            res = line.billable_item_res_id
+            if not model_name or not res:
+                continue
+
+            # Many2oneReference may be an int or a record (depending on context)
+            res_id = res.id if hasattr(res, "id") else int(res)
+            payload[model_name].add(res_id)
         return payload
 
     def _billable_update_invoice_count(self, delta):
-        payload = self._billable_payload()
-        self._billable_apply_payload(payload, delta=delta)
+        if not delta:
+            return
+        self._billable_apply_payload(self._billable_payload(), delta=delta)
 
     def _billable_apply_payload(self, payload, delta):
+        """
+        Bulk update number_of_invoices for billable items.
+        - Only for models inheriting account.billable.item
+        - Never below 0
+        """
         if not delta or not payload:
             return
 
-        billable_item_model = self.env["account.billable.item"]
+        billable_item_obj = self.env["account.billable.item"]
+
         for model_name, res_ids in payload.items():
             if not res_ids:
                 continue
-            if not billable_item_model.inherits_from_account_billable_item(model_name):
-                continue
-
-            records = self.env[model_name].sudo().browse(list(res_ids)).exists()
-            if not records:
-                continue
-            if "number_of_invoices" not in records._fields:
-                continue
-
-            for rec in records:
-                rec.number_of_invoices = max((rec.number_of_invoices or 0) + delta, 0)
-
-    def _update_billable_item_invoice_count(self, delta):
-        """
-        if billable_item_model/res_id points to a model inheriting account.billable.item
-        then increment/decrement its number_of_invoices, never below 0.
-        """
-        if not delta:
-            return
-
-        billable_item_model_names = set(self.mapped("billable_item_model"))
-        billable_item_model_names.discard(False)
-        if not billable_item_model_names:
-            return
-
-        billable_item_obj = self.env["account.billable.item"]
-        valid_models = {
-            name
-            for name in billable_item_model_names
-            if billable_item_obj.inherits_from_account_billable_item(name)
-        }
-        if not valid_models:
-            return
-
-        ids_by_model = {}
-        for line in self:
-            if line.billable_item_model in valid_models and line.billable_item_res_id:
-                ids_by_model.setdefault(line.billable_item_model, set()).add(
-                    line.billable_item_res_id
-                )
-
-        for model_name, res_ids in ids_by_model.items():
-            ids = sorted(res_ids)
-            if not ids:
+            if not billable_item_obj.inherits_from_account_billable_item(model_name):
                 continue
 
             model = self.env[model_name].sudo()
@@ -159,10 +130,12 @@ class AccountMoveLine(models.Model):
             if not field or not field.store:
                 continue
 
+            ids = sorted(res_ids)
             query = SQL(
                 """
                 UPDATE %s
-                SET number_of_invoices = GREATEST(number_of_invoices + %s, 0)
+                SET number_of_invoices =
+                        GREATEST(COALESCE(number_of_invoices, 0) + %s, 0)
                 WHERE id = ANY (%s)
                 """,
                 SQL.identifier(model._table),
@@ -170,4 +143,4 @@ class AccountMoveLine(models.Model):
                 ids,
             )
             self.env.execute_query(query)
-            self._invalidate_cache()
+            model.browse(ids).invalidate_recordset(["number_of_invoices"])

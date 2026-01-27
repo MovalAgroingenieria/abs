@@ -353,7 +353,6 @@ class AccountInvoiceset(models.Model):
                 [("invoiceset_id", "=", invoiceset.id)],
                 limit=1,
             ).write({"invoice_generation_progress": 0.0, "stop_order": False})
-            self.env.cr.commit()
 
         invoiceset.write({"state": "calculating"})
         suffix = (
@@ -389,7 +388,6 @@ class AccountInvoiceset(models.Model):
 
                         progress += step
                         row.write({"invoice_generation_progress": progress})
-                        self.env.cr.commit()
 
             invoiceset.write({"state": "configured" if cancelled else "calculated"})
             end_suffix = (
@@ -407,7 +405,6 @@ class AccountInvoiceset(models.Model):
                     [("invoiceset_id", "=", invoiceset.id)],
                     limit=1,
                 ).write({"invoice_generation_progress": 0.0, "stop_order": False})
-                self.env.cr.commit()
 
         except (UserError, ValueError, TemplateError) as err:
             invoiceset.write({"state": "configured"})
