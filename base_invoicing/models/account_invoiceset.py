@@ -1,15 +1,16 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-import time
+import logging
+import threading
 from collections import defaultdict
 
 from jinja2 import Template, TemplateError
-from psycopg2 import Error as PsycopgError
-from psycopg2 import sql
-
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.safe_eval import safe_eval
+
+_logger = logging.getLogger(__name__)
 
 
 class AccountInvoiceset(models.Model):
@@ -17,7 +18,6 @@ class AccountInvoiceset(models.Model):
     _description = "Invoice Set"
     _inherit = ["simple.model", "mail.thread", "comment.template"]
     _order = "alphanum_code desc"
-    _rec_name = "alphanum_code"
 
     _set_num_code = False
     _sequence_for_codes = "base_invoicing.mass_invoicing_seq_invoiceset_code_id"
@@ -42,9 +42,13 @@ class AccountInvoiceset(models.Model):
         index=True,
     )
     invoice_date_due = fields.Date(string="Due Date")
-    journal_id = fields.Many2one(string="Journal", comodel_name="account.journal")
+    journal_id = fields.Many2one(
+        string="Journal",
+        comodel_name="account.journal",
+    )
     payment_term_id = fields.Many2one(
-        string="Payment Term", comodel_name="account.payment.term"
+        string="Payment Term",
+        comodel_name="account.payment.term",
     )
     invoice_user_id = fields.Many2one(
         string="Sales Person",
@@ -97,7 +101,7 @@ class AccountInvoiceset(models.Model):
         compute="_compute_all_productlinks_configured",
     )
     invoice_generation_progress = fields.Float(
-        string="Invoice generation progress (%)",
+        string="Percentage of progress during invoice generation",
         default=0.0,
         compute="_compute_invoice_generation_progress",
     )
@@ -119,17 +123,20 @@ class AccountInvoiceset(models.Model):
         default=lambda self: self.env.company.partner_id,
     )
 
-    # ---------------------------- display name ----------------------------
+    # -------------------------------------------------------------------------
+    # Display name (name_get deprecated in 17+)
+    # -------------------------------------------------------------------------
 
+    @api.depends("alphanum_code", "description")
     def _compute_display_name(self):
-        """Compute display_name without using deprecated name_get()."""
         for record in self:
-            name = record.alphanum_code or ""
-            if record.description:
-                name = f"{name} ({record.description})"
-            record.display_name = name
+            code = record.alphanum_code or ""
+            desc = record.description or ""
+            record.display_name = f"{code} ({desc})" if desc else code
 
-    # ------------------------------- computes -----------------------------
+    # -------------------------------------------------------------------------
+    # Computes
+    # -------------------------------------------------------------------------
 
     @api.depends("all_productlinks_configured", "some_posted_invoice")
     def _compute_state(self):
@@ -147,28 +154,40 @@ class AccountInvoiceset(models.Model):
 
     @api.depends("move_ids")
     def _compute_number_of_invoices(self):
+        # Batch-friendly using read_group
+        data = self.env["account.move"].read_group(
+            [("invoiceset_id", "in", self.ids)],
+            ["invoiceset_id"],
+            ["invoiceset_id"],
+        )
+        mapped = {d["invoiceset_id"][0]: d["invoiceset_id_count"] for d in data}
         for record in self:
-            record.number_of_invoices = len(record.move_ids)
+            record.number_of_invoices = mapped.get(record.id, 0)
 
     @api.depends("productlink_ids", "productlink_ids.populated")
     def _compute_all_productlinks_configured(self):
         for record in self:
             record.all_productlinks_configured = bool(record.productlink_ids) and all(
-                productlink.populated for productlink in record.productlink_ids
+                pl.populated for pl in record.productlink_ids
             )
 
     def _compute_invoice_generation_progress(self):
         progress_model = self.env["account.invoiceset.progress"].sudo()
+        progress_by_set = {
+            p.invoiceset_id.id: p.invoice_generation_progress
+            for p in progress_model.search([("invoiceset_id", "in", self.ids)])
+        }
         for record in self:
-            progress = progress_model.search([("invoiceset_id", "=", record.id)], limit=1)
-            record.invoice_generation_progress = progress.invoice_generation_progress or 0.0
+            record.invoice_generation_progress = float(progress_by_set.get(record.id, 0.0) or 0.0)
 
     @api.depends("move_ids", "move_ids.state")
     def _compute_some_posted_invoice(self):
         for record in self:
-            record.some_posted_invoice = any(move.state == "posted" for move in record.move_ids)
+            record.some_posted_invoice = any(m.state == "posted" for m in record.move_ids)
 
-    # ------------------------------ lifecycle -----------------------------
+    # -------------------------------------------------------------------------
+    # CRUD
+    # -------------------------------------------------------------------------
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -183,8 +202,7 @@ class AccountInvoiceset(models.Model):
             if record.state not in ("draft", "configured"):
                 raise UserError(
                     self.env._(
-                        "It is not possible to delete a calculated invoice set, "
-                        "you must cancel it first."
+                        "It is not possible to delete a calculated invoice set, you must cancel it first."
                     )
                 )
         self.env["account.invoiceset.progress"].search(
@@ -192,7 +210,9 @@ class AccountInvoiceset(models.Model):
         ).unlink()
         return super().unlink()
 
-    # ------------------------------- actions ------------------------------
+    # -------------------------------------------------------------------------
+    # Actions
+    # -------------------------------------------------------------------------
 
     def action_show_invoices(self):
         self.ensure_one()
@@ -211,7 +231,9 @@ class AccountInvoiceset(models.Model):
             "context": {"default_move_type": "out_invoice"},
         }
 
-    # --------------------------- calculation flow -------------------------
+    # -------------------------------------------------------------------------
+    # Calculation entrypoints
+    # -------------------------------------------------------------------------
 
     def calculate_invoiceset(self):
         self.ensure_one()
@@ -236,26 +258,27 @@ class AccountInvoiceset(models.Model):
         if self.state != "configured":
             return None
 
+        # Clean non-selected selectable items for this invoiceset (keep SQL parameterized)
         self.env.cr.execute(
             """
             DELETE
               FROM account_selectable_item
              WHERE NOT selected
                AND productlink_id IN (
-                   SELECT id
-                     FROM account_invoiceset_productlink
-                    WHERE invoiceset_id = %s
+                     SELECT id
+                       FROM account_invoiceset_productlink
+                      WHERE invoiceset_id = %s
                )
             """,
             (self.id,),
         )
 
-        run_background = (
+        run_background = bool(
             self.env["ir.config_parameter"]
             .sudo()
             .get_param("base_invoicing.mass_invoicing_run_background", False)
         )
-        self.calculation_process(self.id, background=bool(run_background))
+        self.calculation_process(self.id, background=run_background)
         return None
 
     @api.model
@@ -265,6 +288,10 @@ class AccountInvoiceset(models.Model):
         for invoiceset in self.search([("state", "=", "configured")]):
             self.calculation_process(invoiceset.id, from_cron=True)
 
+    # -------------------------------------------------------------------------
+    # Background execution (kept for compatibility, made safer)
+    # -------------------------------------------------------------------------
+
     @api.model
     def calculation_process(self, invoiceset_id, background=False, from_cron=False):
         invoiceset = self.browse(invoiceset_id)
@@ -272,47 +299,30 @@ class AccountInvoiceset(models.Model):
             return None
 
         if background:
-            # Background execution must use a dedicated cursor + Environment.
-            self._run_invoice_generation_in_thread(invoiceset.id)
+            registry = self.env.registry
+            uid = self.env.uid
+            ctx = dict(self.env.context)
+
+            def _run():
+                # Ensure proper thread env management in Odoo
+                with api.Environment.manage(), registry.cursor() as cr:
+                    env = api.Environment(cr, uid, ctx)
+                    env["account.invoiceset"]._invoice_generation_thread(invoiceset_id)
+
+            threading.Thread(target=_run, daemon=True).start()
             return None
 
         return self.invoice_generation(invoiceset_id, from_cron=from_cron)
 
     @api.model
-    def _run_invoice_generation_in_thread(self, invoiceset_id):
-        """Run invoice generation in background using a safe env/cursor."""
-        import threading  # pylint: disable=import-outside-toplevel
+    def _invoice_generation_thread(self, invoiceset_id):
+        # In thread we are already inside a dedicated cursor/env.
+        self.invoice_generation(invoiceset_id, background=True)
+        # Cursor closing/commit is managed by the context manager.
 
-        def _target(dbname, uid, ctx, invset_id):
-            registry = self.env.registry
-            with api.Environment.manage():
-                cr = registry.cursor()
-                try:
-                    env = api.Environment(cr, uid, ctx)
-                    env["account.invoiceset"].invoice_generation(invset_id, background=True)
-                    cr.commit()
-                except (UserError, PsycopgError) as err:
-                    cr.rollback()
-                    # Best-effort logging in chatter if possible
-                    try:
-                        env = api.Environment(cr, uid, ctx)
-                        invset = env["account.invoiceset"].browse(invset_id)
-                        if invset.exists():
-                            invset.message_post(body=env._("Calculation Process: ERROR... %s") % str(err))
-                            invset.write({"state": "configured"})
-                            cr.commit()
-                    except PsycopgError:
-                        cr.rollback()
-                finally:
-                    cr.close()
-
-        ctx = dict(self.env.context)
-        th = threading.Thread(
-            target=_target,
-            args=(self.env.cr.dbname, self.env.uid, ctx, invoiceset_id),
-            daemon=True,
-        )
-        th.start()
+    # -------------------------------------------------------------------------
+    # Core generation
+    # -------------------------------------------------------------------------
 
     @api.model
     def invoice_generation(self, invoiceset_id, background=False, from_cron=False):
@@ -320,57 +330,48 @@ class AccountInvoiceset(models.Model):
         if not invoiceset.exists() or invoiceset.state != "configured":
             return None
 
-        tmp_cr = None
         number_of_invoices = 0
+        cancelled = False
+
+        # Reset progress for background runs
+        if background:
+            self.env["account.invoiceset.progress"].sudo().search(
+                [("invoiceset_id", "=", invoiceset.id)],
+                limit=1,
+            ).write({"invoice_generation_progress": 0.0, "stop_order": False})
+            self.env.cr.commit()
+
+        invoiceset.write({"state": "calculating"})
+        suffix = self.env._("(background)") if background else self.env._("(foreground)")
+        invoiceset.message_post(body=self.env._("Calculation Process: start") + " " + suffix)
 
         try:
-            invoiceset.write({"state": "calculating"})
-
-            suffix = self.env._("(background)") if background else self.env._("(foreground)")
-
-            if background:
-                tmp_cr = self.env.registry.cursor()
-                tmp_env = api.Environment(tmp_cr, self.env.uid, dict(self.env.context))
-                tmp_env["account.invoiceset.progress"].sudo().search(
-                    [("invoiceset_id", "=", invoiceset_id)], limit=1
-                ).write({"invoice_generation_progress": 0.0, "stop_order": False})
-                tmp_cr.commit()
-
-            invoiceset.message_post(body=self.env._("Calculation Process: start") + " " + suffix)
-
-            cancelled = False
             invoice_data = self.get_invoice_data(invoiceset)
             if not invoice_data:
                 cancelled = True
             else:
                 progress = 0.0
-                step = 100.0 / len(invoice_data)
+                step = 100.0 / len(invoice_data) if invoice_data else 100.0
+                progress_model = self.env["account.invoiceset.progress"].sudo()
 
                 for inv_data in invoice_data:
                     invoice = self.create_invoice(invoiceset, inv_data)
                     if invoice:
                         number_of_invoices += 1
 
-                    if background and tmp_cr:
-                        tmp_env = api.Environment(tmp_cr, self.env.uid, dict(self.env.context))
-                        prog = tmp_env["account.invoiceset.progress"].sudo().search(
-                            [("invoiceset_id", "=", invoiceset_id)], limit=1
-                        )
-                        tmp_cr.commit()
-
-                        if prog.stop_order:
+                    if background:
+                        row = progress_model.search([("invoiceset_id", "=", invoiceset.id)], limit=1)
+                        if row.stop_order:
                             invoiceset.cancel_invoices()
                             cancelled = True
                             number_of_invoices = 0
                             break
 
                         progress += step
-                        prog.write({"invoice_generation_progress": progress})
-                        tmp_cr.commit()
+                        row.write({"invoice_generation_progress": progress})
+                        self.env.cr.commit()
 
-            time.sleep(1)
             invoiceset.write({"state": "configured" if cancelled else "calculated"})
-
             end_suffix = (
                 self.env._("Cancelled")
                 if cancelled
@@ -378,29 +379,26 @@ class AccountInvoiceset(models.Model):
             )
             invoiceset.message_post(body=self.env._("Calculation Process: end.") + " " + end_suffix)
 
-            if background and tmp_cr:
-                tmp_env = api.Environment(tmp_cr, self.env.uid, dict(self.env.context))
-                tmp_env["account.invoiceset.progress"].sudo().search(
-                    [("invoiceset_id", "=", invoiceset_id)], limit=1
+            if background:
+                # Reset progress bar for next run
+                self.env["account.invoiceset.progress"].sudo().search(
+                    [("invoiceset_id", "=", invoiceset.id)],
+                    limit=1,
                 ).write({"invoice_generation_progress": 0.0, "stop_order": False})
-                tmp_cr.commit()
+                self.env.cr.commit()
 
-        except (UserError, TemplateError, PsycopgError) as err:
+        except (UserError, ValueError, TemplateError) as err:
             invoiceset.write({"state": "configured"})
             invoiceset.message_post(body=self.env._("Calculation Process: ERROR...") + " " + str(err))
             if background:
-                # In background, avoid raising to the RPC layer
-                if tmp_cr:
-                    tmp_cr.rollback()
-            else:
-                raise UserError(str(err)) from err
-        finally:
-            if tmp_cr:
-                tmp_cr.close()
+                self.env.cr.commit()
+            raise
 
         return None
 
-    # ---------------------------- invoice data ----------------------------
+    # -------------------------------------------------------------------------
+    # Invoice data extraction (no runtime class mutation)
+    # -------------------------------------------------------------------------
 
     @api.model
     def get_invoice_data(self, invoiceset):
@@ -420,35 +418,28 @@ class AccountInvoiceset(models.Model):
     @api.model
     def _get_invoice_data(self, invoiceset):
         invoice_data_raw = []
-        billable_item_helper = self.env["account.billable.item"]
 
         for productlink in invoiceset.productlink_ids:
             if not productlink.billable_item_model_id:
                 continue
 
             model_name = productlink.sudo().billable_item_model_id.model
+            model_billable_item = self.env[model_name]
+
             quantity_field = productlink.billable_item_quantity_field
             group_field = productlink.billable_item_group_field
 
-            model_billable = self.env[model_name]
-            inherits_billable = billable_item_helper.inherits_from_account_billable_item(model_name)
+            partner_field = getattr(model_billable_item, "_billing_partner_id_name", "partner_id")
 
             for selected_item in productlink.selected_item_ids:
-                billable_item = model_billable.browse(selected_item.billable_item_res_id)
-                if not billable_item.exists():
+                billable_item = model_billable_item.browse(selected_item.billable_item_res_id)
+                if not billable_item:
                     continue
 
-                # Do NOT mutate class attributes in runtime (multiworker unsafe).
-                if inherits_billable:
-                    partner_field = getattr(model_billable, "_billing_partner_id_name", "partner_id")
-                    partner = getattr(billable_item, partner_field, False)
-                    partner_id = partner.id if partner else False
-                    quantity = getattr(billable_item, quantity_field, 0.0) if quantity_field else 1.0
-                    groupvalue = str(getattr(billable_item, group_field, "")) if group_field else ""
-                else:
-                    partner_id = billable_item.partner_id.id if getattr(billable_item, "partner_id", False) else False
-                    quantity = getattr(billable_item, quantity_field, 0.0) if quantity_field else 0.0
-                    groupvalue = str(getattr(billable_item, group_field, "")) if group_field else ""
+                partner = getattr(billable_item, partner_field, False)
+                partner_id = partner.id if partner else False
+                quantity = getattr(billable_item, quantity_field, 0.0) if quantity_field else 1.0
+                groupvalue = str(getattr(billable_item, group_field, "")) if group_field else ""
 
                 if not partner_id or quantity <= 0:
                     continue
@@ -471,16 +462,18 @@ class AccountInvoiceset(models.Model):
                 }
 
                 if productlink.billable_item_detail_desc:
-                    lang = getattr(getattr(billable_item, "partner_id", False), "lang", False)
-                    template_src = productlink.billable_item_detail_desc
-                    if lang:
-                        template_src = productlink.with_context(lang=lang).billable_item_detail_desc
+                    lang = partner.lang if partner else False
+                    template_src = (
+                        productlink.with_context(lang=lang).billable_item_detail_desc
+                        if lang
+                        else productlink.billable_item_detail_desc
+                    )
                     try:
-                        rendered = Template(template_src).render(billable_item=billable_item)
-                        if rendered:
-                            vals["name"] = rendered
+                        name = Template(template_src).render(billable_item=billable_item)
+                        if name:
+                            vals["name"] = name
                     except TemplateError:
-                        # Ignore invalid templates, keep default description.
+                        # Keep legacy behavior: ignore template errors
                         pass
 
                 invoice_data_raw.append(vals)
@@ -497,7 +490,9 @@ class AccountInvoiceset(models.Model):
             for key, lines in grouped.items()
         ]
 
-    # ---------------------------- invoice create --------------------------
+    # -------------------------------------------------------------------------
+    # Invoice creation
+    # -------------------------------------------------------------------------
 
     @api.model
     def create_invoice(self, invoiceset, invoice_data):
@@ -553,18 +548,16 @@ class AccountInvoiceset(models.Model):
 
         return self.env["account.move"].create(vals)
 
-    # ------------------------------ stop/cancel ----------------------------
+    # -------------------------------------------------------------------------
+    # Stop/cancel helpers
+    # -------------------------------------------------------------------------
 
     def stop_calculation(self):
         self.ensure_one()
-        self.env.cr.execute(
-            """
-            UPDATE account_invoiceset_progress
-               SET stop_order = TRUE
-             WHERE invoiceset_id = %s
-            """,
-            (self.id,),
-        )
+        self.env["account.invoiceset.progress"].sudo().search(
+            [("invoiceset_id", "=", self.id)],
+            limit=1,
+        ).write({"stop_order": True})
 
     @api.model
     def background_calculation_active(self, invoiceset_id):
@@ -623,8 +616,16 @@ class AccountInvoicesetProductlink(models.Model):
         store=True,
         compute="_compute_categ_id",
     )
-    lst_price = fields.Float(string="Price", store=True, compute="_compute_lst_price")
-    populated = fields.Boolean(string="Populated", default=False, readonly=True)
+    lst_price = fields.Float(
+        string="Price",
+        store=True,
+        compute="_compute_lst_price",
+    )
+    populated = fields.Boolean(
+        string="Populated",
+        default=False,
+        readonly=True,
+    )
 
     billable_item_model_id = fields.Many2one(
         string="Billable-items Model",
@@ -681,12 +682,7 @@ class AccountInvoicesetProductlink(models.Model):
         ("name_unique", "UNIQUE (name)", "Existing Product."),
     ]
 
-    @api.depends(
-        "invoiceset_id",
-        "invoiceset_id.alphanum_code",
-        "product_id",
-        "product_id.product_tmpl_id.name",
-    )
+    @api.depends("invoiceset_id", "invoiceset_id.alphanum_code", "product_id", "product_id.product_tmpl_id.name")
     def _compute_name(self):
         default_lang = self.env.lang or "en_US"
         for record in self:
@@ -694,7 +690,7 @@ class AccountInvoicesetProductlink(models.Model):
             if record.invoiceset_id and record.product_id:
                 product_name = record.product_id.product_tmpl_id.with_context(lang=default_lang).name
                 name = f"{record.invoiceset_id.alphanum_code}-{product_name}"
-            record.name = name[: record.max_size_productlink_code]
+            record.name = (name or "")[: self.max_size_productlink_code]
 
     @api.depends("product_id")
     def _compute_categ_id(self):
@@ -732,8 +728,14 @@ class AccountInvoicesetProductlink(models.Model):
 
     @api.depends("selectable_item_ids")
     def _compute_number_of_selectable_items(self):
+        data = self.env["account.selectable.item"].read_group(
+            [("productlink_id", "in", self.ids)],
+            ["productlink_id"],
+            ["productlink_id"],
+        )
+        mapped = {d["productlink_id"][0]: d["productlink_id_count"] for d in data}
         for record in self:
-            record.number_of_selectable_items = len(record.selectable_item_ids)
+            record.number_of_selectable_items = mapped.get(record.id, 0)
 
     @api.depends("selectable_item_ids", "selectable_item_ids.selected")
     def _compute_selected_item_ids(self):
@@ -866,129 +868,109 @@ class AccountInvoicesetProductlink(models.Model):
         self.update_populated()
 
     def delete_selectable_items(self):
+        selectable = self.env["account.selectable.item"]
         for record in self:
-            record.env["account.selectable.item"].search(
-                [("productlink_id", "=", record.id)]
-            ).unlink()
+            selectable.search([("productlink_id", "=", record.id)]).unlink()
             record.update_populated()
 
-    def populate_selectable_items(self, productlink):
-        """Populate account.selectable.item via SQL with sanitized identifiers.
+    # -------------------------------------------------------------------------
+    # SAFE population using ORM + safe_eval domain
+    # -------------------------------------------------------------------------
 
-        Note: billable_item_domain is kept for backward compatibility and is
-        appended as raw SQL. Consider migrating it to a safe domain parser.
-        """
+    def populate_selectable_items(self, productlink):
         product = productlink.product_id
         category = product.product_tmpl_id.categ_id
         if not category or not category.billable_item_model_id:
             return
 
         model_name = category.billable_item_model_id.sudo().model
-        table_name = model_name.replace(".", "_")
+        billable_model = self.env[model_name]
 
+        partner_field = getattr(billable_model, "_billing_partner_id_name", "partner_id")
         quantity_field = category.billable_item_quantity_field
 
-        billable_item_helper = self.env["account.billable.item"]
-        partner_id_field = "partner_id"
-        if billable_item_helper.inherits_from_account_billable_item(model_name):
-            partner_id_field = getattr(self.env[model_name], "_billing_partner_id_name", "partner_id")
+        domain = [("active", "=", True)] if self.env["account.billable.item"].exists_active_field(model_name) else []
+        domain.append((partner_field, "!=", False))
 
-        aux_insert, aux_select = self._get_aux_fields(category)
-
-        insert_cols = [
-            sql.Identifier("id"),
-            sql.Identifier("create_uid"),
-            sql.Identifier("write_uid"),
-            sql.Identifier("create_date"),
-            sql.Identifier("write_date"),
-            sql.Identifier("productlink_id"),
-            sql.Identifier("billable_item_model"),
-            sql.Identifier("billable_item_res_id"),
-            sql.Identifier("partner_id"),
-            sql.Identifier("quantity"),
-            sql.Identifier("selected"),
-        ]
-        if aux_insert:
-            for col in aux_insert.split(", "):
-                insert_cols.append(sql.Identifier(col))
-
-        select_cols = [
-            sql.SQL("nextval('account_selectable_item_id_seq')"),
-            sql.Placeholder(),
-            sql.Placeholder(),
-            sql.SQL("now()"),
-            sql.SQL("now()"),
-            sql.Placeholder(),
-            sql.Placeholder(),
-            sql.SQL("bt.id"),
-            sql.SQL("bt.{}").format(sql.Identifier(partner_id_field)),
-            sql.SQL("bt.{}").format(sql.Identifier(quantity_field)) if quantity_field else sql.SQL("1"),
-            sql.SQL("TRUE"),
-        ]
-        if aux_select:
-            for col in aux_select.split(", "):
-                select_cols.append(sql.SQL("bt.{}").format(sql.Identifier(col)))
-
-        query = sql.SQL("""
-            INSERT INTO {dest} ({cols})
-            SELECT {select_cols}
-              FROM {src} bt
-              JOIN res_partner rp ON bt.{partner_field} = rp.id
-             WHERE rp.active
-        """).format(
-            dest=sql.Identifier("account_selectable_item"),
-            cols=sql.SQL(", ").join(insert_cols),
-            select_cols=sql.SQL(", ").join(select_cols),
-            src=sql.Identifier(table_name),
-            partner_field=sql.Identifier(partner_id_field),
-        )
-
-        params = [self.env.uid, self.env.uid, productlink.id, model_name]
-
-        if billable_item_helper.exists_active_field(model_name):
-            query += sql.SQL(" AND bt.active")
-
+        # Apply optional domain stored as python-domain string
         if productlink.billable_item_domain:
-            # Backward compat: appended raw SQL.
-            query += sql.SQL(" AND ({})").format(sql.SQL(productlink.billable_item_domain))
+            try:
+                extra_domain = safe_eval(productlink.billable_item_domain, {})
+                if isinstance(extra_domain, list):
+                    domain += extra_domain
+            except (ValueError, SyntaxError) as err:
+                raise UserError(self.env._("Invalid domain for billable items: %s") % str(err)) from err
 
         if productlink.product_id.product_tmpl_id.link_with_billable_items:
-            query += sql.SQL(" AND bt.product_id = %s")
-            params.append(productlink.product_id.id)
+            # Keep legacy behavior
+            domain.append(("product_id", "=", productlink.product_id.id))
 
-        try:
-            self.env.cr.execute(query, tuple(params))
-        except PsycopgError as err:
-            raise UserError(self.env._("Error updating records: %s") % str(err)) from err
+        fields_to_read = [partner_field]
+        if quantity_field:
+            fields_to_read.append(quantity_field)
+
+        aux_map = self._get_aux_fields_map(category)
+        fields_to_read += list(aux_map.values())
+
+        # Avoid duplicates: delete existing selectable items first for this link
+        selectable_model = self.env["account.selectable.item"]
+        selectable_model.search([("productlink_id", "=", productlink.id)]).unlink()
+
+        items = billable_model.search(domain)
+        if not items:
+            return
+
+        rows = items.read(fields_to_read)
+
+        create_vals = []
+        for row in rows:
+            partner_val = row.get(partner_field)
+            partner_id = partner_val[0] if isinstance(partner_val, (list, tuple)) and partner_val else partner_val
+            if not partner_id:
+                continue
+
+            qty = 1.0
+            if quantity_field:
+                qty = float(row.get(quantity_field) or 0.0)
+
+            vals = {
+                "productlink_id": productlink.id,
+                "billable_item_model": model_name,
+                "billable_item_res_id": row["id"],
+                "partner_id": partner_id,
+                "quantity": qty,
+                "selected": True,
+            }
+
+            for dest, src in aux_map.items():
+                vals[dest] = row.get(src)
+
+            create_vals.append(vals)
+
+        if create_vals:
+            selectable_model.create(create_vals)
 
     @api.model
-    def _get_aux_fields(self, category):
-        aux_fields_insert = []
-        aux_fields_select = []
-
+    def _get_aux_fields_map(self, category):
+        """Return mapping {dest_field_on_selectable: src_field_on_billable}."""
+        mapping = {}
         for idx in (1, 2, 3):
             for ttype in ("char", "int", "float", "bool"):
                 src = getattr(category, f"aux_0{idx}_{ttype}_field", False)
                 if not src:
                     continue
-                aux_fields_insert.append(f"aux_0{idx}_{ttype}")
-                aux_fields_select.append(src)
-
-        return ", ".join(aux_fields_insert), ", ".join(aux_fields_select)
+                mapping[f"aux_0{idx}_{ttype}"] = src
+        return mapping
 
     def update_populated(self):
         self.ensure_one()
-        self.env.cr.execute(
-            """
-            SELECT count(*) AS count
-              FROM account_selectable_item
-             WHERE productlink_id = %s
-               AND selected
-            """,
-            (self.id,),
+        data = self.env["account.selectable.item"].read_group(
+            [("productlink_id", "=", self.id), ("selected", "=", True)],
+            ["productlink_id"],
+            ["productlink_id"],
         )
-        row = self.env.cr.dictfetchone() or {}
-        self.write({"populated": bool(row.get("count"))})
+        count = data[0]["productlink_id_count"] if data else 0
+        self.write({"populated": bool(count)})
 
 
 class AccountInvoicesetProgress(models.Model):
@@ -1002,8 +984,11 @@ class AccountInvoicesetProgress(models.Model):
         readonly=True,
     )
     invoice_generation_progress = fields.Float(
-        string="Invoice generation progress (%)",
+        string="Percentage of progress during invoice generation",
         default=0.0,
         readonly=True,
     )
-    stop_order = fields.Boolean(string="Active stop order", default=False)
+    stop_order = fields.Boolean(
+        string="Active stop order",
+        default=False,
+    )
