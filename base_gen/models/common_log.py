@@ -8,10 +8,13 @@ from typing import Dict, Optional
 
 from odoo import models
 
+_logger = logging.getLogger(__name__)
+
 _LEVELS: Dict[str, int] = {
     "DEBUG": logging.DEBUG,
     "INFO": logging.INFO,
     "WARNING": logging.WARNING,
+    "WARN": logging.WARNING,
     "ERROR": logging.ERROR,
     "CRITICAL": logging.CRITICAL,
 }
@@ -21,40 +24,60 @@ class CommonLog(models.AbstractModel):
     _name = "common.log"
     _description = "Common helpers for logging messages with optional context"
 
-    def register_in_log(
-            self,
-            message: str,
-            source: str = "",
-            module: str = "",
-            model: str = "",
-            method: str = "",
-            message_type: str = "INFO",
-            *,
-            extra: Optional[dict] = None,
-    ) -> None:
-        """Log a message with optional context.
+    _reserved_logrecord_attrs = {
+        "args",
+        "asctime",
+        "created",
+        "exc_info",
+        "exc_text",
+        "filename",
+        "funcName",
+        "levelname",
+        "levelno",
+        "lineno",
+        "message",
+        "module",
+        "msecs",
+        "msg",
+        "name",
+        "pathname",
+        "process",
+        "processName",
+        "relativeCreated",
+        "stack_info",
+        "thread",
+        "threadName",
+    }
 
-        Args:
-            message: The main log message
-            source: Logger source/name (defaults to __name__)
-            module: Module name for context
-            model: Model name for context
-            method: Method name for context
-            message_type: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-            extra: Additional context data for the log record
-        """
+    def _sanitize_extra(self, extra: Optional[dict]) -> dict:
+        """Return a safe 'extra' dict for Python logging."""
+        payload = dict(extra or {})
+        # Drop reserved keys to avoid raising KeyError in logging internals
+        for key in list(payload.keys()):
+            if key in self._reserved_logrecord_attrs:
+                payload.pop(key, None)
+        return payload
+
+    def register_in_log(
+        self,
+        message: str,
+        source: str = "",
+        module: str = "",
+        model: str = "",
+        method: str = "",
+        message_type: str = "INFO",
+        *,
+        extra: Optional[dict] = None,
+    ) -> None:
+        """Log a message with optional context."""
         if not message:
-            return  # nothing to log
+            return
 
         level_name = (message_type or "INFO").upper()
-        level = _LEVELS.get(level_name)
-        if level is None:
-            level_name = "INFO"
-            level = logging.INFO
+        level = _LEVELS.get(level_name, logging.INFO)
 
-        logger = logging.getLogger(source or __name__)
+        logger = logging.getLogger(source) if source else _logger
 
-        # Build human-readable suffix
         parts = []
         if module:
             parts.append(f"module: {module}")
@@ -65,8 +88,7 @@ class CommonLog(models.AbstractModel):
 
         msg = message if not parts else f"{message} ({', '.join(parts)})"
 
-        # Build safe extra payload (avoid LogRecord reserved attrs like 'module')
-        payload = dict(extra or {})
+        payload = self._sanitize_extra(extra)
         if module:
             payload.setdefault("ctx_module", module)
         if model:
@@ -74,8 +96,5 @@ class CommonLog(models.AbstractModel):
         if method:
             payload.setdefault("ctx_method", method)
 
-        # Ensure payload is None if empty to avoid logging issues
-        log_extra = payload if payload else None
-
-        # Log with appropriate level and extra context
-        logger.log(level, msg, extra=log_extra)
+        # Always pass a dict (logging expects mapping for 'extra')
+        logger.log(level, msg, extra=payload)

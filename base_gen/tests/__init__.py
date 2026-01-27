@@ -3,5 +3,5 @@ from . import (
     test_common_image,
     test_common_log,
     test_common_metadata,
-    test_simple_model,
+
 )
