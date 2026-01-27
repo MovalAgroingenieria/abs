@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0\n"
+"Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-14 06:49+0000\n"
-"PO-Revision-Date: 2025-04-14 06:49+0000\n"
+"POT-Creation-Date: 2026-01-27 18:36+0000\n"
+"PO-Revision-Date: 2026-01-27 18:36+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -35,7 +35,7 @@ msgstr "Código (como cadena normalizada)"
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__num_code
 #: model:ir.model.fields,field_description:base_adi.field_res_place__num_code
 #: model:ir.model.fields,field_description:base_adi.field_res_province__num_code
-msgid "Code (numeric value)"
+msgid "Code (numeric)"
 msgstr "Código (como valor numérico)"
 
 #. module: base_adi
@@ -176,14 +176,6 @@ msgid "Internal Notes"
 msgstr "Notas internas"
 
 #. module: base_adi
-#: model:ir.model.fields,field_description:base_adi.field_res_admregion____last_update
-#: model:ir.model.fields,field_description:base_adi.field_res_municipality____last_update
-#: model:ir.model.fields,field_description:base_adi.field_res_place____last_update
-#: model:ir.model.fields,field_description:base_adi.field_res_province____last_update
-msgid "Last Modified on"
-msgstr ""
-
-#. module: base_adi
 #: model:ir.model.fields,field_description:base_adi.field_res_admregion__write_uid
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__write_uid
 #: model:ir.model.fields,field_description:base_adi.field_res_place__write_uid
@@ -227,12 +219,9 @@ msgid "Mapped to polygon"
 msgstr "Con vínculo GIS"
 
 #. module: base_adi
-#. odoo-python
-#: code:addons/base_adi/models/res_province.py:0
 #: model:ir.actions.act_window,name:base_adi.res_municipality_action
 #: model:ir.model.fields,field_description:base_adi.field_res_province__municipality_ids
 #: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_form
-#, python-format
 msgid "Municipalities"
 msgstr "Municipios"
 
@@ -282,12 +271,9 @@ msgid "Place"
 msgstr "Localidad"
 
 #. module: base_adi
-#. odoo-python
-#: code:addons/base_adi/models/res_municipality.py:0
 #: model:ir.actions.act_window,name:base_adi.res_place_action
 #: model:ir.model.fields,field_description:base_adi.field_res_municipality__place_ids
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_form
-#, python-format
 msgid "Places"
 msgstr "Localidades"
 
@@ -309,12 +295,9 @@ msgid "Province"
 msgstr "Provincia"
 
 #. module: base_adi
-#. odoo-python
-#: code:addons/base_adi/models/res_admregion.py:0
 #: model:ir.actions.act_window,name:base_adi.res_province_action
 #: model:ir.model.fields,field_description:base_adi.field_res_admregion__province_ids
 #: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_form
-#, python-format
 msgid "Provinces"
 msgstr "Provincias"
 
@@ -358,11 +341,3 @@ msgstr "Buscar provincias"
 #: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_search
 msgid "Search regions"
 msgstr "Buscar regiones"
-
-#. module: base_adi
-#. odoo-python
-#: code:addons/base_adi/models/res_municipality.py:0
-#, python-format
-msgid ""
-"There is already another municipality on this province with the same name."
-msgstr "En la provincia ya hay otro municipio con el mismo nombre."

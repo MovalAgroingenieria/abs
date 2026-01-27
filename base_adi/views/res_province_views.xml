@@ -5,30 +5,36 @@
         <field name="name">res.province.view.form</field>
         <field name="model">res.province</field>
         <field name="arch" type="xml">
-            <form string="Province" duplicate="0">
+            <form string="Province" duplicate="false">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_show_municipalities"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-sitemap">
-                            <field string="Municipalities"
-                                   name="number_of_municipalities"
-                                   widget="statinfo"/>
+                        <button
+                            name="action_show_municipalities"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-sitemap"
+                        >
+                            <field
+                                name="number_of_municipalities"
+                                string="Municipalities"
+                                widget="statinfo"
+                            />
                         </button>
                     </div>
+
                     <group name="master_data">
                         <group name="master_data_left">
                             <field name="alphanum_code" string="Province"/>
-                            <field name="region_id"
-                                   string="Region"
-                                   options="{'no_quick_create':True,
-                                             'no_create_edit': True}"
-                                   readonly="context.get('default_region_id', False)"/>
+                            <field
+                                name="region_id"
+                                string="Region"
+                                options="{'no_create': True, 'no_open': True}"
+                                readonly="context.get('default_region_id', False)"
+                            />
                         </group>
-                        <group name="master_data_right">
-                        </group>
+                        <group name="master_data_right"/>
                     </group>
+
                     <notebook name="slave_data_notebook" colspan="4">
                         <page name="page_notes" string="Notes">
                             <field name="notes"/>
@@ -42,7 +48,7 @@
     <record id="res_province_view_tree" model="ir.ui.view">
         <field name="name">res.province.view.list</field>
         <field name="model">res.province</field>
-            <field name="arch" type="xml">
+        <field name="arch" type="xml">
             <list class="o_base_adi_res_province">
                 <field name="alphanum_code" string="Province"/>
             </list>
@@ -57,9 +63,11 @@
                 <field name="alphanum_code" string="Province"/>
                 <field name="region_id" string="Region"/>
                 <group expand="0" string="Group By">
-                    <filter string="Region"
-                            name="grouped_region"
-                     context="{'group_by':'region_id'}"/>
+                    <filter
+                        string="Region"
+                        name="grouped_region"
+                        context="{'group_by': 'region_id'}"
+                    />
                 </group>
             </search>
         </field>
@@ -69,13 +77,11 @@
         <field name="name">Provinces</field>
         <field name="res_model">res.province</field>
         <field name="view_mode">list,form</field>
-        <field name="view_ids"
-         eval="[(5, 0),
-                (0, 0, {'view_mode': 'list',
-                        'view_id': ref('res_province_view_tree')}),
-                (0, 0, {'view_mode': 'form',
-                        'view_id': ref('res_province_view_form')})]"/>
-        <field name="search_view_id" ref="res_province_view_search"/>
+        <field name="views" eval="[
+            (ref('base_adi.res_province_view_tree'), 'list'),
+            (ref('base_adi.res_province_view_form'), 'form')
+        ]"/>
+        <field name="search_view_id" ref="base_adi.res_province_view_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create a new province

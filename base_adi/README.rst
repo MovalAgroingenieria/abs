@@ -14,27 +14,33 @@ Administrative Divisions
 Description
 ===========
 
-Localization based on a hierarchy of territories
+Localization based on a hierarchical structure of administrative territories.
 
-Functionality:
+This module provides basic models to manage administrative divisions,
+without enforcing menus or access rules by default.
+
+Functionality
+=============
 
 * Management of regions.
 * Management of the provinces of a region.
-* Management of the municipalities of a state.
+* Management of the municipalities of a province.
 * Management of the places of a municipality.
 
 Usage
 =====
 
-To use this module it is necessary to create a menu item mapped to the
-appropiate action window and assign permissions (ir.model.access.csv).
+To use this module, it is necessary to:
 
-These actions are:
+* Create menu items mapped to the appropriate action windows.
+* Assign user permissions using ``ir.model.access.csv``.
 
-* base_adi.res_region_action, for regions.
-* base_adi.res_province_action, for provinces.
-* base_adi.res_municipality_action, for municipalities.
-* base_adi.res_place_action, for places.
+The available action windows are:
+
+* ``base_adi.res_admregion_action`` for regions.
+* ``base_adi.res_province_action`` for provinces.
+* ``base_adi.res_municipality_action`` for municipalities.
+* ``base_adi.res_place_action`` for places.
 
 Credits
 =======
@@ -52,13 +58,14 @@ Contributors
 * Miguel Ángel Rodríguez <marodriguez@moval.es>
 * Juanu Sandoval <jsandoval@moval.es>
 * Salvador Sánchez <ssanchez@moval.es>
-* Jorge Vera <jvera@moval.es>
+* Jorge Vera <jvera@movalol.es>
+* César Andrés <candres@moval.es>
 
 Maintainer
 ----------
 
 .. image:: https://services.moval.es/static/images/logo_moval_small.png
-   :target: http://moval.es
+   :target: https://moval.es
    :alt: Moval Agroingeniería
 
 This module is maintained by Moval Agroingeniería.

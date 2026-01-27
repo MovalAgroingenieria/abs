@@ -1,4 +1,4 @@
-# 2024 Moval Agroingeniería
+# 2024-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 {
@@ -14,6 +14,7 @@
         "base_gis",
     ],
     "data": [
+        "security/ir.model.access.csv",
         "views/res_admregion_views.xml",
         "views/res_province_views.xml",
         "views/res_municipality_views.xml",
@@ -22,7 +23,7 @@
     "assets": {
         "web.assets_backend": [
             "base_adi/static/src/scss/base_adi.scss",
-        ]
+        ],
     },
     "installable": True,
     "application": False,

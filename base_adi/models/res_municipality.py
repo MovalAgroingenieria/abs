@@ -1,18 +1,22 @@
-# 2024 Moval Agroingeniería
+# 2024-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import models, fields, api, exceptions, _
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class ResMunicipality(models.Model):
-    _name = 'res.municipality'
-    _description = 'Municipality'
-    _inherit = ['simple.model', 'polygon.model', ]
-    _order = 'province_id, name'
+    _name = "res.municipality"
+    _description = "Municipality"
+    _inherit = [
+        "simple.model",
+        "polygon.model",
+    ]
+    _order = "province_id, name"
 
     # Static variables inherited from "simple.model"
     _set_num_code = False
-    _sequence_for_codes = ''
+    _sequence_for_codes = ""
     _size_name = 50
     _minlength = 0
     _maxlength = 50
@@ -22,101 +26,108 @@ class ResMunicipality(models.Model):
     _size_description = 75
 
     alphanum_code = fields.Char(
-        string='Municipality',
+        string="Municipality",
         required=True,
-        translate=True,)
+        translate=True,
+    )
 
     province_id = fields.Many2one(
-        string='Province',
-        comodel_name='res.province',
+        string="Province",
+        comodel_name="res.province",
         required=True,
         index=True,
-        ondelete='restrict',)
+        ondelete="restrict",
+    )
 
     region_id = fields.Many2one(
-        string='Region',
-        comodel_name='res.admregion',
+        string="Region",
+        comodel_name="res.admregion",
+        related="province_id.region_id",
         store=True,
         index=True,
-        compute='_compute_region_id',)
+        readonly=True,
+    )
 
     place_ids = fields.One2many(
-        string='Places',
-        comodel_name='res.place',
-        inverse_name='municipality_id',)
+        string="Places",
+        comodel_name="res.place",
+        inverse_name="municipality_id",
+    )
 
     number_of_places = fields.Integer(
-        string='Number of places',
-        compute='_compute_number_of_places',)
+        string="Number of places",
+        compute="_compute_number_of_places",
+    )
 
     _sql_constraints = [
-        ('name_unique',
-         'CHECK(TRUE)',
-         'Existing Code (NOT).'),
-        ]
+        ("name_unique", "CHECK(TRUE)", "Existing Code (NOT)."),
+    ]
 
-    @api.constrains('alphanum_code', 'province_id')
+    @api.constrains("alphanum_code", "province_id")
     def _check_alphanum_province_code(self):
         for record in self:
-            if record.alphanum_code and record.province_id:
-                other_municipality = self.env['res.municipality'].search(
-                    [('id', '!=', record.id),
-                     ('province_id', '=', record.province_id.id),
-                     ('alphanum_code', '=', record.alphanum_code)])
-                if other_municipality:
-                    raise exceptions.ValidationError(_(
-                        'There is already another municipality on this '
-                        'province with the same name.'))
-
-    @api.depends('province_id', 'province_id.region_id')
-    def _compute_region_id(self):
-        for record in self:
-            region_id = None
-            if record.province_id:
-                region_id = record.province_id.region_id
-            record.region_id = region_id
+            if not record.alphanum_code or not record.province_id:
+                continue
+            duplicate = self.search(
+                [
+                    ("id", "!=", record.id),
+                    ("province_id", "=", record.province_id.id),
+                    ("alphanum_code", "=", record.alphanum_code),
+                ],
+                limit=1,
+            )
+            if duplicate:
+                raise ValidationError(
+                    _(
+                        "There is already another municipality in this province "
+                        "with the same name."
+                    )
+                )
 
     def _compute_number_of_places(self):
+        grouped = self.env["res.place"].read_group(
+            [("municipality_id", "in", self.ids)],
+            ["municipality_id"],
+            ["municipality_id"],
+        )
+        count_by_municipality = {
+            item["municipality_id"][0]: item["municipality_id_count"]
+            for item in grouped
+            if item.get("municipality_id")
+        }
         for record in self:
-            number_of_places = 0
-            self.env.cr.execute('SELECT count(*) FROM res_place '
-                                'WHERE municipality_id=%s', tuple((record.id,)))
-            query_results = self.env.cr.dictfetchall()
-            if (query_results and
-               query_results[0].get('count') is not None):
-                number_of_places = \
-                    query_results[0].get('count')
-            record.number_of_places = number_of_places
+            record.number_of_places = count_by_municipality.get(record.id, 0)
 
     def name_get(self):
-        resp = []
-        add_province = \
-            self.env.context.get('municipality_with_province', False)
+        result = []
+        add_province = self.env.context.get("municipality_with_province", False)
         for record in self:
             name = record.alphanum_code
-            if add_province:
-                name = name + ' (' + record.province_id.alphanum_code + ')'
-            resp.append((record.id, name))
-        return resp
+            if add_province and record.province_id:
+                name = f"{name} ({record.province_id.alphanum_code})"
+            result.append((record.id, name))
+        return result
 
     def action_show_places(self):
         self.ensure_one()
-        current_municipality = self
-        id_tree_view = self.sudo().env.ref(
-            'base_adi.res_place_view_tree').id
-        id_form_view = self.sudo().env.ref(
-            'base_adi.res_place_view_form').id
-        search_view = self.sudo().env.ref(
-            'base_adi.res_place_view_search')
-        act_window = {
-            'type': 'ir.actions.act_window',
-            'name': _('Places'),
-            'res_model': 'res.place',
-            'view_mode': 'list,form',
-            'views': [(id_tree_view, 'list'), (id_form_view, 'form')],
-            'search_view_id': (search_view.id, search_view.name),
-            'target': 'current',
-            'domain': [('municipality_id', '=', current_municipality.id)],
-            'context': {'default_municipality_id': current_municipality.id, }
-            }
-        return act_window
+        tree_view = self.env.ref("base_adi.res_place_view_tree", raise_if_not_found=False)
+        form_view = self.env.ref("base_adi.res_place_view_form", raise_if_not_found=False)
+        search_view = self.env.ref("base_adi.res_place_view_search", raise_if_not_found=False)
+
+        views = []
+        if tree_view:
+            views.append((tree_view.id, "list"))
+        if form_view:
+            views.append((form_view.id, "form"))
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Places"),
+            "res_model": "res.place",
+            "view_mode": "list,form",
+            "views": views or [(False, "list"), (False, "form")],
+            "search_view_id": search_view.id if search_view else False,
+            "target": "current",
+            "domain": [("municipality_id", "=", self.id)],
+            "context": {"default_municipality_id": self.id},
+        }
