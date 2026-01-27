@@ -3,7 +3,7 @@
    :alt: License: AGPL-3
 
 ===============
-Base-GIS Module
+Base GIS Module
 ===============
 
 **Table of contents**
@@ -34,6 +34,7 @@ Contributors
 * Juanu Sandoval <jsandoval@moval.es>
 * Salvador Sánchez <ssanchez@moval.es>
 * Jorge Vera <jvera@moval.es>
+* César Andrés <candres@moval.es>
 
 Maintainer
 ----------
