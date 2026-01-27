@@ -100,7 +100,7 @@
                 <field name="parent_state"/>
                 <field name="currency_id"/>
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="card">
                         <div t-attf-class="oe_kanban_global_click">
                             <div class="row">
                                 <div class="col-6 o_kanban_record_headings">

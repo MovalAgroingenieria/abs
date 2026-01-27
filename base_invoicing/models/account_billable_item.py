@@ -1,5 +1,6 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=protected-access
 
 from collections import defaultdict
 
@@ -49,12 +50,16 @@ class AccountBillableItem(models.AbstractModel):
     def _compute_billing_partner_id(self):
         for record in self:
             field_name = record._billing_partner_id_name
-            record.billing_partner_id = getattr(record, field_name, False) if field_name else False
+            record.billing_partner_id = (
+                getattr(record, field_name, False) if field_name else False
+            )
 
     def _compute_billing_quantity(self):
         for record in self:
             field_name = record._billing_quantity_name
-            record.billing_quantity = getattr(record, field_name, 1.0) if field_name else 1.0
+            record.billing_quantity = (
+                getattr(record, field_name, 1.0) if field_name else 1.0
+            )
 
     def _compute_billing_groupvalue(self):
         for record in self:
@@ -78,7 +83,9 @@ class AccountBillableItem(models.AbstractModel):
             by_res_id[line.billable_item_res_id] |= line
 
         for record in self:
-            record.move_line_ids = by_res_id.get(record.id, self.env["account.move.line"])
+            record.move_line_ids = by_res_id.get(
+                record.id, self.env["account.move.line"]
+            )
 
     # -------------------------------------------------------------------------
     # Helper API (safe, no runtime class mutation)
@@ -96,5 +103,11 @@ class AccountBillableItem(models.AbstractModel):
 
     @api.model
     def inherits_from_account_billable_item(self, model_name):
-        inherited_models = self.env["common.metadata"].get_inherited_models(model_name) or []
+        inherited_models = (
+            self.env["common.metadata"].get_inherited_models(model_name) or []
+        )
         return self._name in inherited_models
+
+    @api.model
+    def set_billing_partner_id_name(self, partner_field_name):
+        self.__class__._billing_partner_id_name = partner_field_name

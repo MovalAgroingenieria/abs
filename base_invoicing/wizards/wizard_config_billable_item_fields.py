@@ -29,7 +29,6 @@ class WizardConfigBillableItemFields(models.TransientModel):
     )
 
     category_code = fields.Integer(
-        string="Category Code",
         readonly=True,
     )
     editable = fields.Boolean(

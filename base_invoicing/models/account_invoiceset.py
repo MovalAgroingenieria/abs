@@ -1,5 +1,6 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=unused-argument
 
 import logging
 import threading
@@ -178,12 +179,16 @@ class AccountInvoiceset(models.Model):
             for p in progress_model.search([("invoiceset_id", "in", self.ids)])
         }
         for record in self:
-            record.invoice_generation_progress = float(progress_by_set.get(record.id, 0.0) or 0.0)
+            record.invoice_generation_progress = float(
+                progress_by_set.get(record.id, 0.0) or 0.0
+            )
 
     @api.depends("move_ids", "move_ids.state")
     def _compute_some_posted_invoice(self):
         for record in self:
-            record.some_posted_invoice = any(m.state == "posted" for m in record.move_ids)
+            record.some_posted_invoice = any(
+                m.state == "posted" for m in record.move_ids
+            )
 
     # -------------------------------------------------------------------------
     # CRUD
@@ -191,6 +196,11 @@ class AccountInvoiceset(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("alphanum_code") or vals.get("alphanum_code") == "/":
+                seq = self.env.company.mass_invoicing_seq_invoiceset_code_id
+                if seq:
+                    vals["alphanum_code"] = seq.next_by_id()
         invoicesets = super().create(vals_list)
         self.env["account.invoiceset.progress"].create(
             [{"invoiceset_id": inv.id} for inv in invoicesets]
@@ -202,7 +212,8 @@ class AccountInvoiceset(models.Model):
             if record.state not in ("draft", "configured"):
                 raise UserError(
                     self.env._(
-                        "It is not possible to delete a calculated invoice set, you must cancel it first."
+                        "It is not possible to delete a"
+                        " calculated invoice set, you must cancel it first."
                     )
                 )
         self.env["account.invoiceset.progress"].search(
@@ -245,8 +256,10 @@ class AccountInvoiceset(models.Model):
                 "params": {
                     "title": self.env._("Warning"),
                     "message": self.env._(
-                        "It is not possible to start the calculation of this invoice set, "
-                        "as another invoice set is currently being processed. You must wait "
+                        "It is not possible to start the "
+                        "calculation of this invoice set, "
+                        "as another invoice set is currently "
+                        "being processed. You must wait "
                         "until it finishes or interrupt it."
                     ),
                     "type": "warning",
@@ -258,7 +271,8 @@ class AccountInvoiceset(models.Model):
         if self.state != "configured":
             return None
 
-        # Clean non-selected selectable items for this invoiceset (keep SQL parameterized)
+        # Clean non-selected selectable items for
+        # this invoiceset (keep SQL parameterized)
         self.env.cr.execute(
             """
             DELETE
@@ -342,8 +356,12 @@ class AccountInvoiceset(models.Model):
             self.env.cr.commit()
 
         invoiceset.write({"state": "calculating"})
-        suffix = self.env._("(background)") if background else self.env._("(foreground)")
-        invoiceset.message_post(body=self.env._("Calculation Process: start") + " " + suffix)
+        suffix = (
+            self.env._("(background)") if background else self.env._("(foreground)")
+        )
+        invoiceset.message_post(
+            body=self.env._("Calculation Process: start") + " " + suffix
+        )
 
         try:
             invoice_data = self.get_invoice_data(invoiceset)
@@ -360,7 +378,9 @@ class AccountInvoiceset(models.Model):
                         number_of_invoices += 1
 
                     if background:
-                        row = progress_model.search([("invoiceset_id", "=", invoiceset.id)], limit=1)
+                        row = progress_model.search(
+                            [("invoiceset_id", "=", invoiceset.id)], limit=1
+                        )
                         if row.stop_order:
                             invoiceset.cancel_invoices()
                             cancelled = True
@@ -377,7 +397,9 @@ class AccountInvoiceset(models.Model):
                 if cancelled
                 else (self.env._("No. of invoices:") + f" {number_of_invoices}")
             )
-            invoiceset.message_post(body=self.env._("Calculation Process: end.") + " " + end_suffix)
+            invoiceset.message_post(
+                body=self.env._("Calculation Process: end.") + " " + end_suffix
+            )
 
             if background:
                 # Reset progress bar for next run
@@ -389,7 +411,9 @@ class AccountInvoiceset(models.Model):
 
         except (UserError, ValueError, TemplateError) as err:
             invoiceset.write({"state": "configured"})
-            invoiceset.message_post(body=self.env._("Calculation Process: ERROR...") + " " + str(err))
+            invoiceset.message_post(
+                body=self.env._("Calculation Process: ERROR...") + " " + str(err)
+            )
             if background:
                 self.env.cr.commit()
             raise
@@ -429,17 +453,27 @@ class AccountInvoiceset(models.Model):
             quantity_field = productlink.billable_item_quantity_field
             group_field = productlink.billable_item_group_field
 
-            partner_field = getattr(model_billable_item, "_billing_partner_id_name", "partner_id")
+            partner_field = getattr(
+                model_billable_item, "_billing_partner_id_name", "partner_id"
+            )
 
             for selected_item in productlink.selected_item_ids:
-                billable_item = model_billable_item.browse(selected_item.billable_item_res_id)
+                billable_item = model_billable_item.browse(
+                    selected_item.billable_item_res_id
+                )
                 if not billable_item:
                     continue
 
                 partner = getattr(billable_item, partner_field, False)
                 partner_id = partner.id if partner else False
-                quantity = getattr(billable_item, quantity_field, 0.0) if quantity_field else 1.0
-                groupvalue = str(getattr(billable_item, group_field, "")) if group_field else ""
+                quantity = (
+                    getattr(billable_item, quantity_field, 0.0)
+                    if quantity_field
+                    else 1.0
+                )
+                groupvalue = (
+                    str(getattr(billable_item, group_field, "")) if group_field else ""
+                )
 
                 if not partner_id or quantity <= 0:
                     continue
@@ -469,7 +503,9 @@ class AccountInvoiceset(models.Model):
                         else productlink.billable_item_detail_desc
                     )
                     try:
-                        name = Template(template_src).render(billable_item=billable_item)
+                        name = Template(template_src).render(
+                            billable_item=billable_item
+                        )
                         if name:
                             vals["name"] = name
                     except TemplateError:
@@ -682,20 +718,31 @@ class AccountInvoicesetProductlink(models.Model):
         ("name_unique", "UNIQUE (name)", "Existing Product."),
     ]
 
-    @api.depends("invoiceset_id", "invoiceset_id.alphanum_code", "product_id", "product_id.product_tmpl_id.name")
+    @api.depends(
+        "invoiceset_id",
+        "invoiceset_id.alphanum_code",
+        "product_id",
+        "product_id.product_tmpl_id.name",
+    )
     def _compute_name(self):
         default_lang = self.env.lang or "en_US"
         for record in self:
             name = ""
             if record.invoiceset_id and record.product_id:
-                product_name = record.product_id.product_tmpl_id.with_context(lang=default_lang).name
+                product_name = record.product_id.product_tmpl_id.with_context(
+                    lang=default_lang
+                ).name
                 name = f"{record.invoiceset_id.alphanum_code}-{product_name}"
             record.name = (name or "")[: self.max_size_productlink_code]
 
     @api.depends("product_id")
     def _compute_categ_id(self):
         for record in self:
-            record.categ_id = record.product_id.product_tmpl_id.categ_id if record.product_id else False
+            record.categ_id = (
+                record.product_id.product_tmpl_id.categ_id
+                if record.product_id
+                else False
+            )
 
     @api.depends("product_id")
     def _compute_lst_price(self):
@@ -705,26 +752,50 @@ class AccountInvoicesetProductlink(models.Model):
     @api.depends("product_id")
     def _compute_billable_item_model_id(self):
         for record in self:
-            category = record.product_id.product_tmpl_id.categ_id if record.product_id else False
-            record.billable_item_model_id = category.billable_item_model_id if category else False
+            category = (
+                record.product_id.product_tmpl_id.categ_id
+                if record.product_id
+                else False
+            )
+            record.billable_item_model_id = (
+                category.billable_item_model_id if category else False
+            )
 
     @api.depends("product_id")
     def _compute_billable_item_quantity_field(self):
         for record in self:
-            category = record.product_id.product_tmpl_id.categ_id if record.product_id else False
-            record.billable_item_quantity_field = category.billable_item_quantity_field if category else False
+            category = (
+                record.product_id.product_tmpl_id.categ_id
+                if record.product_id
+                else False
+            )
+            record.billable_item_quantity_field = (
+                category.billable_item_quantity_field if category else False
+            )
 
     @api.depends("product_id")
     def _compute_billable_item_group_field(self):
         for record in self:
-            category = record.product_id.product_tmpl_id.categ_id if record.product_id else False
-            record.billable_item_group_field = category.billable_item_group_field if category else False
+            category = (
+                record.product_id.product_tmpl_id.categ_id
+                if record.product_id
+                else False
+            )
+            record.billable_item_group_field = (
+                category.billable_item_group_field if category else False
+            )
 
     @api.depends("product_id")
     def _compute_billable_item_domain(self):
         for record in self:
-            category = record.product_id.product_tmpl_id.categ_id if record.product_id else False
-            record.billable_item_domain = category.billable_item_domain if category else False
+            category = (
+                record.product_id.product_tmpl_id.categ_id
+                if record.product_id
+                else False
+            )
+            record.billable_item_domain = (
+                category.billable_item_domain if category else False
+            )
 
     @api.depends("selectable_item_ids")
     def _compute_number_of_selectable_items(self):
@@ -781,7 +852,9 @@ class AccountInvoicesetProductlink(models.Model):
             "search_view_id": (search_view.id, search_view.name),
             "target": "current",
             "domain": domain,
-            "context": self._get_context_hide_fields(self.categ_id, self.invoiceset_id.state),
+            "context": self._get_context_hide_fields(
+                self.categ_id, self.invoiceset_id.state
+            ),
         }
 
     @api.model
@@ -790,7 +863,9 @@ class AccountInvoicesetProductlink(models.Model):
         if not category.billable_item_quantity_field:
             context["hide_quantity"] = True
         else:
-            context["billable_item_quantity_label"] = category.billable_item_quantity_label
+            context["billable_item_quantity_label"] = (
+                category.billable_item_quantity_label
+            )
 
         for idx in (1, 2, 3):
             for ttype in ("char", "int", "float", "bool"):
@@ -847,7 +922,9 @@ class AccountInvoicesetProductlink(models.Model):
     def action_delete_selectable_items(self):
         self.ensure_one()
         return self._confirm_action(
-            self.env._("You are about to delete all lines associated with this product."),
+            self.env._(
+                "You are about to delete all lines associated with this product."
+            ),
             "delete_selectable_items",
         )
 
@@ -886,10 +963,16 @@ class AccountInvoicesetProductlink(models.Model):
         model_name = category.billable_item_model_id.sudo().model
         billable_model = self.env[model_name]
 
-        partner_field = getattr(billable_model, "_billing_partner_id_name", "partner_id")
+        partner_field = getattr(
+            billable_model, "_billing_partner_id_name", "partner_id"
+        )
         quantity_field = category.billable_item_quantity_field
 
-        domain = [("active", "=", True)] if self.env["account.billable.item"].exists_active_field(model_name) else []
+        domain = (
+            [("active", "=", True)]
+            if self.env["account.billable.item"].exists_active_field(model_name)
+            else []
+        )
         domain.append((partner_field, "!=", False))
 
         # Apply optional domain stored as python-domain string
@@ -899,7 +982,9 @@ class AccountInvoicesetProductlink(models.Model):
                 if isinstance(extra_domain, list):
                     domain += extra_domain
             except (ValueError, SyntaxError) as err:
-                raise UserError(self.env._("Invalid domain for billable items: %s") % str(err)) from err
+                raise UserError(
+                    self.env._("Invalid domain for billable items: %s") % str(err)
+                ) from err
 
         if productlink.product_id.product_tmpl_id.link_with_billable_items:
             # Keep legacy behavior
@@ -925,7 +1010,11 @@ class AccountInvoicesetProductlink(models.Model):
         create_vals = []
         for row in rows:
             partner_val = row.get(partner_field)
-            partner_id = partner_val[0] if isinstance(partner_val, (list, tuple)) and partner_val else partner_val
+            partner_id = (
+                partner_val[0]
+                if isinstance(partner_val, (list, tuple)) and partner_val
+                else partner_val
+            )
             if not partner_id:
                 continue
 

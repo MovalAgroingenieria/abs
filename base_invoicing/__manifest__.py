@@ -9,8 +9,6 @@
     "website": "https://www.moval.es",
     "author": "Moval Agroingeniería",
     "license": "AGPL-3",
-    "application": False,
-    "installable": True,
     "depends": [
         "account",
         "account_comment_template",

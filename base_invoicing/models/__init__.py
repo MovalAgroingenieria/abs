@@ -7,6 +7,7 @@ from . import (
     account_move,
     account_move_line,
     account_selectable_item,
+    billable_item_test,
     product_category,
     product_template,
     res_company_ext,

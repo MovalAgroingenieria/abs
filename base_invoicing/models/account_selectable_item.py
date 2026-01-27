@@ -2,7 +2,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from jinja2 import Template, TemplateError
-
 from odoo import api, fields, models
 
 
@@ -27,14 +26,14 @@ class AccountSelectableItem(models.Model):
         string="Customer",
         index=True,
     )
-    quantity = fields.Float(digits=(32, 4), string="Quantity")
+    quantity = fields.Float(digits=(32, 4))
 
     state = fields.Selection(
         related="productlink_id.invoiceset_id.state",
         string="State",
         readonly=True,
     )
-    selected = fields.Boolean(string="Selected")
+    selected = fields.Boolean()
     selected_message = fields.Char(
         compute="_compute_selected_message",
         string="Selected (message)",
@@ -67,7 +66,9 @@ class AccountSelectableItem(models.Model):
     def _compute_selected_message(self):
         for record in self:
             record.selected_message = (
-                record.env._("Selected") if record.selected else record.env._("Excluded")
+                record.env._("Selected")
+                if record.selected
+                else record.env._("Excluded")
             )
 
     @api.depends(
@@ -78,11 +79,17 @@ class AccountSelectableItem(models.Model):
     def _compute_rendered_aux_desc(self):
         for record in self:
             template_src = record.productlink_id.categ_id.aux_desc
-            if not template_src or not record.billable_item_model or not record.billable_item_res_id:
+            if (
+                not template_src
+                or not record.billable_item_model
+                or not record.billable_item_res_id
+            ):
                 record.rendered_aux_desc = ""
                 continue
 
-            billable_item = record.env[record.billable_item_model].browse(record.billable_item_res_id)
+            billable_item = record.env[record.billable_item_model].browse(
+                record.billable_item_res_id
+            )
             if not billable_item.exists():
                 record.rendered_aux_desc = ""
                 continue
@@ -90,7 +97,7 @@ class AccountSelectableItem(models.Model):
             try:
                 rendered = Template(template_src).render(billable_item=billable_item)
             except TemplateError as err:
-                rendered = record.env._("Error in template: %s") % str(err)
+                rendered = record.env._("Error in template: %(error)s", error=str(err))
 
             if "|" in template_src:
                 rendered = rendered.replace("|", "\n")

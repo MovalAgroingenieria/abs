@@ -1,4 +1,4 @@
-# 2025 Moval Agroingeniería
+# 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from odoo import api, fields, models
@@ -16,9 +16,15 @@ class ResPartner(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         partners = super().create(vals_list)
-        fee_model = self.env["res.fee"]
+        if self.env.context.get("skip_fee_autocreate"):
+            return partners
 
-        for partner in partners:
-            fee_model.create({"partner_id": partner.id})
-
+        partners._ensure_default_fee()
         return partners
+
+    def _ensure_default_fee(self):
+        """Create a default fee per partner when missing."""
+        fee_model = self.env["res.fee"]
+        for partner in self:
+            if not partner.fee_ids:
+                fee_model.create({"partner_id": partner.id})

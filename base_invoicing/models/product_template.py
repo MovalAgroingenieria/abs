@@ -1,4 +1,4 @@
-# 2025 Moval Agroingeniería
+# 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from odoo import fields, models
@@ -14,12 +14,14 @@ class ProductTemplate(models.Model):
         required=True,
     )
     link_with_billable_items = fields.Boolean(
-        string="Link product with its billable items (y/n)",
+        string="Link product with its billable items",
         default=False,
     )
     supports_mass_billing = fields.Boolean(
-        string="Supports massive billing (y/n)",
+        string="Supports massive billing",
         related="categ_id.supports_mass_billing",
+        store=True,
+        readonly=True,
     )
 
     _sql_constraints = [
