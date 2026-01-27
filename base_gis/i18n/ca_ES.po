@@ -76,7 +76,7 @@ msgstr "Geometria GeoJSON"
 #. module: base_gis
 #: model:ir.model.fields,field_description:base_gis.field_base_gis_polygon_test__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: base_gis
 #: model:ir.model.fields,field_description:base_gis.field_base_gis_polygon_test__write_uid

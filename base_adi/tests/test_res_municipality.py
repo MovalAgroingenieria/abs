@@ -57,7 +57,6 @@ class TestResMunicipality(TransactionCase):
                 {"alphanum_code": "Dup", "province_id": province.id}
             )
 
-
     def test_action_show_places(self):
         _region, province = self._create_region_province()
         municipality = self.Municipality.create(
