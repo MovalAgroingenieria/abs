@@ -1,5 +1,6 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=protected-access
 
 from odoo import api, fields, models
 

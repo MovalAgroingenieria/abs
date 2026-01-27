@@ -1,5 +1,5 @@
 # 2025 Moval Agroingeniería
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# License AGPL-3.0 or later (http://www.gnu/licenses/agpl.html)
 
 from odoo import api, fields, models
 
@@ -17,20 +17,14 @@ class WizardConfigBillableItemFields(models.TransientModel):
         readonly=True,
     )
 
-    billable_item_group_field = fields.Char(
-        string="Field for grouping",
-    )
+    billable_item_group_field = fields.Char(string="Field for grouping")
     billable_item_detail_desc = fields.Char(
         string="Template for invoice lines",
         translate=True,
     )
-    billable_item_domain = fields.Char(
-        string="Pre-filter on billable items",
-    )
+    billable_item_domain = fields.Char(string="Pre-filter on billable items")
 
-    category_code = fields.Integer(
-        readonly=True,
-    )
+    category_code = fields.Integer(readonly=True)
     editable = fields.Boolean(
         string="Editable Wizard (y/n)",
         readonly=True,
@@ -75,11 +69,11 @@ class WizardConfigBillableItemFields(models.TransientModel):
 
         active_id = self.env.context.get("active_id")
         if not active_id:
-            return
+            return {"type": "ir.actions.act_window_close"}
 
         productlink = self.env["account.invoiceset.productlink"].browse(active_id)
         if not productlink.exists():
-            return
+            return {"type": "ir.actions.act_window_close"}
 
         productlink.write(
             {
@@ -88,3 +82,4 @@ class WizardConfigBillableItemFields(models.TransientModel):
                 "billable_item_domain": self.billable_item_domain,
             }
         )
+        return {"type": "ir.actions.act_window_close"}

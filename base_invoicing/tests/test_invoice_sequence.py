@@ -20,13 +20,16 @@ class TestInvoicesetSequence(TransactionCase):
             }
         )
 
-        settings = self.env["res.config.settings"].with_company(company).create(
-            {
-                "mass_invoicing_seq_invoiceset_code_id": seq.id,
-            }
+        settings = (
+            self.env["res.config.settings"]
+            .with_company(company)
+            .create(
+                {
+                    "mass_invoicing_seq_invoiceset_code_id": seq.id,
+                }
+            )
         )
         settings.set_values()
-
 
         invoiceset = (
             self.env["account.invoiceset"]

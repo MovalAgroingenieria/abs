@@ -1,5 +1,6 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=protected-access
 
 from jinja2 import Template, TemplateError
 from odoo import api, fields, models
@@ -132,7 +133,9 @@ class AccountSelectableItem(models.Model):
         productlinks_before = self.mapped("productlink_id").exists()
         res = super().write(vals)
         productlinks_after = self.mapped("productlink_id").exists()
-        self._update_productlink_populated_for_links(productlinks_before | productlinks_after)
+        self._update_productlink_populated_for_links(
+            productlinks_before | productlinks_after
+        )
         return res
 
     def unlink(self):
@@ -142,7 +145,9 @@ class AccountSelectableItem(models.Model):
         return res
 
     def _update_productlink_populated(self):
-        self._update_productlink_populated_for_links(self.mapped("productlink_id").exists())
+        self._update_productlink_populated_for_links(
+            self.mapped("productlink_id").exists()
+        )
 
     def _update_productlink_populated_for_links(self, productlinks):
         productlinks = productlinks.exists()
