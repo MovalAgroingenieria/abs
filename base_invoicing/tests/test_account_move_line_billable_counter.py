@@ -1,5 +1,6 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
+# pylint: disable=protected-access
 
 from odoo.tests.common import TransactionCase, tagged
 
@@ -7,7 +8,7 @@ from odoo.tests.common import TransactionCase, tagged
 @tagged("-at_install", "post_install")
 class TestAccountMoveLineBillableCounter(TransactionCase):
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):  # pylint: disable=invalid-name
         super().setUpClass()
         cls.Move = cls.env["account.move"]
         cls.MoveLine = cls.env["account.move.line"]
@@ -86,11 +87,11 @@ class TestAccountMoveLineBillableCounter(TransactionCase):
 
         move = self._create_balanced_move_with_billable_line(item)
         line = move.line_ids.filtered(
-            lambda l: l.billable_item_model == item._name
+            lambda my_line: my_line.billable_item_model == item._name
             and (
-                l.billable_item_res_id.id
-                if hasattr(l.billable_item_res_id, "id")
-                else l.billable_item_res_id
+                my_line.billable_item_res_id.id
+                if hasattr(my_line.billable_item_res_id, "id")
+                else my_line.billable_item_res_id
             )
             == item.id
         )
@@ -114,11 +115,11 @@ class TestAccountMoveLineBillableCounter(TransactionCase):
 
         move = self._create_balanced_move_with_billable_line(item, amount=10.0)
         line = move.line_ids.filtered(
-            lambda l: l.billable_item_model == item._name
+            lambda my_line: my_line.billable_item_model == item._name
             and (
-                l.billable_item_res_id.id
-                if hasattr(l.billable_item_res_id, "id")
-                else l.billable_item_res_id
+                my_line.billable_item_res_id.id
+                if hasattr(my_line.billable_item_res_id, "id")
+                else my_line.billable_item_res_id
             )
             == item.id
         )

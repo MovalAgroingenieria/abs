@@ -4,13 +4,13 @@
     <record id="product_template_view_tree" model="ir.ui.view">
         <field name="name">product.template.view.list.inherit.base_invoicing</field>
         <field name="model">product.template</field>
-        <field name="inherit_id" ref="account.product_template_view_tree"/>
+        <field name="inherit_id" ref="account.product_template_view_tree" />
         <field name="arch" type="xml">
             <xpath expr="//list" position="attributes">
                 <attribute name="class">o_base_invoicing_product_template</attribute>
             </xpath>
             <xpath expr="//field[@name='supplier_taxes_id']" position="after">
-                <field name="supports_mass_billing" string="Supports Lots" class="text-center"/>
+                <field name="supports_mass_billing" string="Supports Lots" class="text-center" />
             </xpath>
         </field>
     </record>
@@ -18,18 +18,25 @@
     <record id="product_template_form_view" model="ir.ui.view">
         <field name="name">product.template.form.view.inherit.base_invoicing</field>
         <field name="model">product.template</field>
-        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="inherit_id" ref="product.product_template_form_view" />
         <field name="arch" type="xml">
             <xpath expr="//page[@name='inventory']" position="after">
-                <field name="sale_ok" invisible="1"/>
-                <field name="supports_mass_billing" invisible="1"/>
-                <page name="invoicesets" string="Invoice Sets"
-                      invisible="not sale_ok or not supports_mass_billing">
+                <field name="sale_ok" invisible="1" />
+                <field name="supports_mass_billing" invisible="1" />
+
+                <page
+                    name="invoicesets"
+                    string="Invoice Sets"
+                    modifiers="{'invisible': ['|', ['sale_ok', '=', false], ['supports_mass_billing', '=', false]]}"
+                >
                     <group name="invoicesets_left">
-                        <field name="factor_quantity" string="Factor for quantities"/>
-                        <field name="link_with_billable_items" string="Link product with its billable items"/>
+                        <field name="factor_quantity" string="Factor for quantities" />
+                        <field
+                            name="link_with_billable_items"
+                            string="Link product with its billable items"
+                        />
                     </group>
-                    <group name="invoicesets_right"/>
+                    <group name="invoicesets_right" />
                 </page>
             </xpath>
         </field>
@@ -38,16 +45,20 @@
     <record id="product_template_search_view" model="ir.ui.view">
         <field name="name">product.template.search.view.inherit.base_invoicing</field>
         <field name="model">product.template</field>
-        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="inherit_id" ref="product.product_template_search_view" />
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='inactive']" position="before">
-                <filter name="supports_mass_billing_yes"
-                        string="Supports lots: Yes"
-                        domain="[('categ_id.supports_mass_billing', '=', True)]"/>
-                <filter name="supports_mass_billing_no"
-                        string="Supports lots: No"
-                        domain="[('categ_id.supports_mass_billing', '=', False)]"/>
-                <separator/>
+                <filter
+                    name="supports_mass_billing_yes"
+                    string="Supports lots: Yes"
+                    domain="[('categ_id.supports_mass_billing', '=', True)]"
+                />
+                <filter
+                    name="supports_mass_billing_no"
+                    string="Supports lots: No"
+                    domain="[('categ_id.supports_mass_billing', '=', False)]"
+                />
+                <separator />
             </xpath>
         </field>
     </record>

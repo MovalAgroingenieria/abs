@@ -5,21 +5,24 @@
         <field name="name">wizard.select.field.form</field>
         <field name="model">wizard.select.field</field>
         <field name="arch" type="xml">
-            <form string="Field selection">
+            <form>
                 <group>
-                    <field name="selected_field_id"
-                           string="Field"
-                           options="{'no_quick_create': true, 'no_create_edit': true}"
-                           required="1"/>
+                    <field
+                        name="selected_field_id"
+                        options="{'no_quick_create': true, 'no_create_edit': true}"
+                        required="1"
+                    />
                 </group>
                 <footer>
-                    <button name="set_selected_field"
-                            type="object"
-                            string="Apply"
-                            class="btn-primary"/>
-                    <button string="Cancel"
-                            special="cancel"
-                            class="btn-secondary"/>
+                    <button
+                        name="set_selected_field"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button
+                        special="cancel"
+                        class="btn-secondary"
+                    />
                 </footer>
             </form>
         </field>

@@ -1,5 +1,6 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu/licenses/agpl.html)
+# pylint: disable=duplicate-code
 
 from odoo.tests.common import TransactionCase, tagged
 
@@ -77,7 +78,11 @@ class TestWizardConfigBillableItemFields(TransactionCase):
         wizard.set_config_fields()
 
         self.productlink.invalidate_recordset(
-            ["billable_item_group_field", "billable_item_detail_desc", "billable_item_domain"]
+            [
+                "billable_item_group_field",
+                "billable_item_detail_desc",
+                "billable_item_domain",
+            ]
         )
         self.assertEqual(self.productlink.billable_item_group_field, "id")
 

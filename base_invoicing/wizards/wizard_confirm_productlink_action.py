@@ -29,7 +29,9 @@ class WizardConfirmProductlinkAction(models.TransientModel):
         if not active_id or not self.operation:
             return False
 
-        productlink = self.env["account.invoiceset.productlink"].browse(active_id).exists()
+        productlink = (
+            self.env["account.invoiceset.productlink"].browse(active_id).exists()
+        )
         if not productlink:
             return False
 

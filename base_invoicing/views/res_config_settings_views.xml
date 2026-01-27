@@ -4,24 +4,26 @@
     <record id="res_config_settings_view_form_inherit_base_invoicing" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.inherit.base_invoicing</field>
         <field name="model">res.config.settings</field>
-        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="inherit_id" ref="account.res_config_settings_view_form" />
         <field name="arch" type="xml">
             <xpath expr="//block[@id='invoicing_settings']" position="after">
-                <block title="Customer Invoices (Invoice Sets)" name="massive_invoicing_settings">
-                    <setting id="mass_invoicing_seq_invoiceset_code"
-                             string="Sequence for invoice set codes"
-                             company_dependent="1"
-                             help="Sequence used to assign a default code for each new invoice set.">
+                <block name="massive_invoicing_settings">
+                    <setting
+                        id="mass_invoicing_seq_invoiceset_code"
+                        company_dependent="1"
+                        help="Sequence used to assign a default code for each new invoice set."
+                    >
                         <div class="content-group">
-                            <field name="mass_invoicing_seq_invoiceset_code_id"/>
+                            <field name="mass_invoicing_seq_invoiceset_code_id" />
                         </div>
                     </setting>
 
-                    <setting id="mass_invoicing_run_background"
-                             string="Run invoice set generation in background"
-                             company_dependent="1"
-                             help="Run the generation of the invoice set in the background, allowing interruption.">
-                        <field name="mass_invoicing_run_background"/>
+                    <setting
+                        id="mass_invoicing_run_background"
+                        company_dependent="1"
+                        help="Run the generation of the invoice set in the background, allowing interruption."
+                    >
+                        <field name="mass_invoicing_run_background" />
                     </setting>
                 </block>
             </xpath>

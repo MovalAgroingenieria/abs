@@ -17,14 +17,20 @@ class FieldOption(models.TransientModel):
     name = fields.Char(required=True)
     field_description = fields.Char(required=True)
 
-    def name_get(self):
-        return [(record.id, record.field_description) for record in self]
+    def _compute_display_name(self):
+        for record in self:
+            record.display_name = record.field_description or record.name
 
 
 class WizardSelectField(models.TransientModel):
     _name = "wizard.select.field"
     _description = "Select a billable item field"
 
+    option_ids = fields.One2many(
+        comodel_name="field.option",
+        inverse_name="wizard_id",
+        readonly=True,
+    )
     selected_field_id = fields.Many2one(
         comodel_name="field.option",
         string="Selected Field",
@@ -32,54 +38,40 @@ class WizardSelectField(models.TransientModel):
     )
 
     @api.model
-    def default_get(self, fields_list):
-        res = super().default_get(fields_list)
+    def default_get(self, field_names):
+        res = super().default_get(field_names)
 
         active_id = self.env.context.get("active_id")
         if not active_id:
             return res
 
-        category = self.env["product.category"].browse(active_id)
-        if not category.exists() or not category.billable_item_model_id:
+        category = self.env["product.category"].browse(active_id).exists()
+        if not category or not category.billable_item_model_id:
             return res
 
-        field_types = self.env.context.get("types", "")
+        field_types = self.env.context.get("types") or ""
         model_name = category.billable_item_model_id.model
 
-        fields_metadata = self.env["common.metadata"].get_fields(
-            model_name, field_types
+        fields_metadata = (
+            self.env["common.metadata"].get_fields(model_name, field_types) or []
         )
-
-        wizard = self.create({})
-
-        options = []
-        for field in fields_metadata or []:
-            options.append(
-                (
-                    0,
-                    0,
-                    {
-                        "wizard_id": wizard.id,
-                        "name": field["name"],
-                        "field_description": (
-                            f'{field["name"]} ({field["field_description"]})'
-                        ),
-                    },
-                )
+        option_commands = [
+            (
+                0,
+                0,
+                {
+                    "name": field_info["name"],
+                    "field_description": "%s (%s)"
+                    % (field_info["name"], field_info["field_description"]),
+                },
             )
+            for field_info in fields_metadata
+            if field_info.get("name") and field_info.get("field_description")
+        ]
 
-        if options:
-            wizard.write({"selected_field_id": False})
-            wizard.env["field.option"].create(
-                [
-                    {
-                        "wizard_id": wizard.id,
-                        "name": field["name"],
-                        "field_description": f'{field["name"]} ({field["field_description"]})',
-                    }
-                    for field in fields_metadata
-                ]
-            )
+        if option_commands:
+            res["option_ids"] = option_commands
+            res["selected_field_id"] = False
 
         return res
 
@@ -89,14 +81,11 @@ class WizardSelectField(models.TransientModel):
         active_id = self.env.context.get("active_id")
         destination_field = self.env.context.get("field")
         if not active_id or not destination_field or not self.selected_field_id:
-            return
+            return False
 
-        category = self.env["product.category"].browse(active_id)
-        if not category.exists():
-            return
+        category = self.env["product.category"].browse(active_id).exists()
+        if not category:
+            return False
 
-        category.write(
-            {
-                destination_field: self.selected_field_id.name,
-            }
-        )
+        category.write({destination_field: self.selected_field_id.name})
+        return True

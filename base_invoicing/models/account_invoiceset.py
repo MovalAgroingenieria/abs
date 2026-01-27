@@ -1,6 +1,14 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 # pylint: disable=unused-argument
+# pylint: disable=protected-access
+# pylint: disable=duplicate-code
+# pylint: disable=no-raise-unlink
+# pylint: disable=translation-not-lazy
+# pylint: disable=translation-positional-used
+# pylint: disable=too-many-lines
+# pylint: disable=too-many-locals
+# pylint: disable=except-pass
 
 import logging
 import threading
@@ -38,7 +46,7 @@ class AccountInvoiceset(models.Model):
     )
     invoice_date = fields.Date(
         string="Invoicing Date",
-        default=lambda self: fields.Date.context_today(self),
+        default=fields.Date.context_today,
         required=True,
         index=True,
     )
@@ -59,7 +67,6 @@ class AccountInvoiceset(models.Model):
     )
 
     state = fields.Selection(
-        string="State",
         selection=[
             ("draft", "Draft"),
             ("configured", "Configured"),
@@ -107,7 +114,6 @@ class AccountInvoiceset(models.Model):
         compute="_compute_invoice_generation_progress",
     )
     calculated = fields.Boolean(
-        string="Calculated",
         default=False,
         required=True,
         readonly=True,
@@ -411,8 +417,7 @@ class AccountInvoiceset(models.Model):
             invoiceset.message_post(
                 body=self.env._("Calculation Process: ERROR...") + " " + str(err)
             )
-            if background:
-                self.env.cr.commit()
+
             raise
 
         return None
@@ -655,7 +660,6 @@ class AccountInvoicesetProductlink(models.Model):
         compute="_compute_lst_price",
     )
     populated = fields.Boolean(
-        string="Populated",
         default=False,
         readonly=True,
     )

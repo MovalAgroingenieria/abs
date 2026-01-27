@@ -5,13 +5,11 @@
         <field name="name">wizard.confirm.productlink.action.form</field>
         <field name="model">wizard.confirm.productlink.action</field>
         <field name="arch" type="xml">
-            <form string="Confirmation">
+            <form>
                 <group>
-                    <field name="confirm_message"
-                           nolabel="1"
-                           readonly="1"/>
+                    <field name="confirm_message" nolabel="1" readonly="1" />
 
-                    <separator/>
+                    <separator />
 
                     <div class="o_form_label">
                         Proceed with the operation?
@@ -19,13 +17,8 @@
                 </group>
 
                 <footer>
-                    <button name="execute_operation"
-                            type="object"
-                            string="Apply"
-                            class="btn-primary"/>
-                    <button string="Cancel"
-                            special="cancel"
-                            class="btn-secondary"/>
+                    <button name="execute_operation" type="object" class="btn-primary" />
+                    <button special="cancel" class="btn-secondary" />
                 </footer>
             </form>
         </field>

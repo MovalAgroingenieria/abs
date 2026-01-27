@@ -5,54 +5,55 @@
         <field name="name">wizard.config.billable.item.fields.form</field>
         <field name="model">wizard.config.billable.item.fields</field>
         <field name="arch" type="xml">
-            <form string="Billing settings">
+            <form>
                 <group>
-                    <field name="category_code" invisible="1"/>
-                    <field name="editable" invisible="1"/>
+                    <field name="category_code" invisible="1" />
+                    <field name="editable" invisible="1" />
 
                     <group>
-                        <field name="info_billable_item_model_id"
-                               string="Billable items model"
-                               readonly="1"/>
-                        <field name="info_billable_item_quantity_field"
-                               string="Quantity field"
-                               readonly="1"
-                               modifiers="{'invisible': [['category_code', '=', 1]]}"/>
+                        <field name="info_billable_item_model_id" readonly="1" />
+                        <field
+                            name="info_billable_item_quantity_field"
+                            readonly="1"
+                            modifiers="{'invisible': [['category_code', '=', 1]]}"
+                        />
                     </group>
 
                     <group>
-                        <field name="billable_item_detail_desc"
-                               string="Template (lines)"
-                               widget="text"
-                               rows="4"
-                               readonly="1"/>
+                        <field
+                            name="billable_item_detail_desc"
+                            widget="text"
+                            rows="4"
+                            readonly="1"
+                        />
                     </group>
 
                     <group modifiers="{'invisible': [['editable', '=', false]]}">
-                        <separator string="Editable configuration"/>
-                        <field name="billable_item_group_field"
-                               string="Field for grouping"
-                               modifiers="{
-                                   'invisible': [['category_code', '=', 1]],
-                                   'readonly': [['editable', '=', false]]
-                               }"/>
-                        <field name="billable_item_domain"
-                               string="Pre-filter"
-                               widget="text"
-                               rows="3"
-                               modifiers="{'readonly': [['editable', '=', false]]}"/>
+                        <separator />
+                        <field
+                            name="billable_item_group_field"
+                            modifiers="{
+                                'invisible': [['category_code', '=', 1]],
+                                'readonly': [['editable', '=', false]]
+                            }"
+                        />
+                        <field
+                            name="billable_item_domain"
+                            widget="text"
+                            rows="3"
+                            modifiers="{'readonly': [['editable', '=', false]]}"
+                        />
                     </group>
                 </group>
 
                 <footer>
-                    <button name="set_config_fields"
-                            type="object"
-                            string="Apply"
-                            class="btn-primary"
-                            modifiers="{'invisible': [['editable', '=', false]]}"/>
-                    <button string="Cancel"
-                            special="cancel"
-                            class="btn-secondary"/>
+                    <button
+                        name="set_config_fields"
+                        type="object"
+                        class="btn-primary"
+                        modifiers="{'invisible': [['editable', '=', false]]}"
+                    />
+                    <button special="cancel" class="btn-secondary" />
                 </footer>
             </form>
         </field>

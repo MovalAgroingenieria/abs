@@ -13,5 +13,5 @@ from . import (
     test_product_template,
     test_res_partner_fee_autocreate,
     test_wizard_config_billable_item_fields,
-    test_wizard_confirm_productlink_action
+    test_wizard_confirm_productlink_action,
 )

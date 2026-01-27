@@ -1,6 +1,6 @@
 # Copyright 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
-
+# pylint: disable=duplicate-code
 {
     "name": "Massive Invoicing",
     "summary": "Massive invoicing based on invoice sets",
