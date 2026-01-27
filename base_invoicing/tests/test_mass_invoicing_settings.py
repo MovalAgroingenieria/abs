@@ -1,8 +1,8 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo.tests.common import new_test_user, TransactionCase, HttpCase
 from odoo import fields
+from odoo.tests.common import HttpCase, TransactionCase, new_test_user
 
 
 class TestMassInvoicingSettings(TransactionCase):
@@ -21,13 +21,17 @@ class TestMassInvoicingSettings(TransactionCase):
         return invoiceset
 
     def test_mass_invoicing_background_param(self):
-        settings = self.env["res.config.settings"].create({
-            "mass_invoicing_run_background": True,
-        })
+        settings = self.env["res.config.settings"].create(
+            {
+                "mass_invoicing_run_background": True,
+            }
+        )
         settings.execute()
 
-        value = self.env["ir.config_parameter"].sudo().get_param(
-            "base_invoicing.mass_invoicing_run_background"
+        value = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("base_invoicing.mass_invoicing_run_background")
         )
         self.assertEqual(value, "True")
 
@@ -49,11 +53,13 @@ class TestMassInvoicingSettings(TransactionCase):
         self.assertEqual(invoiceset.state, "calculated")
 
     def test_sequence_is_company_specific(self):
-        seq = self.env["ir.sequence"].create({
-            "name": "Invoice Set Seq",
-            "code": "test.seq",
-            "company_id": self.env.company.id,
-        })
+        seq = self.env["ir.sequence"].create(
+            {
+                "name": "Invoice Set Seq",
+                "code": "test.seq",
+                "company_id": self.env.company.id,
+            }
+        )
         self.env.company.mass_invoicing_seq_invoiceset_code_id = seq
 
         invoiceset = self._create_invoiceset()

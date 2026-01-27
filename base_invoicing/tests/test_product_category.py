@@ -1,13 +1,15 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo.tests.common import TransactionCase
 from odoo import fields
+from odoo.tests.common import TransactionCase
 
 
 class TestProductCategory(TransactionCase):
     def test_update_vals_resets_fields_when_model_is_unset(self):
-        categ = self.env["product.category"].create({"name": "Test", "category_code": 0})
+        categ = self.env["product.category"].create(
+            {"name": "Test", "category_code": 0}
+        )
         categ.write(
             {
                 "billable_item_model_id": False,
@@ -24,6 +26,8 @@ class TestProductCategory(TransactionCase):
         self.assertFalse(categ.aux_01_char_field)
 
     def test_copy_resets_category_code(self):
-        categ = self.env["product.category"].create({"name": "Test", "category_code": 5})
+        categ = self.env["product.category"].create(
+            {"name": "Test", "category_code": 5}
+        )
         copied = categ.copy()
         self.assertEqual(copied.category_code, 0)

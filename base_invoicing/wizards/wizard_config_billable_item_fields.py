@@ -66,8 +66,7 @@ class WizardConfigBillableItemFields(models.TransientModel):
                 "billable_item_detail_desc": productlink.billable_item_detail_desc,
                 "billable_item_domain": productlink.billable_item_domain,
                 "category_code": productlink.categ_id.category_code,
-                "editable": productlink.invoiceset_id.state
-                            in ("draft", "configured"),
+                "editable": productlink.invoiceset_id.state in ("draft", "configured"),
             }
         )
         return res

@@ -225,9 +225,7 @@ class ProductCategory(models.Model):
         for record in self:
             if record.category_code <= 0:
                 continue
-            if self.search_count(
-                    [("category_code", "=", record.category_code)]
-            ) > 1:
+            if self.search_count([("category_code", "=", record.category_code)]) > 1:
                 raise ValidationError(_("Repeated category code."))
 
     @api.model_create_multi
@@ -297,9 +295,11 @@ class ProductCategory(models.Model):
             return [
                 (
                     record.id,
-                    f"{record.name} ({_('cat. #')}{record.category_code})"
-                    if record.category_code
-                    else record.name,
+                    (
+                        f"{record.name} ({_('cat. #')}{record.category_code})"
+                        if record.category_code
+                        else record.name
+                    ),
                 )
                 for record in self
             ]
@@ -339,7 +339,7 @@ class ProductCategory(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": _("Model: %s (%s)")
-                    % (self.billable_item_model_id.model, self.billable_item_model_id.name),
+            % (self.billable_item_model_id.model, self.billable_item_model_id.name),
             "res_model": "wizard.select.field",
             "view_mode": "form",
             "target": "new",

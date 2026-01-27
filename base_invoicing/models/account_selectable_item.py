@@ -2,7 +2,6 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from jinja2 import Template, TemplateError
-
 from odoo import _, api, fields, models
 
 
@@ -55,17 +54,29 @@ class AccountSelectableItem(models.Model):
     @api.depends("selected")
     def _compute_selected_message(self):
         for record in self:
-            record.selected_message = _("Selected") if record.selected else _("Excluded")
+            record.selected_message = (
+                _("Selected") if record.selected else _("Excluded")
+            )
 
-    @api.depends("billable_item_model", "billable_item_res_id", "productlink_id.categ_id.aux_desc")
+    @api.depends(
+        "billable_item_model",
+        "billable_item_res_id",
+        "productlink_id.categ_id.aux_desc",
+    )
     def _compute_rendered_aux_desc(self):
         for record in self:
             template_src = record.productlink_id.categ_id.aux_desc
-            if not template_src or not record.billable_item_model or not record.billable_item_res_id:
+            if (
+                not template_src
+                or not record.billable_item_model
+                or not record.billable_item_res_id
+            ):
                 record.rendered_aux_desc = ""
                 continue
 
-            billable_item = self.env[record.billable_item_model].browse(record.billable_item_res_id)
+            billable_item = self.env[record.billable_item_model].browse(
+                record.billable_item_res_id
+            )
             if not billable_item.exists():
                 record.rendered_aux_desc = ""
                 continue

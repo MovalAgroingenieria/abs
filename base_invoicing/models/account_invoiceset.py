@@ -1,11 +1,12 @@
-# 2025 Moval Agroingeniería
+# 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-import threading
 import time
 from collections import defaultdict
 
 from jinja2 import Template, TemplateError
+from psycopg2 import Error as PsycopgError
+from psycopg2 import sql
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
@@ -16,6 +17,7 @@ class AccountInvoiceset(models.Model):
     _description = "Invoice Set"
     _inherit = ["simple.model", "mail.thread", "comment.template"]
     _order = "alphanum_code desc"
+    _rec_name = "alphanum_code"
 
     _set_num_code = False
     _sequence_for_codes = "base_invoicing.mass_invoicing_seq_invoiceset_code_id"
@@ -40,13 +42,9 @@ class AccountInvoiceset(models.Model):
         index=True,
     )
     invoice_date_due = fields.Date(string="Due Date")
-    journal_id = fields.Many2one(
-        string="Journal",
-        comodel_name="account.journal",
-    )
+    journal_id = fields.Many2one(string="Journal", comodel_name="account.journal")
     payment_term_id = fields.Many2one(
-        string="Payment Term",
-        comodel_name="account.payment.term",
+        string="Payment Term", comodel_name="account.payment.term"
     )
     invoice_user_id = fields.Many2one(
         string="Sales Person",
@@ -93,24 +91,24 @@ class AccountInvoiceset(models.Model):
     )
 
     all_productlinks_configured = fields.Boolean(
-        string="All product-links are configured (y/n)",
+        string="All product-links are configured",
         default=False,
         store=True,
         compute="_compute_all_productlinks_configured",
     )
     invoice_generation_progress = fields.Float(
-        string="Percentage of progress during invoice generation",
+        string="Invoice generation progress (%)",
         default=0.0,
         compute="_compute_invoice_generation_progress",
     )
     calculated = fields.Boolean(
-        string="Calculated (y/n)",
+        string="Calculated",
         default=False,
         required=True,
         readonly=True,
     )
     some_posted_invoice = fields.Boolean(
-        string="Some posted invoice (y/n)",
+        string="Some posted invoice",
         default=False,
         store=True,
         compute="_compute_some_posted_invoice",
@@ -120,6 +118,18 @@ class AccountInvoiceset(models.Model):
         comodel_name="res.partner",
         default=lambda self: self.env.company.partner_id,
     )
+
+    # ---------------------------- display name ----------------------------
+
+    def _compute_display_name(self):
+        """Compute display_name without using deprecated name_get()."""
+        for record in self:
+            name = record.alphanum_code or ""
+            if record.description:
+                name = f"{name} ({record.description})"
+            record.display_name = name
+
+    # ------------------------------- computes -----------------------------
 
     @api.depends("all_productlinks_configured", "some_posted_invoice")
     def _compute_state(self):
@@ -158,14 +168,7 @@ class AccountInvoiceset(models.Model):
         for record in self:
             record.some_posted_invoice = any(move.state == "posted" for move in record.move_ids)
 
-    def name_get(self):
-        res = []
-        for record in self:
-            name = record.alphanum_code
-            if record.description:
-                name = f"{name} ({record.description})"
-            res.append((record.id, name))
-        return res
+    # ------------------------------ lifecycle -----------------------------
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -177,9 +180,9 @@ class AccountInvoiceset(models.Model):
 
     def unlink(self):
         for record in self:
-            if record.state not in ["draft", "configured"]:
+            if record.state not in ("draft", "configured"):
                 raise UserError(
-                    _(
+                    self.env._(
                         "It is not possible to delete a calculated invoice set, "
                         "you must cancel it first."
                     )
@@ -189,6 +192,8 @@ class AccountInvoiceset(models.Model):
         ).unlink()
         return super().unlink()
 
+    # ------------------------------- actions ------------------------------
+
     def action_show_invoices(self):
         self.ensure_one()
         tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
@@ -196,7 +201,7 @@ class AccountInvoiceset(models.Model):
         search_view = self.env.ref("base_invoicing.view_account_invoice_filter")
         return {
             "type": "ir.actions.act_window",
-            "name": _("Invoices"),
+            "name": self.env._("Invoices"),
             "res_model": "account.move",
             "view_mode": "list,form",
             "views": [(tree_view.id, "list"), (form_view.id, "form")],
@@ -206,15 +211,18 @@ class AccountInvoiceset(models.Model):
             "context": {"default_move_type": "out_invoice"},
         }
 
+    # --------------------------- calculation flow -------------------------
+
     def calculate_invoiceset(self):
         self.ensure_one()
+
         if self.search_count([("state", "=", "calculating")]):
             return {
                 "type": "ir.actions.client",
                 "tag": "display_notification",
                 "params": {
-                    "title": _("Warning"),
-                    "message": _(
+                    "title": self.env._("Warning"),
+                    "message": self.env._(
                         "It is not possible to start the calculation of this invoice set, "
                         "as another invoice set is currently being processed. You must wait "
                         "until it finishes or interrupt it."
@@ -231,11 +239,13 @@ class AccountInvoiceset(models.Model):
         self.env.cr.execute(
             """
             DELETE
-            FROM account_selectable_item
-            WHERE NOT selected
-              AND productlink_id IN (SELECT id
-                                     FROM account_invoiceset_productlink
-                                     WHERE invoiceset_id = %s)
+              FROM account_selectable_item
+             WHERE NOT selected
+               AND productlink_id IN (
+                   SELECT id
+                     FROM account_invoiceset_productlink
+                    WHERE invoiceset_id = %s
+               )
             """,
             (self.id,),
         )
@@ -262,28 +272,47 @@ class AccountInvoiceset(models.Model):
             return None
 
         if background:
-            new_cr = self.pool.cursor()
-            env = api.Environment(new_cr, self.env.uid, dict(self.env.context))
-            self_bg = self.with_env(env)
-            thread = threading.Thread(
-                target=self_bg._invoice_generation_thread,
-                args=(invoiceset.id,),
-                daemon=True,
-            )
-            thread.start()
+            # Background execution must use a dedicated cursor + Environment.
+            self._run_invoice_generation_in_thread(invoiceset.id)
             return None
 
         return self.invoice_generation(invoiceset_id, from_cron=from_cron)
 
     @api.model
-    def _invoice_generation_thread(self, invoiceset_id):
-        try:
-            self.invoice_generation(invoiceset_id, background=True)
-        finally:
-            try:
-                self.env.cr.close()
-            except Exception:
-                pass
+    def _run_invoice_generation_in_thread(self, invoiceset_id):
+        """Run invoice generation in background using a safe env/cursor."""
+        import threading  # pylint: disable=import-outside-toplevel
+
+        def _target(dbname, uid, ctx, invset_id):
+            registry = self.env.registry
+            with api.Environment.manage():
+                cr = registry.cursor()
+                try:
+                    env = api.Environment(cr, uid, ctx)
+                    env["account.invoiceset"].invoice_generation(invset_id, background=True)
+                    cr.commit()
+                except (UserError, PsycopgError) as err:
+                    cr.rollback()
+                    # Best-effort logging in chatter if possible
+                    try:
+                        env = api.Environment(cr, uid, ctx)
+                        invset = env["account.invoiceset"].browse(invset_id)
+                        if invset.exists():
+                            invset.message_post(body=env._("Calculation Process: ERROR... %s") % str(err))
+                            invset.write({"state": "configured"})
+                            cr.commit()
+                    except PsycopgError:
+                        cr.rollback()
+                finally:
+                    cr.close()
+
+        ctx = dict(self.env.context)
+        th = threading.Thread(
+            target=_target,
+            args=(self.env.cr.dbname, self.env.uid, ctx, invoiceset_id),
+            daemon=True,
+        )
+        th.start()
 
     @api.model
     def invoice_generation(self, invoiceset_id, background=False, from_cron=False):
@@ -293,27 +322,21 @@ class AccountInvoiceset(models.Model):
 
         tmp_cr = None
         number_of_invoices = 0
-        try:
-            self.env.cr.execute(
-                "UPDATE account_invoiceset SET state = 'calculating' WHERE id = %s",
-                (invoiceset.id,),
-            )
 
-            suffix = _("(background)") if background else _("(foreground)")
+        try:
+            invoiceset.write({"state": "calculating"})
+
+            suffix = self.env._("(background)") if background else self.env._("(foreground)")
+
             if background:
-                tmp_cr = self.pool.cursor()
-                tmp_cr.execute(
-                    """
-                    UPDATE account_invoiceset_progress
-                    SET invoice_generation_progress = %s,
-                        stop_order                  = FALSE
-                    WHERE invoiceset_id = %s
-                    """,
-                    (0, invoiceset_id),
-                )
+                tmp_cr = self.env.registry.cursor()
+                tmp_env = api.Environment(tmp_cr, self.env.uid, dict(self.env.context))
+                tmp_env["account.invoiceset.progress"].sudo().search(
+                    [("invoiceset_id", "=", invoiceset_id)], limit=1
+                ).write({"invoice_generation_progress": 0.0, "stop_order": False})
                 tmp_cr.commit()
 
-            invoiceset.message_post(body=_("Calculation Process: start") + " " + suffix)
+            invoiceset.message_post(body=self.env._("Calculation Process: start") + " " + suffix)
 
             cancelled = False
             invoice_data = self.get_invoice_data(invoiceset)
@@ -322,91 +345,62 @@ class AccountInvoiceset(models.Model):
             else:
                 progress = 0.0
                 step = 100.0 / len(invoice_data)
+
                 for inv_data in invoice_data:
                     invoice = self.create_invoice(invoiceset, inv_data)
                     if invoice:
                         number_of_invoices += 1
 
                     if background and tmp_cr:
-                        tmp_cr.execute(
-                            """
-                            SELECT stop_order
-                            FROM account_invoiceset_progress
-                            WHERE invoiceset_id = %s
-                            """,
-                            (invoiceset_id,),
+                        tmp_env = api.Environment(tmp_cr, self.env.uid, dict(self.env.context))
+                        prog = tmp_env["account.invoiceset.progress"].sudo().search(
+                            [("invoiceset_id", "=", invoiceset_id)], limit=1
                         )
-                        row = tmp_cr.dictfetchone() or {}
                         tmp_cr.commit()
-                        if row.get("stop_order"):
+
+                        if prog.stop_order:
                             invoiceset.cancel_invoices()
                             cancelled = True
                             number_of_invoices = 0
                             break
 
                         progress += step
-                        tmp_cr.execute(
-                            """
-                            UPDATE account_invoiceset_progress
-                            SET invoice_generation_progress = %s
-                            WHERE invoiceset_id = %s
-                            """,
-                            (progress, invoiceset_id),
-                        )
+                        prog.write({"invoice_generation_progress": progress})
                         tmp_cr.commit()
 
-            time.sleep(2)
+            time.sleep(1)
             invoiceset.write({"state": "configured" if cancelled else "calculated"})
 
-            end_suffix = _("Cancelled") if cancelled else (_("No. of invoices:") + f" {number_of_invoices}")
-            invoiceset.message_post(body=_("Calculation Process: end.") + " " + end_suffix)
+            end_suffix = (
+                self.env._("Cancelled")
+                if cancelled
+                else (self.env._("No. of invoices:") + f" {number_of_invoices}")
+            )
+            invoiceset.message_post(body=self.env._("Calculation Process: end.") + " " + end_suffix)
 
-            if background:
-                self.env.cr.commit()
-                if tmp_cr:
-                    tmp_cr.execute(
-                        """
-                        UPDATE account_invoiceset_progress
-                        SET invoice_generation_progress = %s,
-                            stop_order                  = FALSE
-                        WHERE invoiceset_id = %s
-                        """,
-                        (0, invoiceset_id),
-                    )
-                    tmp_cr.commit()
+            if background and tmp_cr:
+                tmp_env = api.Environment(tmp_cr, self.env.uid, dict(self.env.context))
+                tmp_env["account.invoiceset.progress"].sudo().search(
+                    [("invoiceset_id", "=", invoiceset_id)], limit=1
+                ).write({"invoice_generation_progress": 0.0, "stop_order": False})
+                tmp_cr.commit()
 
-        except Exception as err:
+        except (UserError, TemplateError, PsycopgError) as err:
+            invoiceset.write({"state": "configured"})
+            invoiceset.message_post(body=self.env._("Calculation Process: ERROR...") + " " + str(err))
             if background:
-                self.env.cr.execute(
-                    "UPDATE account_invoiceset SET state = 'configured' WHERE id = %s",
-                    (invoiceset.id,),
-                )
-                invoiceset.message_post(body=_("Calculation Process: ERROR...") + " " + str(err))
-                self.env.cr.commit()
+                # In background, avoid raising to the RPC layer
                 if tmp_cr:
-                    tmp_cr.execute(
-                        """
-                        UPDATE account_invoiceset_progress
-                        SET invoice_generation_progress = %s
-                        WHERE invoiceset_id = %s
-                        """,
-                        (0, invoiceset_id),
-                    )
-                    tmp_cr.commit()
+                    tmp_cr.rollback()
             else:
-                self.env.cr.execute(
-                    "UPDATE account_invoiceset SET state = 'configured' WHERE id = %s",
-                    (invoiceset.id,),
-                )
                 raise UserError(str(err)) from err
         finally:
             if tmp_cr:
-                try:
-                    tmp_cr.close()
-                except Exception:
-                    pass
+                tmp_cr.close()
 
         return None
+
+    # ---------------------------- invoice data ----------------------------
 
     @api.model
     def get_invoice_data(self, invoiceset):
@@ -427,6 +421,7 @@ class AccountInvoiceset(models.Model):
     def _get_invoice_data(self, invoiceset):
         invoice_data_raw = []
         billable_item_helper = self.env["account.billable.item"]
+
         for productlink in invoiceset.productlink_ids:
             if not productlink.billable_item_model_id:
                 continue
@@ -435,25 +430,24 @@ class AccountInvoiceset(models.Model):
             quantity_field = productlink.billable_item_quantity_field
             group_field = productlink.billable_item_group_field
 
-            is_abstract = billable_item_helper.inherits_from_account_billable_item(model_name)
-            model_billable_item = self.env[model_name]
-            if is_abstract:
-                model_billable_item.set_billing_quantity_name(quantity_field)
-                model_billable_item.set_billing_groupvalue_name(group_field)
+            model_billable = self.env[model_name]
+            inherits_billable = billable_item_helper.inherits_from_account_billable_item(model_name)
 
             for selected_item in productlink.selected_item_ids:
-                billable_item = model_billable_item.browse(selected_item.billable_item_res_id)
-                if not billable_item:
+                billable_item = model_billable.browse(selected_item.billable_item_res_id)
+                if not billable_item.exists():
                     continue
 
-                if is_abstract:
-                    partner = billable_item.billing_partner_id
-                    partner_id = partner.id
-                    quantity = billable_item.billing_quantity
-                    groupvalue = billable_item.billing_groupvalue if group_field else ""
+                # Do NOT mutate class attributes in runtime (multiworker unsafe).
+                if inherits_billable:
+                    partner_field = getattr(model_billable, "_billing_partner_id_name", "partner_id")
+                    partner = getattr(billable_item, partner_field, False)
+                    partner_id = partner.id if partner else False
+                    quantity = getattr(billable_item, quantity_field, 0.0) if quantity_field else 1.0
+                    groupvalue = str(getattr(billable_item, group_field, "")) if group_field else ""
                 else:
-                    partner_id = billable_item.partner_id.id
-                    quantity = getattr(billable_item, quantity_field, 0.0)
+                    partner_id = billable_item.partner_id.id if getattr(billable_item, "partner_id", False) else False
+                    quantity = getattr(billable_item, quantity_field, 0.0) if quantity_field else 0.0
                     groupvalue = str(getattr(billable_item, group_field, "")) if group_field else ""
 
                 if not partner_id or quantity <= 0:
@@ -477,17 +471,16 @@ class AccountInvoiceset(models.Model):
                 }
 
                 if productlink.billable_item_detail_desc:
-                    lang = billable_item.partner_id.lang
+                    lang = getattr(getattr(billable_item, "partner_id", False), "lang", False)
+                    template_src = productlink.billable_item_detail_desc
+                    if lang:
+                        template_src = productlink.with_context(lang=lang).billable_item_detail_desc
                     try:
-                        template_src = (
-                            productlink.with_context(lang=lang).billable_item_detail_desc
-                            if lang
-                            else productlink.billable_item_detail_desc
-                        )
-                        name = Template(template_src).render(billable_item=billable_item)
-                        if name:
-                            vals["name"] = name
+                        rendered = Template(template_src).render(billable_item=billable_item)
+                        if rendered:
+                            vals["name"] = rendered
                     except TemplateError:
+                        # Ignore invalid templates, keep default description.
                         pass
 
                 invoice_data_raw.append(vals)
@@ -503,6 +496,8 @@ class AccountInvoiceset(models.Model):
             {"invoice_key": key, "partner_id": lines[0]["partner_id"], "lines": lines}
             for key, lines in grouped.items()
         ]
+
+    # ---------------------------- invoice create --------------------------
 
     @api.model
     def create_invoice(self, invoiceset, invoice_data):
@@ -558,13 +553,15 @@ class AccountInvoiceset(models.Model):
 
         return self.env["account.move"].create(vals)
 
+    # ------------------------------ stop/cancel ----------------------------
+
     def stop_calculation(self):
         self.ensure_one()
         self.env.cr.execute(
             """
             UPDATE account_invoiceset_progress
-            SET stop_order = TRUE
-            WHERE invoiceset_id = %s
+               SET stop_order = TRUE
+             WHERE invoiceset_id = %s
             """,
             (self.id,),
         )
@@ -626,16 +623,8 @@ class AccountInvoicesetProductlink(models.Model):
         store=True,
         compute="_compute_categ_id",
     )
-    lst_price = fields.Float(
-        string="Price",
-        store=True,
-        compute="_compute_lst_price",
-    )
-    populated = fields.Boolean(
-        string="Populated (y/n)",
-        default=False,
-        readonly=True,
-    )
+    lst_price = fields.Float(string="Price", store=True, compute="_compute_lst_price")
+    populated = fields.Boolean(string="Populated", default=False, readonly=True)
 
     billable_item_model_id = fields.Many2one(
         string="Billable-items Model",
@@ -703,9 +692,7 @@ class AccountInvoicesetProductlink(models.Model):
         for record in self:
             name = ""
             if record.invoiceset_id and record.product_id:
-                product_name = record.product_id.product_tmpl_id.with_context(
-                    lang=default_lang
-                ).name
+                product_name = record.product_id.product_tmpl_id.with_context(lang=default_lang).name
                 name = f"{record.invoiceset_id.alphanum_code}-{product_name}"
             record.name = name[: record.max_size_productlink_code]
 
@@ -762,7 +749,7 @@ class AccountInvoicesetProductlink(models.Model):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": f"{_('Product')} : {self.product_id.product_tmpl_id.name}",
+            "name": f"{self.env._('Product')} : {self.product_id.product_tmpl_id.name}",
             "res_model": "wizard.config.billable.item.fields",
             "view_mode": "form",
             "target": "new",
@@ -777,10 +764,10 @@ class AccountInvoicesetProductlink(models.Model):
         tree_view = self.env.ref("base_invoicing.account_selectable_item_view_tree")
         search_view = self.env.ref("base_invoicing.account_selectable_item_view_search")
 
-        title_prefix = _("Selectable Items. Product:")
+        title_prefix = self.env._("Selectable Items. Product:")
         domain = [("productlink_id", "=", self.id)]
-        if self.invoiceset_id.state not in ["draft", "configured"]:
-            title_prefix = _("Selected Items. Product:")
+        if self.invoiceset_id.state not in ("draft", "configured"):
+            title_prefix = self.env._("Selected Items. Product:")
             domain.append(("selected", "=", True))
 
         return {
@@ -826,8 +813,8 @@ class AccountInvoicesetProductlink(models.Model):
                 "type": "ir.actions.client",
                 "tag": "display_notification",
                 "params": {
-                    "title": _("Warning"),
-                    "message": _(
+                    "title": self.env._("Warning"),
+                    "message": self.env._(
                         "This operation is only allowed when the invoice set is in the "
                         "'draft' or 'configured' state."
                     ),
@@ -838,7 +825,7 @@ class AccountInvoicesetProductlink(models.Model):
             }
         return {
             "type": "ir.actions.act_window",
-            "name": f"{_('Product')} : {self.product_id.product_tmpl_id.name}",
+            "name": f"{self.env._('Product')} : {self.product_id.product_tmpl_id.name}",
             "res_model": "wizard.confirm.productlink.action",
             "view_mode": "form",
             "target": "new",
@@ -848,7 +835,7 @@ class AccountInvoicesetProductlink(models.Model):
     def action_refresh_selectable_items(self):
         self.ensure_one()
         return self._confirm_action(
-            _(
+            self.env._(
                 "You are about to refresh the lines associated with this product. "
                 "This will cause the current selection to be lost."
             ),
@@ -858,14 +845,14 @@ class AccountInvoicesetProductlink(models.Model):
     def action_delete_selectable_items(self):
         self.ensure_one()
         return self._confirm_action(
-            _("You are about to delete all lines associated with this product."),
+            self.env._("You are about to delete all lines associated with this product."),
             "delete_selectable_items",
         )
 
     def action_delete_line(self):
         self.ensure_one()
         return self._confirm_action(
-            _(
+            self.env._(
                 "You are about to remove this product from the invoice set. "
                 "Therefore, its associated lines will also be deleted."
             ),
@@ -875,73 +862,104 @@ class AccountInvoicesetProductlink(models.Model):
     def refresh_selectable_items(self):
         self.delete_selectable_items()
         for record in self:
-            self.populate_selectable_items(record)
+            record.populate_selectable_items(record)
         self.update_populated()
 
     def delete_selectable_items(self):
         for record in self:
-            record.env["account.selectable.item"].search([("productlink_id", "=", record.id)]).unlink()
+            record.env["account.selectable.item"].search(
+                [("productlink_id", "=", record.id)]
+            ).unlink()
             record.update_populated()
 
     def populate_selectable_items(self, productlink):
+        """Populate account.selectable.item via SQL with sanitized identifiers.
+
+        Note: billable_item_domain is kept for backward compatibility and is
+        appended as raw SQL. Consider migrating it to a safe domain parser.
+        """
         product = productlink.product_id
         category = product.product_tmpl_id.categ_id
         if not category or not category.billable_item_model_id:
             return
 
         model_name = category.billable_item_model_id.sudo().model
-        table = model_name.replace(".", "_")
+        table_name = model_name.replace(".", "_")
+
         quantity_field = category.billable_item_quantity_field
 
-        partner_id_field = "partner_id"
         billable_item_helper = self.env["account.billable.item"]
+        partner_id_field = "partner_id"
         if billable_item_helper.inherits_from_account_billable_item(model_name):
-            partner_id_field = self.env[model_name]._billing_partner_id_name
+            partner_id_field = getattr(self.env[model_name], "_billing_partner_id_name", "partner_id")
 
         aux_insert, aux_select = self._get_aux_fields(category)
 
-        sql = """
-            INSERT INTO account_selectable_item (
-                id, create_uid, write_uid, create_date, write_date,
-                productlink_id, billable_item_model, billable_item_res_id,
-                partner_id, quantity, selected{aux_insert}
-            )
-            SELECT
-                nextval('account_selectable_item_id_seq'),
-                %s, %s, now(), now(),
-                %s, %s,
-                bt.id,
-                bt.{partner_id_field},
-                {quantity_expr},
-                TRUE{aux_select}
-            FROM {table} bt
-            JOIN res_partner rp ON bt.{partner_id_field} = rp.id
-            WHERE rp.active
-        """.format(
-            aux_insert=f", {aux_insert}" if aux_insert else "",
-            aux_select=f", {aux_select}" if aux_select else "",
-            partner_id_field=partner_id_field,
-            quantity_expr="1" if not quantity_field else f"bt.{quantity_field}",
-            table=table,
+        insert_cols = [
+            sql.Identifier("id"),
+            sql.Identifier("create_uid"),
+            sql.Identifier("write_uid"),
+            sql.Identifier("create_date"),
+            sql.Identifier("write_date"),
+            sql.Identifier("productlink_id"),
+            sql.Identifier("billable_item_model"),
+            sql.Identifier("billable_item_res_id"),
+            sql.Identifier("partner_id"),
+            sql.Identifier("quantity"),
+            sql.Identifier("selected"),
+        ]
+        if aux_insert:
+            for col in aux_insert.split(", "):
+                insert_cols.append(sql.Identifier(col))
+
+        select_cols = [
+            sql.SQL("nextval('account_selectable_item_id_seq')"),
+            sql.Placeholder(),
+            sql.Placeholder(),
+            sql.SQL("now()"),
+            sql.SQL("now()"),
+            sql.Placeholder(),
+            sql.Placeholder(),
+            sql.SQL("bt.id"),
+            sql.SQL("bt.{}").format(sql.Identifier(partner_id_field)),
+            sql.SQL("bt.{}").format(sql.Identifier(quantity_field)) if quantity_field else sql.SQL("1"),
+            sql.SQL("TRUE"),
+        ]
+        if aux_select:
+            for col in aux_select.split(", "):
+                select_cols.append(sql.SQL("bt.{}").format(sql.Identifier(col)))
+
+        query = sql.SQL("""
+            INSERT INTO {dest} ({cols})
+            SELECT {select_cols}
+              FROM {src} bt
+              JOIN res_partner rp ON bt.{partner_field} = rp.id
+             WHERE rp.active
+        """).format(
+            dest=sql.Identifier("account_selectable_item"),
+            cols=sql.SQL(", ").join(insert_cols),
+            select_cols=sql.SQL(", ").join(select_cols),
+            src=sql.Identifier(table_name),
+            partner_field=sql.Identifier(partner_id_field),
         )
 
+        params = [self.env.uid, self.env.uid, productlink.id, model_name]
+
         if billable_item_helper.exists_active_field(model_name):
-            sql += " AND bt.active"
+            query += sql.SQL(" AND bt.active")
 
         if productlink.billable_item_domain:
-            # Kept for backward compatibility. Consider moving to a safe domain parser.
-            sql += f" AND ({productlink.billable_item_domain})"
+            # Backward compat: appended raw SQL.
+            query += sql.SQL(" AND ({})").format(sql.SQL(productlink.billable_item_domain))
 
         if productlink.product_id.product_tmpl_id.link_with_billable_items:
-            sql += " AND bt.product_id = %s"
-            params = (self.env.uid, self.env.uid, productlink.id, model_name, productlink.product_id.id)
-        else:
-            params = (self.env.uid, self.env.uid, productlink.id, model_name)
+            query += sql.SQL(" AND bt.product_id = %s")
+            params.append(productlink.product_id.id)
 
         try:
-            self.env.cr.execute(sql, params)
-        except Exception as err:
-            raise UserError(_("Error updating records: %s") % str(err)) from err
+            self.env.cr.execute(query, tuple(params))
+        except PsycopgError as err:
+            raise UserError(self.env._("Error updating records: %s") % str(err)) from err
 
     @api.model
     def _get_aux_fields(self, category):
@@ -963,9 +981,9 @@ class AccountInvoicesetProductlink(models.Model):
         self.env.cr.execute(
             """
             SELECT count(*) AS count
-            FROM account_selectable_item
-            WHERE productlink_id = %s
-              AND selected
+              FROM account_selectable_item
+             WHERE productlink_id = %s
+               AND selected
             """,
             (self.id,),
         )
@@ -984,11 +1002,8 @@ class AccountInvoicesetProgress(models.Model):
         readonly=True,
     )
     invoice_generation_progress = fields.Float(
-        string="Percentage of progress during invoice generation",
+        string="Invoice generation progress (%)",
         default=0.0,
         readonly=True,
     )
-    stop_order = fields.Boolean(
-        string="Active stop order",
-        default=False,
-    )
+    stop_order = fields.Boolean(string="Active stop order", default=False)

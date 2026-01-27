@@ -70,7 +70,9 @@ class AccountMoveLine(models.Model):
         return lines
 
     def unlink(self):
-        billable_lines = self.filtered(lambda l: l.billable_item_model and l.billable_item_res_id)
+        billable_lines = self.filtered(
+            lambda l: l.billable_item_model and l.billable_item_res_id
+        )
         res = super().unlink()
         billable_lines._update_billable_item_invoice_count(delta=-1)
         return res
@@ -87,7 +89,9 @@ class AccountMoveLine(models.Model):
 
         billable_item_abstract = self.env["account.billable.item"]
         for model_name, res_ids in by_model.items():
-            if not billable_item_abstract.inherits_from_account_billable_item(model_name):
+            if not billable_item_abstract.inherits_from_account_billable_item(
+                model_name
+            ):
                 continue
             records = self.env[model_name].sudo().browse(res_ids).exists()
             if not records:
@@ -98,4 +102,6 @@ class AccountMoveLine(models.Model):
                     rec.write({"number_of_invoices": rec.number_of_invoices + delta})
             else:
                 for rec in records:
-                    rec.write({"number_of_invoices": max(rec.number_of_invoices + delta, 0)})
+                    rec.write(
+                        {"number_of_invoices": max(rec.number_of_invoices + delta, 0)}
+                    )

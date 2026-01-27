@@ -31,7 +31,7 @@ def post_init_hook(env):
 def uninstall_hook(env):
     """Cleanup configuration parameters on uninstall."""
     env = api.Environment(env.cr, SUPERUSER_ID, dict(env.context or {}))
-    params = env["ir.config_parameter"].sudo().search(
-        [("key", "=like", "base_invoicing.%")]
+    params = (
+        env["ir.config_parameter"].sudo().search([("key", "=like", "base_invoicing.%")])
     )
     params.unlink()
