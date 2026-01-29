@@ -9,6 +9,7 @@ class SimpleModel(models.AbstractModel):
     _name = "simple.model"
     _description = "Simple Model"
     _order = "name"
+    _rec_names_search = ["alphanum_code", "description"]
 
     # -------------------------- Model-level settings --------------------------
     # Public flags/limits to avoid protected-access warnings
@@ -112,7 +113,6 @@ class SimpleModel(models.AbstractModel):
                 record.name = (record.alphanum_code or "")[: record.size_name]
 
     def _compute_display_name(self):
-        """Odoo 18: replace name_get (E8146)."""
         for record in self:
             if record.set_num_code:
                 desc = record.description or ""
@@ -147,23 +147,6 @@ class SimpleModel(models.AbstractModel):
                         record.maxlength,
                     )
                 )
-
-    # --------------------------------- Names ----------------------------------
-
-    @api.model
-    def name_search(self, name="", args=None, operator="ilike", limit=100):
-        """Search by description (numeric mode) or alphanum_code (default)."""
-        domain = list(args or [])
-
-        if name:
-            field_name = "description" if self._set_num_code else "alphanum_code"
-            domain = [(field_name, operator, name)] + domain
-
-        # Use search_fetch to avoid extra reads (v17+)
-        recs = self.search_fetch(
-            domain, ["display_name"], limit=limit, order="display_name"
-        )
-        return [(rec.id, rec.display_name) for rec in recs]
 
     # --------------------------------- CRUD -----------------------------------
 
