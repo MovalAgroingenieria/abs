@@ -1,52 +1,47 @@
 # 2024 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-positional-arguments
 
 import base64
+import hashlib
 import io
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Tuple
 
 import psycopg2
 import requests
-from odoo import api, fields, models
 from PIL import Image, UnidentifiedImageError
 from psycopg2 import sql
-from requests.exceptions import RequestException
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+from odoo import api, fields, models
+from odoo.tools.lru import LRU
 
 BBox = List[float]
 BBoxResult = Tuple[str, BBox]
 BBoxFinalResult = Tuple[BBox, int, int]
+
+_WMS_LRU = LRU(512)
 
 
 class PolygonModel(models.AbstractModel):
     _name = "polygon.model"
     _description = "Polygon Model"
 
-    # Default size for WMS images.
     NORMAL_SIZE = 512
-
-    # Timeout for getmap requests.
     OGC_TIMEOUT = 5
-
-    # Decimals for coordinates.
     WITH_DECIMAL_COORDINATES = False
 
-    # Linked GIS table ("wua_gis_parcel", for example).
     _gis_table = ""
-
-    # "geom" field.
     _geom_field = "geom"
-
-    # Field for link.
     _link_field = "name"
 
     mapped_to_polygon = fields.Boolean(
         string="Mapped to polygon",
         compute="_compute_mapped_to_polygon",
         search="_search_mapped_to_polygon",
+        store=True,
     )
 
     geom_ewkt = fields.Char(
@@ -84,18 +79,20 @@ class PolygonModel(models.AbstractModel):
         compute="_compute_bounding_box_str",
     )
 
-    # ------------------------------ SQL helpers ------------------------------
+    def _sha1(self, s: str) -> str:
+        return hashlib.sha1(s.encode("utf-8")).hexdigest()
+
+    def _make_wms_key(self, *parts) -> str:
+        flat = "|".join(str(p) for p in parts)
+        return self._sha1(flat)
 
     def _sql_ident(self, dotted_name: str) -> sql.SQL:
-        """Return a safe SQL identifier for dotted names (schema.table)."""
         parts = [p for p in (dotted_name or "").split(".") if p]
         if not parts:
-            # caller must handle empty config
             return sql.SQL("")
         return sql.SQL(".").join(sql.Identifier(p) for p in parts)
 
     def _geom_ok(self) -> bool:
-        """Check if GIS config points to an existing table/fields."""
         if not (self._gis_table and self._geom_field and self._link_field):
             return False
 
@@ -108,11 +105,55 @@ class PolygonModel(models.AbstractModel):
             self.env.cr.execute(qry)
             return True
         except (psycopg2.Error, ValueError):
-            # Ensure we do not keep a broken transaction
             self.env.cr.rollback()
             return False
 
-    # ------------------------------ compute fields ------------------------------
+    def _build_session(self):
+        sess = requests.Session()
+        retries = Retry(
+            total=3,
+            connect=3,
+            read=3,
+            backoff_factor=0.25,
+            status_forcelist=(429, 500, 502, 503, 504),
+            allowed_methods=frozenset(["GET"]),
+            raise_on_status=False,
+        )
+        adapter = HTTPAdapter(
+            max_retries=retries,
+            pool_connections=20,
+            pool_maxsize=20,
+        )
+        sess.mount("http://", adapter)
+        sess.mount("https://", adapter)
+        sess.headers.update(
+            {
+                "User-Agent": "Odoo WMS client",
+                "Accept": "image/*,*/*;q=0.8",
+            }
+        )
+        return sess
+
+    def _fetch_wms_bytes(self, session, url: str, *, timeout, verify_ssl: bool):
+        resp = session.get(url, timeout=timeout, verify=verify_ssl)
+        if resp.status_code != 200:
+            return None
+
+        ctype = (resp.headers.get("Content-Type") or "").lower()
+        if "image/" not in ctype:
+            return None
+
+        payload = resp.content
+        if not payload:
+            return None
+
+        try:
+            img = Image.open(io.BytesIO(payload))
+            img.verify()
+        except (UnidentifiedImageError, OSError):
+            return None
+
+        return payload
 
     @api.depends("name")
     def _compute_mapped_to_polygon(self):
@@ -300,8 +341,6 @@ class PolygonModel(models.AbstractModel):
                     )
             record.bounding_box_str = bounding_box_str
 
-    # ------------------------------ geometry helpers ------------------------------
-
     @api.model
     def extract_coordinates(self, geom_ewkt) -> Tuple[str, str]:
         srid = ""
@@ -439,8 +478,6 @@ class PolygonModel(models.AbstractModel):
         bbox_final = [minx, miny, maxx, maxy]
         return bbox_final, image_width_pixels, image_height_pixels
 
-    # ------------------------------ WMS fetch ------------------------------
-
     def get_aerial_image(
         self,
         wms="https://www.ign.es/wms-inspire/pnoa-ma",
@@ -454,36 +491,33 @@ class PolygonModel(models.AbstractModel):
         apply_filter=False,
         force_square_shape=True,
         verify_ssl=True,
+        parallel_workers=6,
     ):
-        aerial_images = []
-
         number_of_layers = max(0, len(layers.split(",")) - 1)
 
-        for record in self:
-            image = None
-            srid, bbox = record.extract_bounding_box(
-                record.geom_ewkt, force_square_shape=force_square_shape
+        def _task(rec):
+            srid, bbox = rec.extract_bounding_box(
+                rec.geom_ewkt, force_square_shape=force_square_shape
             )
             if not (srid and bbox):
-                aerial_images.append(None)
-                continue
+                return rec.id, None
 
-            bbox_final, w_px, h_px = self.get_bbox_final(
+            bbox_final, w_px, h_px = rec.get_bbox_final(
                 zoom, bbox, image_width, image_height
             )
             if not (w_px > 0 and h_px > 0):
-                aerial_images.append(None)
-                continue
+                return rec.id, None
 
             minx, miny, maxx, maxy = bbox_final
+
             cql_filter = ""
             if apply_filter:
                 cql_filter = (
                     "&FILTER="
                     + "()" * number_of_layers
                     + '(<Filter><PropertyIsLike wildCard="*" singleChar="." escape="!">'
-                    + f"<PropertyName>{self._link_field}</PropertyName>"
-                    + f"<Literal>{record.name}</Literal>"
+                    + f"<PropertyName>{rec._link_field}</PropertyName>"
+                    + f"<Literal>{rec.name}</Literal>"
                     + "</PropertyIsLike></Filter>)"
                 )
 
@@ -497,28 +531,45 @@ class PolygonModel(models.AbstractModel):
                 f"&format=image/{image_format}"
             )
 
+            key = self._sha1(url)
+            cached = _WMS_LRU.get(key)
+            if cached:
+                return rec.id, cached
+
+            session = self._build_session()
             try:
-                resp = requests.get(
-                    url, stream=True, timeout=self.OGC_TIMEOUT, verify=verify_ssl
+                payload = self._fetch_wms_bytes(
+                    session,
+                    url,
+                    timeout=(2, getattr(rec, "OGC_TIMEOUT", 10)),
+                    verify_ssl=verify_ssl,
                 )
-                resp.raise_for_status()
-            except RequestException:
-                aerial_images.append(None)
-                continue
+            finally:
+                session.close()
 
-            raw = io.BytesIO(resp.content)
-            try:
-                Image.open(raw)
-            except (UnidentifiedImageError, OSError):
-                aerial_images.append(None)
-                continue
+            if payload:
+                _WMS_LRU[key] = payload
+            return rec.id, payload
 
-            if get_raw:
-                image = raw
-            else:
-                image = base64.b64encode(raw.getvalue()).decode("ascii")
+        results = {rec.id: None for rec in self}
 
-            aerial_images.append(image)
+        if len(self) == 1:
+            rec = self[0]
+            rid, payload = _task(rec)
+            if payload:
+                results[rid] = io.BytesIO(payload) if get_raw else base64.b64encode(payload)
+        else:
+            workers = min(max(1, parallel_workers), len(self))
+            with ThreadPoolExecutor(max_workers=workers) as ex:
+                futures = [ex.submit(_task, rec) for rec in self]
+                for fut in as_completed(futures):
+                    rid, payload = fut.result()
+                    if payload:
+                        results[rid] = (
+                            io.BytesIO(payload) if get_raw else base64.b64encode(payload)
+                        )
+
+        aerial_images = [results[rec.id] for rec in self]
 
         if all(i is None for i in aerial_images):
             return None
