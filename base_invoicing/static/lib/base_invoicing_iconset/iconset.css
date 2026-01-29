@@ -1,31 +1,31 @@
 @font-face {
-  font-family: 'base_invoicing_iconset';
-  src:  url('fonts/base_invoicing_iconset.eot?4qmh0p');
-  src:  url('fonts/base_invoicing_iconset.eot?4qmh0p#iefix') format('embedded-opentype'),
-    url('fonts/base_invoicing_iconset.ttf?4qmh0p') format('truetype'),
-    url('fonts/base_invoicing_iconset.woff?4qmh0p') format('woff'),
-    url('fonts/base_invoicing_iconset.svg?4qmh0p#base_invoicing_iconset') format('svg');
+  font-family: "base_invoicing_iconset";
+  src:
+    url("/base_invoicing/static/src/fonts/base_invoicing_iconset.woff") format("woff"),
+    url("/base_invoicing/static/src/fonts/base_invoicing_iconset.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
+  font-display: block;
 }
 
 /* Simplified fa-base-invoicing class (inspired by the native Base Fontawesome module) */
-[class^="fa-base-invoicing-"], [class*=" fa-base-invoicing-"] {
-   display: inline-block;
-   font-family: base_invoicing_iconset;
-   font-style: normal;
-   font-weight: normal;
-   font-variant: normal;
-   text-rendering: auto;
+[class^="fa-base-invoicing-"],
+[class*=" fa-base-invoicing-"] {
+  display: inline-block;
+  font-family: "base_invoicing_iconset";
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-rendering: auto;
 }
 
 /* Render duotone icons */
 [class*="-duotone"]::before {
-   opacity: 1;
+  opacity: 1;
 }
 [class*="-duotone"]::after {
-   opacity: 0.4;
-   margin-left: -1em;
+  opacity: 0.4;
+  margin-left: -1em;
 }
 
 /* Print duotone */
@@ -40,7 +40,7 @@
 }
 
 /* Icons */
-.fa-base-invoicing-main:before {
+.fa-base-invoicing-main::before {
   content: "\e900";
 }
 .fa-base-invoicing-main-duotone::before {

@@ -1,18 +1,20 @@
 /** @odoo-module **/
 
-import {patch} from "@web/core/utils/patch";
-import {SearchModel} from "@web/search/search_model";
+import { patch } from "@web/core/utils/patch";
+import { SearchModel } from "@web/search/search_model";
 
-patch(SearchModel.prototype, "base_invoicing.massive_invoicing_search_model", {
+const _load = SearchModel.prototype.load;
+
+patch(SearchModel.prototype, {
     async load(config) {
-        await this._super(...arguments);
+        await _load.call(this, config);
 
         if (this.resModel !== "account.selectable.item") {
             return;
         }
 
         const context = config?.context || {};
-        for (const item of Object.values(this.searchItems)) {
+        for (const item of Object.values(this.searchItems || {})) {
             if (!item?.fieldName) {
                 continue;
             }

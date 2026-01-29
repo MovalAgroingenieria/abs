@@ -44,7 +44,7 @@
             "base_invoicing/static/src/js/massive_invoicing_form_controller.js",
             "base_invoicing/static/src/xml/button_back.xml",
             "base_invoicing/static/lib/base_invoicing_iconset/iconset.css",
-            ],
+                    ],
         "web.assets_frontend": [
             "base_invoicing/static/lib/base_invoicing_iconset/iconset.css",
             ],

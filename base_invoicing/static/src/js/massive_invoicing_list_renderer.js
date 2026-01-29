@@ -1,36 +1,35 @@
 /** @odoo-module **/
 
-import {registry} from "@web/core/registry";
-import {ListController} from "@web/views/list/list_controller";
-import {ListRenderer} from "@web/views/list/list_renderer";
-import {listView} from "@web/views/list/list_view";
+import { registry } from "@web/core/registry";
+import { ListController } from "@web/views/list/list_controller";
+import { ListRenderer } from "@web/views/list/list_renderer";
+import { listView } from "@web/views/list/list_view";
 
 export class MassiveInvoicingListRenderer extends ListRenderer {
-    setup() {
-        super.setup();
-
+    getColumns() {
+        const columns = super.getColumns();
         const context = this.props.list?.context || {};
-        const columns = this.getColumns();
 
-        for (const column of columns) {
-            if (!column?.name) {
+        for (const col of columns) {
+            if (!col?.name) {
                 continue;
             }
-
             const labelKey =
-                column.name === "quantity"
+                col.name === "quantity"
                     ? "billable_item_quantity_label"
-                    : `${column.name}_label`;
+                    : `${col.name}_label`;
 
             const newLabel = context[labelKey];
             if (newLabel) {
-                column.label = newLabel;
+                col.label = newLabel;
             }
         }
+        return columns;
+    }
 
-        if (context.hide_selectors) {
-            this.props.allowSelectors = false;
-        }
+    get allowSelectors() {
+        const context = this.props.list?.context || {};
+        return context.hide_selectors ? false : super.allowSelectors;
     }
 }
 

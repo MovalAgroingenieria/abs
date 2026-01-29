@@ -1,9 +1,10 @@
 /** @odoo-module **/
 
-import {registry} from "@web/core/registry";
-import {FormController} from "@web/views/form/form_controller";
-import {formView} from "@web/views/form/form_view";
-import {useService} from "@web/core/utils/hooks";
+import { registry } from "@web/core/registry";
+import { FormController } from "@web/views/form/form_controller";
+import { formView } from "@web/views/form/form_view";
+import { useService } from "@web/core/utils/hooks";
+import { onWillUnmount, useEffect } from "@odoo/owl";
 
 const INTERVAL = 2000;
 
@@ -11,11 +12,23 @@ export class MassiveInvoicingFormController extends FormController {
     setup() {
         super.setup();
         this.orm = useService("orm");
+
         this._previousBackground = false;
         this._currentBackground = false;
-        this._refreshInterval = false;
+        this._intervalId = false;
 
-        this._startInterval(this.props.resId);
+        const getResId = () => this.model?.root?.resId || this.props?.resId;
+
+        useEffect(
+            () => {
+                const resId = getResId();
+                this._startInterval(resId);
+                return () => this._clearInterval();
+            },
+            () => [getResId()]
+        );
+
+        onWillUnmount(() => this._clearInterval());
     }
 
     _startInterval(resId) {
@@ -26,17 +39,20 @@ export class MassiveInvoicingFormController extends FormController {
 
         this._intervalId = setInterval(async () => {
             this._previousBackground = this._currentBackground;
+
             this._currentBackground = await this.orm.call(
                 "account.invoiceset",
                 "background_calculation_active",
                 [[resId]]
             );
 
-            if (
-                this._currentBackground ||
-                (!this._currentBackground && this._previousBackground)
-            ) {
-                this.model.load();
+            if (this._currentBackground || (!this._currentBackground && this._previousBackground)) {
+                // v18: según versión, una de estas 2 existe.
+                if (this.model?.load) {
+                    await this.model.load();
+                } else if (this.model?.root?.load) {
+                    await this.model.root.load();
+                }
             }
         }, INTERVAL);
     }
@@ -45,34 +61,6 @@ export class MassiveInvoicingFormController extends FormController {
         if (this._intervalId) {
             clearInterval(this._intervalId);
             this._intervalId = false;
-        }
-    }
-
-    async beforeLeave() {
-        await super.beforeLeave();
-        this._clearInterval();
-    }
-
-    async onPagerUpdate({offset, resIds}) {
-        await super.onPagerUpdate({offset, resIds});
-        this._previousBackground = false;
-        this._currentBackground = false;
-        this._startInterval(resIds[offset]);
-    }
-
-    async deleteRecord() {
-        await super.deleteRecord();
-        this._refreshInterval = true;
-    }
-
-    updateURL() {
-        super.updateURL();
-
-        if (this._refreshInterval) {
-            this._refreshInterval = false;
-            this._previousBackground = false;
-            this._currentBackground = false;
-            this._startInterval(this.model.root.resId);
         }
     }
 }
