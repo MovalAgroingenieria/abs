@@ -7,19 +7,24 @@
         <field name="inherit_id" ref="account.res_config_settings_view_form" />
         <field name="arch" type="xml">
             <xpath expr="//block[@id='invoicing_settings']" position="after">
-                <block name="massive_invoicing_settings">
+                <block title="Base Invoicing" name="massive_invoicing_settings">
                     <setting
                         id="mass_invoicing_seq_invoiceset_code"
+                        string="Sequence for invoice sets"
                         company_dependent="1"
                         help="Sequence used to assign a default code for each new invoice set."
                     >
                         <div class="content-group">
-                            <field name="mass_invoicing_seq_invoiceset_code_id" />
+                            <div class="row mt16">
+                                <label for="mass_invoicing_seq_invoiceset_code_id" string="Sequence" class="col-lg-3 o_light_label"/>
+                                <field name="mass_invoicing_seq_invoiceset_code_id" class="col-lg-9"/>
+                            </div>
                         </div>
                     </setting>
 
                     <setting
                         id="mass_invoicing_run_background"
+                        string="Background execution"
                         company_dependent="1"
                         help="Run the generation of the invoice set in the background, allowing interruption."
                     >

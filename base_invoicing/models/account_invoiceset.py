@@ -13,11 +13,13 @@
 import logging
 import threading
 from collections import defaultdict
+from datetime import timedelta
 
 from jinja2 import Template, TemplateError
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools.safe_eval import safe_eval
+from odoo.tools.sql import SQL
 
 _logger = logging.getLogger(__name__)
 
@@ -28,42 +30,52 @@ class AccountInvoiceset(models.Model):
     _inherit = ["simple.model", "mail.thread", "comment.template"]
     _order = "alphanum_code desc"
 
-    _set_num_code = False
-    _sequence_for_codes = "base_invoicing.mass_invoicing_seq_invoiceset_code_id"
-    _size_name = 20
-    _minlength = 0
-    _maxlength = 20
-    _allowed_blanks_in_code = False
-    _set_alphanum_code_to_lowercase = False
-    _set_alphanum_code_to_uppercase = True
-    _size_description = 100
+    # simple.model v18 uses these attribute names (no leading underscore)
+    set_num_code = False
+    sequence_for_codes = "base_invoicing.mass_invoicing_seq_invoiceset_code_id"
+    size_name = 20
+    minlength = 0
+    maxlength = 20
+    allowed_blanks_in_code = False
+    set_alphanum_code_to_lowercase = False
+    set_alphanum_code_to_uppercase = True
+    size_description = 100
 
-    alphanum_code = fields.Char(string="Code of invoice set", required=True)
+    alphanum_code = fields.Char(
+        string="Code of invoice set",
+        required=True,
+        tracking=True,
+    )
     description = fields.Char(
         string="Description of invoice set",
         required=True,
         translate=True,
+        tracking=True,
     )
     invoice_date = fields.Date(
         string="Invoicing Date",
         default=fields.Date.context_today,
         required=True,
         index=True,
+        tracking=True,
     )
-    invoice_date_due = fields.Date(string="Due Date")
+    invoice_date_due = fields.Date(string="Due Date", tracking=True)
     journal_id = fields.Many2one(
         string="Journal",
         comodel_name="account.journal",
+        tracking=True,
     )
     payment_term_id = fields.Many2one(
         string="Payment Term",
         comodel_name="account.payment.term",
+        tracking=True,
     )
     invoice_user_id = fields.Many2one(
         string="Sales Person",
         comodel_name="res.users",
         default=lambda self: self.env.user,
         required=True,
+        tracking=True,
     )
 
     state = fields.Selection(
@@ -79,6 +91,11 @@ class AccountInvoiceset(models.Model):
         compute="_compute_state",
         index=True,
         tracking=True,
+    )
+    calculation_started_at = fields.Datetime(
+        string="Calculation started at",
+        readonly=True,
+        help="Set when state enters 'calculating'; used to detect stale processes.",
     )
 
     move_ids = fields.One2many(
@@ -128,6 +145,7 @@ class AccountInvoiceset(models.Model):
     partner_id = fields.Many2one(
         comodel_name="res.partner",
         default=lambda self: self.env.company.partner_id,
+        tracking=True,
     )
 
     # -------------------------------------------------------------------------
@@ -277,20 +295,21 @@ class AccountInvoiceset(models.Model):
         if self.state != "configured":
             return None
 
-        # Clean non-selected selectable items for
-        # this invoiceset (keep SQL parameterized)
-        self.env.cr.execute(
-            """
-            DELETE
-              FROM account_selectable_item
-             WHERE NOT selected
-               AND productlink_id IN (
-                     SELECT id
-                       FROM account_invoiceset_productlink
-                      WHERE invoiceset_id = %s
-               )
-            """,
-            (self.id,),
+        # Clean non-selected selectable items for this invoiceset (Odoo 18: use SQL())
+        self.env.execute_query(
+            SQL(
+                """
+                DELETE
+                  FROM account_selectable_item
+                 WHERE NOT selected
+                   AND productlink_id IN (
+                         SELECT id
+                           FROM account_invoiceset_productlink
+                          WHERE invoiceset_id = %s
+                   )
+                """,
+                self.id,
+            )
         )
 
         run_background = bool(
@@ -324,8 +343,8 @@ class AccountInvoiceset(models.Model):
             ctx = dict(self.env.context)
 
             def _run():
-                # Ensure proper thread env management in Odoo
-                with api.Environment.manage(), registry.cursor() as cr:
+                # New cursor per thread (Odoo 18: Environment.manage was removed)
+                with registry.cursor() as cr:
                     env = api.Environment(cr, uid, ctx)
                     env["account.invoiceset"]._invoice_generation_thread(invoiceset_id)
 
@@ -360,7 +379,10 @@ class AccountInvoiceset(models.Model):
                 limit=1,
             ).write({"invoice_generation_progress": 0.0, "stop_order": False})
 
-        invoiceset.write({"state": "calculating"})
+        invoiceset.write({
+            "state": "calculating",
+            "calculation_started_at": fields.Datetime.now(),
+        })
         suffix = (
             self.env._("(background)") if background else self.env._("(foreground)")
         )
@@ -395,7 +417,10 @@ class AccountInvoiceset(models.Model):
                         progress += step
                         row.write({"invoice_generation_progress": progress})
 
-            invoiceset.write({"state": "configured" if cancelled else "calculated"})
+            invoiceset.write({
+                "state": "configured" if cancelled else "calculated",
+                "calculation_started_at": False,
+            })
             end_suffix = (
                 self.env._("Cancelled")
                 if cancelled
@@ -413,7 +438,7 @@ class AccountInvoiceset(models.Model):
                 ).write({"invoice_generation_progress": 0.0, "stop_order": False})
 
         except (UserError, ValueError, TemplateError) as err:
-            invoiceset.write({"state": "configured"})
+            invoiceset.write({"state": "configured", "calculation_started_at": False})
             invoiceset.message_post(
                 body=self.env._("Calculation Process: ERROR...") + " " + str(err)
             )
@@ -473,6 +498,9 @@ class AccountInvoiceset(models.Model):
                     if quantity_field
                     else 1.0
                 )
+                ratio = productlink.billable_item_quantity_ratio or 1.0
+                if ratio != 1.0:
+                    quantity *= ratio
                 groupvalue = (
                     str(getattr(billable_item, group_field, "")) if group_field else ""
                 )
@@ -556,6 +584,7 @@ class AccountInvoiceset(models.Model):
             "move_type": "out_invoice",
             "state": "draft",
             "name": "/",
+            "company_id": self.env.user.company_id.id,
         }
         if invoiceset.payment_term_id:
             vals["invoice_payment_term_id"] = invoiceset.payment_term_id.id
@@ -602,16 +631,39 @@ class AccountInvoiceset(models.Model):
         invoiceset = self.sudo().browse(invoiceset_id)
         if not invoiceset.exists() or invoiceset.state != "calculating":
             return False
+        # Reset stale "calculating" (e.g. process died or server restarted)
+        if self._is_calculation_stale(invoiceset):
+            invoiceset.cancel_invoices()
+            return False
         return bool(
             self.env["ir.config_parameter"]
             .sudo()
             .get_param("base_invoicing.mass_invoicing_run_background", False)
         )
 
+    def _is_calculation_stale(self, invoiceset, max_age_minutes=10):
+        """True if state is 'calculating' but no process is actually running."""
+        if invoiceset.state != "calculating":
+            return False
+        started = invoiceset.calculation_started_at
+        if not started:
+            return True  # Legacy record without timestamp
+        limit = fields.Datetime.now() - timedelta(minutes=max_age_minutes)
+        return started < limit
+
+    @api.model
+    def cron_reset_stale_calculating_invoicesets(self, max_age_minutes=10):
+        """Reset invoice sets stuck in 'calculating' (e.g. after process crash)."""
+        stale = self.search([("state", "=", "calculating")]).filtered(
+            lambda r: self._is_calculation_stale(r, max_age_minutes=max_age_minutes)
+        )
+        if stale:
+            stale.cancel_invoices()
+
     def cancel_invoices(self):
         self.ensure_one()
         self.move_ids.unlink()
-        self.write({"state": "configured"})
+        self.write({"state": "configured", "calculation_started_at": False})
 
     @api.model
     def action_refresh_all_invoicesets_in_calculation_process(self):
@@ -678,6 +730,10 @@ class AccountInvoicesetProductlink(models.Model):
     billable_item_quantity_label = fields.Char(
         string="Label of the quantity field",
         related="product_id.product_tmpl_id.categ_id.billable_item_quantity_label",
+    )
+    billable_item_quantity_ratio = fields.Float(
+        string="Quantity ratio",
+        related="product_id.product_tmpl_id.categ_id.billable_item_quantity_ratio",
     )
     billable_item_group_field = fields.Char(
         string="Field for grouping",
@@ -770,8 +826,9 @@ class AccountInvoicesetProductlink(models.Model):
                 if record.product_id
                 else False
             )
+            qty_field = category.billable_item_quantity_field_id if category else False
             record.billable_item_quantity_field = (
-                category.billable_item_quantity_field if category else False
+                qty_field.name if qty_field else False
             )
 
     @api.depends("product_id")
@@ -861,7 +918,7 @@ class AccountInvoicesetProductlink(models.Model):
     @api.model
     def _get_context_hide_fields(self, category, current_state="draft"):
         context = {}
-        if not category.billable_item_quantity_field:
+        if not category.billable_item_quantity_field_id:
             context["hide_quantity"] = True
         else:
             context["billable_item_quantity_label"] = (
@@ -967,7 +1024,11 @@ class AccountInvoicesetProductlink(models.Model):
         partner_field = getattr(
             billable_model, "_billing_partner_id_name", "partner_id"
         )
-        quantity_field = category.billable_item_quantity_field
+        quantity_field = (
+            category.billable_item_quantity_field_id.name
+            if category.billable_item_quantity_field_id
+            else None
+        )
 
         domain = (
             [("active", "=", True)]
@@ -1022,6 +1083,9 @@ class AccountInvoicesetProductlink(models.Model):
             qty = 1.0
             if quantity_field:
                 qty = float(row.get(quantity_field) or 0.0)
+            ratio = category.billable_item_quantity_ratio or 1.0
+            if ratio != 1.0:
+                qty *= ratio
 
             vals = {
                 "productlink_id": productlink.id,

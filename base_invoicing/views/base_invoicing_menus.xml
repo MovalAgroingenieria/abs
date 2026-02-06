@@ -9,7 +9,7 @@
     />
 
     <menuitem
-        id="menu_thecnicalactions"
+        id="menu_technicalactions"
         name="Technical Actions"
         parent="account.menu_finance"
         sequence="1000"
@@ -17,9 +17,9 @@
     />
 
     <menuitem
-        id="menu_thecnicalactions_refresh"
+        id="menu_technicalactions_refresh"
         name="Refresh"
-        parent="menu_thecnicalactions"
+        parent="menu_technicalactions"
         sequence="10"
     />
 

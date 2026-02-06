@@ -364,8 +364,8 @@
     </record>
 
     <menuitem
-        id="menu_thecnicalactions_refresh_invoicesets_in_calculation_process"
-        parent="menu_thecnicalactions_refresh"
+        id="menu_technicalactions_refresh_invoicesets_in_calculation_process"
+        parent="menu_technicalactions_refresh"
         action="account_invoiceset_refresh_all_invoicesets_in_calculation_process_serveraction"
         sequence="10"
         groups="base.user_admin"

@@ -1,5 +1,5 @@
 # 2025 Moval Agroingeniería
-# License AGPL-3.0 or later (http://www.gnu/licenses/agpl.html)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 # pylint: disable=duplicate-code
 
 from odoo.tests.common import TransactionCase, tagged

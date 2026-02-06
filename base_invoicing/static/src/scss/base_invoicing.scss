@@ -1,3 +1,30 @@
+/* Product Category Invoicing Kanban - premium cards */
+.o_kanban_product_category_invoicing {
+  .o_kanban_record:has(.o_kanban_invoicing_category) {
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #6c757d;
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    &:has(.badge.text-bg-success) {
+      border-left-color: #198754;
+    }
+  }
+
+  .o_kanban_invoicing_category .o_kanban_record_title {
+    font-size: 1.05rem;
+    color: var(--bs-body-color, #212529);
+  }
+
+  .o_kanban_invoicing_category .badge.text-bg-success {
+    font-weight: 500;
+  }
+}
+
 .o_base_invoicing_product_category {
   [data-name="supports_mass_billing"] {
     text-align: center;

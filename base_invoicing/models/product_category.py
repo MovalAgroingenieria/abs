@@ -6,6 +6,10 @@
 # pylint: disable=translation-not-lazy
 # pylint: disable=translation-positional-used
 
+import re
+
+from jinja2 import Environment, StrictUndefined, Template, TemplateError
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -22,30 +26,46 @@ class ProductCategory(models.Model):
 
     billable_item_model_id = fields.Many2one(
         comodel_name="ir.model",
-        string="Billable-items Model",
-        domain="[('id', 'in', allowed_billable_item_model_ids.ids)]",
+        string="Billable items model",
+        domain=lambda self: self._get_billable_item_model_domain(),
+        tracking=True,
     )
-    allowed_billable_item_model_ids = fields.Many2many(
-        comodel_name="ir.model",
-        compute="_compute_allowed_billable_item_model_ids",
-        string="Allowed billable models",
+    billable_item_model_name = fields.Char(
+        related="billable_item_model_id.model",
+        string="Billable model technical name",
+        readonly=True,
     )
 
-    billable_item_quantity_field = fields.Char(string="Quantity Field")
+    billable_item_quantity_field_id = fields.Many2one(
+        comodel_name="ir.model.fields",
+        string="Quantity Field",
+        domain="[('model_id', '=', billable_item_model_id), ('ttype', 'in', ('integer', 'float'))]",
+        ondelete="set null",
+        tracking=True,
+    )
     billable_item_quantity_label = fields.Char(
         string="Label of the quantity field",
-        compute="_compute_billable_item_quantity_label",
-        store=True,
-        readonly=False,
         translate=True,
+        tracking=True,
+    )
+    billable_item_quantity_ratio = fields.Float(
+        string="Quantity ratio",
+        default=1.0,
+        help="Multiplier applied to the quantity when creating selectable items.",
+        tracking=True,
     )
 
-    billable_item_group_field = fields.Char(string="Field for grouping")
+    billable_item_group_field = fields.Char(string="Field for grouping", tracking=True)
     billable_item_detail_desc = fields.Char(
         string="Template for invoice lines",
         translate=True,
+        tracking=True,
     )
-    billable_item_domain = fields.Char(string="Pre-filter on billable items")
+    billable_item_domain = fields.Char(
+        string="Pre-filter on billable items",
+        help="Domain applied to billable items before selection. Use the standard domain editor.",
+        tracking=True,
+    )
 
     supports_mass_billing = fields.Boolean(
         string="Supports massive billing",
@@ -54,106 +74,118 @@ class ProductCategory(models.Model):
     )
 
     # Auxiliary fields (definitions only, labels are computed)
-    aux_01_char_field = fields.Char(string="Aux. field of type char #1")
+    aux_01_char_field = fields.Char(string="Aux. field of type char #1", tracking=True)
     aux_01_char_label = fields.Char(
         string="Label of the aux. field of type char #1",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_01_int_field = fields.Char(string="Aux. field of type integer #1")
+    aux_01_int_field = fields.Char(string="Aux. field of type integer #1", tracking=True)
     aux_01_int_label = fields.Char(
         string="Label of the aux. field of type integer #1",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_01_float_field = fields.Char(string="Aux. field of type float #1")
+    aux_01_float_field = fields.Char(string="Aux. field of type float #1", tracking=True)
     aux_01_float_label = fields.Char(
         string="Label of the aux. field of type float #1",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_01_bool_field = fields.Char(string="Aux. field of type boolean #1")
+    aux_01_bool_field = fields.Char(string="Aux. field of type boolean #1", tracking=True)
     aux_01_bool_label = fields.Char(
         string="Label of the aux. field of type boolean #1",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
 
-    aux_02_char_field = fields.Char(string="Aux. field of type char #2")
+    aux_02_char_field = fields.Char(string="Aux. field of type char #2", tracking=True)
     aux_02_char_label = fields.Char(
         string="Label of the aux. field of type char #2",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_02_int_field = fields.Char(string="Aux. field of type integer #2")
+    aux_02_int_field = fields.Char(string="Aux. field of type integer #2", tracking=True)
     aux_02_int_label = fields.Char(
         string="Label of the aux. field of type integer #2",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_02_float_field = fields.Char(string="Aux. field of type float #2")
+    aux_02_float_field = fields.Char(string="Aux. field of type float #2", tracking=True)
     aux_02_float_label = fields.Char(
         string="Label of the aux. field of type float #2",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_02_bool_field = fields.Char(string="Aux. field of type boolean #2")
+    aux_02_bool_field = fields.Char(string="Aux. field of type boolean #2", tracking=True)
     aux_02_bool_label = fields.Char(
         string="Label of the aux. field of type boolean #2",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
 
-    aux_03_char_field = fields.Char(string="Aux. field of type char #3")
+    aux_03_char_field = fields.Char(string="Aux. field of type char #3", tracking=True)
     aux_03_char_label = fields.Char(
         string="Label of the aux. field of type char #3",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_03_int_field = fields.Char(string="Aux. field of type integer #3")
+    aux_03_int_field = fields.Char(string="Aux. field of type integer #3", tracking=True)
     aux_03_int_label = fields.Char(
         string="Label of the aux. field of type integer #3",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_03_float_field = fields.Char(string="Aux. field of type float #3")
+    aux_03_float_field = fields.Char(string="Aux. field of type float #3", tracking=True)
     aux_03_float_label = fields.Char(
         string="Label of the aux. field of type float #3",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
-    aux_03_bool_field = fields.Char(string="Aux. field of type boolean #3")
+    aux_03_bool_field = fields.Char(string="Aux. field of type boolean #3", tracking=True)
     aux_03_bool_label = fields.Char(
         string="Label of the aux. field of type boolean #3",
         compute="_compute_aux_labels",
         store=True,
         readonly=False,
         translate=True,
+        tracking=True,
     )
 
-    aux_desc = fields.Char(string="Wildcard Template", translate=True)
+    aux_desc = fields.Char(string="Wildcard Template", translate=True, tracking=True)
 
     _sql_constraints = [
         (
@@ -167,6 +199,18 @@ class ProductCategory(models.Model):
     # Helpers
     # -------------------------------------------------------------------------
 
+    @api.model
+    def _get_billable_item_model_domain(self):
+        """Models that have a Many2one to res.partner (eligible for billable items)."""
+        models = self.env["common.metadata"].get_models_with_many2one(
+            "res.partner",
+            many2one_name="",  # any Many2one to res.partner
+            include_model=True,
+            exclude_transient=True,
+        )
+        ids = models.ids
+        return [("id", "in", ids)] if ids else [("id", "=", 0)]
+
     def _get_field_label(self, model_name, field_name):
         if not model_name or not field_name:
             return False
@@ -176,8 +220,9 @@ class ProductCategory(models.Model):
     def _sanitize_vals(self, vals):
         if vals.get("billable_item_model_id") is False:
             reset_fields = [
-                "billable_item_quantity_field",
+                "billable_item_quantity_field_id",
                 "billable_item_quantity_label",
+                "billable_item_quantity_ratio",
                 "billable_item_group_field",
                 "billable_item_detail_desc",
                 "billable_item_domain",
@@ -214,27 +259,104 @@ class ProductCategory(models.Model):
     # Computes
     # -------------------------------------------------------------------------
 
-    @api.depends_context("uid")
-    def _compute_allowed_billable_item_model_ids(self):
-        model_ids = (
-            self.env["common.metadata"]
-            .get_models_with_many2one(
-                "res.partner",
-                many2one_name="partner_id",
-                include_model=True,
-            )
-            .ids
-        )
-        allowed = self.env["ir.model"].browse(model_ids)
-        for record in self:
-            record.allowed_billable_item_model_ids = allowed
+    @api.onchange("billable_item_model_id", "billable_item_quantity_field_id")
+    def _onchange_billable_item_quantity_field_id(self):
+        """Set label from field metadata; clear field if model changed."""
+        if self.billable_item_quantity_field_id:
+            if (
+                self.billable_item_model_id
+                and self.billable_item_quantity_field_id.model_id
+                != self.billable_item_model_id
+            ):
+                self.billable_item_quantity_field_id = False
+                self.billable_item_quantity_label = False
+            else:
+                self.billable_item_quantity_label = (
+                    self.billable_item_quantity_field_id.field_description or ""
+                )
+        else:
+            self.billable_item_quantity_label = False
 
-    @api.depends("billable_item_model_id", "billable_item_quantity_field")
-    def _compute_billable_item_quantity_label(self):
+    def _humanize_template_error(self, err_msg):
+        """Convert technical Jinja2/AttributeError to a user-friendly message."""
+        # "'...' object has no attribute 'xxx'" -> attribute 'xxx' does not exist
+        match = re.search(r"has no attribute ['\"]([^'\"]+)['\"]", str(err_msg))
+        if match:
+            attr = match.group(1)
+            model_name = (
+                self.billable_item_model_id.name
+                if self.billable_item_model_id
+                else "billable_item"
+            )
+            return self.env._(
+                "The attribute '%(attr)s' does not exist in the billable item model (%(model)s).",
+                attr=attr,
+                model=model_name,
+            )
+        # "UndefinedError: 'xxx' is undefined"
+        match = re.search(r"['\"]([^'\"]+)['\"] (?:is )?undefined", str(err_msg), re.I)
+        if match:
+            return self.env._(
+                "The variable or attribute '%s' is not defined.", match.group(1)
+            )
+        return str(err_msg)
+
+    def _validate_jinja2_template(self, template_str, lang_code=None):
+        """Validate Jinja2 template. Returns (True, None) or (False, error_msg).
+        Uses StrictUndefined to catch non-existent attributes (e.g. billable_item.asx).
+        """
+        if not template_str or not template_str.strip():
+            return True, None
+        env = Environment(undefined=StrictUndefined)
+        try:
+            template = env.from_string(template_str)
+        except TemplateError as err:
+            return False, self._humanize_template_error(err)
+        # Try render with mock billable_item
+        try:
+            if self.billable_item_model_id:
+                mock = self.env[self.billable_item_model_id.model].new({})
+            else:
+                mock = type(
+                    "Mock",
+                    (),
+                    {"id": 0, "name": "", "display_name": "", "__str__": lambda s: ""},
+                )()
+            template.render(billable_item=mock)
+        except TemplateError as err:
+            return False, self._humanize_template_error(err)
+        except Exception as err:
+            return False, self._humanize_template_error(err)
+        return True, None
+
+    @api.onchange("billable_item_detail_desc")
+    def _onchange_billable_item_detail_desc(self):
+        """Validate Jinja2 template on change. Checks current language value."""
+        if not self.billable_item_detail_desc:
+            return
+        ok, err = self._validate_jinja2_template(self.billable_item_detail_desc)
+        if not ok:
+            return {
+                "warning": {
+                    "title": self.env._("Invalid template"),
+                    "message": self.env._("Template error: %s", err),
+                }
+            }
+
+    def _sync_billable_item_quantity_label_translations(self):
+        """Copy translations from ir.model.fields.field_description to label."""
         for record in self:
-            record.billable_item_quantity_label = record._get_field_label(
-                record.billable_item_model_id.model,
-                record.billable_item_quantity_field,
+            if not record.billable_item_quantity_field_id:
+                continue
+            field = record.billable_item_quantity_field_id
+            desc_field = field._fields.get("field_description")
+            if not desc_field or not desc_field.translate:
+                continue
+            translations = desc_field._get_stored_translations(field)
+            if not translations:
+                continue
+            record.update_field_translations(
+                "billable_item_quantity_label", translations
             )
 
     @api.depends("billable_item_model_id")
@@ -308,15 +430,58 @@ class ProductCategory(models.Model):
             if self.search_count([("category_code", "=", record.category_code)]) > 1:
                 raise ValidationError(record.env._("Repeated category code."))
 
+    @api.constrains("billable_item_detail_desc")
+    def _check_billable_item_detail_desc_template(self):
+        """Validate Jinja2 template in all languages before save."""
+        for record in self:
+            if not record.billable_item_detail_desc:
+                continue
+            field = record._fields["billable_item_detail_desc"]
+            translations = field._get_stored_translations(record)
+            to_validate = []
+            if translations and isinstance(translations, dict):
+                for lang_code, value in translations.items():
+                    if value and isinstance(value, str):
+                        to_validate.append((lang_code, value))
+            if not to_validate:
+                to_validate = [("", record.billable_item_detail_desc)]
+            for lang_code, value in to_validate:
+                if not value or not value.strip():
+                    continue
+                ok, err = record._validate_jinja2_template(value, lang_code)
+                if not ok:
+                    lang_label = next(
+                        (
+                            name
+                            for code, name in self.env["res.lang"].get_installed()
+                            if code == lang_code or f"_{code}" == lang_code
+                        ),
+                        lang_code or self.env.lang,
+                    )
+                    raise ValidationError(
+                        record.env._(
+                            "Template for invoice lines [%(lang)s]: %(err)s",
+                            lang=lang_label,
+                            err=err,
+                        )
+                    )
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             self._sanitize_vals(vals)
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        for record in records.filtered("billable_item_quantity_field_id"):
+            record._sync_billable_item_quantity_label_translations()
+        return records
 
     def write(self, vals):
         self._sanitize_vals(vals)
-        return super().write(vals)
+        has_qty_field = bool(vals.get("billable_item_quantity_field_id"))
+        result = super().write(vals)
+        if has_qty_field:
+            self._sync_billable_item_quantity_label_translations()
+        return result
 
     def copy(self, default=None):
         default = dict(default or {})

@@ -33,3 +33,10 @@ class TestAccountBillableItem(TransactionCase):
         self.assertFalse(
             self.Billable.inherits_from_account_billable_item("non.existent.model")
         )
+
+    def test_inherits_from_account_billable_item_true_for_billable_test_model(self):
+        self.assertTrue(
+            self.Billable.inherits_from_account_billable_item(
+                "base_invoicing.billable_item_test"
+            )
+        )

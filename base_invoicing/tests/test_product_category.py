@@ -31,19 +31,30 @@ class TestProductCategory(TransactionCase):
             c1.unlink()
 
     def test_sanitize_vals_when_model_unset(self):
-        partner_model = self.IrModel.search([("model", "=", "res.partner")], limit=1)
+        IrModelFields = self.env["ir.model.fields"]
+        billable_model = self.IrModel.search(
+            [("model", "=", "base_invoicing.billable_item_test")], limit=1
+        )
+        qty_field = IrModelFields.search(
+            [
+                ("model_id", "=", billable_model.id),
+                ("name", "=", "quantity"),
+                ("ttype", "=", "float"),
+            ],
+            limit=1,
+        )
         c1 = self.Category.create(
             {
                 "name": "C1",
-                "billable_item_model_id": partner_model.id,
-                "billable_item_quantity_field": "id",
+                "billable_item_model_id": billable_model.id,
+                "billable_item_quantity_field_id": qty_field.id,
                 "aux_01_char_field": "name",
             }
         )
         self.assertTrue(c1.billable_item_model_id)
 
         c1.write({"billable_item_model_id": False})
-        self.assertFalse(c1.billable_item_quantity_field)
+        self.assertFalse(c1.billable_item_quantity_field_id)
         self.assertFalse(c1.aux_01_char_field)
 
     def test_display_name_short_context(self):

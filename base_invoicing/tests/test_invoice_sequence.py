@@ -38,6 +38,7 @@ class TestInvoicesetSequence(TransactionCase):
                 {
                     "description": "Test set",
                     "invoice_date": fields.Date.today(),
+                    "invoice_user_id": self.env.user.id,
                 }
             )
         )

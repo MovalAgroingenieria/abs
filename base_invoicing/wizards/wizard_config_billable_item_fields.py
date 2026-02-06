@@ -1,5 +1,5 @@
 # 2025 Moval Agroingeniería
-# License AGPL-3.0 or later (http://www.gnu/licenses/agpl.html)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from odoo import api, fields, models
 
@@ -10,6 +10,10 @@ class WizardConfigBillableItemFields(models.TransientModel):
 
     info_billable_item_model_id = fields.Char(
         string="Billable-items Model",
+        readonly=True,
+    )
+    info_billable_item_model_name = fields.Char(
+        string="Billable model technical name",
         readonly=True,
     )
     info_billable_item_quantity_field = fields.Char(
@@ -50,6 +54,7 @@ class WizardConfigBillableItemFields(models.TransientModel):
                 "info_billable_item_model_id": (
                     f"{model.model} ({model.name})" if model else False
                 ),
+                "info_billable_item_model_name": model.model if model else False,
                 "info_billable_item_quantity_field": (
                     f"{quantity_field} ({productlink.billable_item_quantity_label})"
                     if quantity_field

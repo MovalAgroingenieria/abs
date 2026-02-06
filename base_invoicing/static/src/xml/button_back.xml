@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
 
-    <t t-name="base_invoicing.ListView.Buttons" t-inherit="web.ListView.Buttons" t-inherit-mode="extension">
-        <xpath expr="//*[@t-if='props.showButtons']" position="before">
-            <button type="button" class="btn btn-primary ms-2" t-on-click="onClickToReturn">
+    <t t-name="base_invoicing.ListView.Buttons">
+        <div t-if="props.showButtons" class="o_list_buttons d-flex gap-1 d-empty-none align-items-baseline" role="toolbar" aria-label="Main actions">
+            <button type="button" class="btn btn-secondary me-2" t-on-click="onClickToReturn">
                 Return
             </button>
-        </xpath>
+            <t t-if="editedRecord">
+                <button type="button" class="btn btn-primary o_list_button_save" data-hotkey="s" t-on-click.stop="onClickSave">
+                    Save
+                </button>
+                <button type="button" class="btn btn-secondary o_list_button_discard" data-hotkey="j" t-on-click.stop="onClickDiscard" t-on-mousedown="onMouseDownDiscard">
+                    Discard
+                </button>
+            </t>
+        </div>
     </t>
 
 </templates>
