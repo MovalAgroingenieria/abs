@@ -38,6 +38,14 @@ class ProductTemplate(models.Model):
         readonly=True,
     )
 
+    @api.depends("name", "categ_id", "categ_id.name", "categ_id.supports_mass_billing")
+    def _compute_display_name(self):
+        super()._compute_display_name()
+        for record in self.filtered(
+            lambda r: r.categ_id and r.categ_id.supports_mass_billing
+        ):
+            record.display_name = f"[{record.categ_id.name}] {record.display_name}"
+
     @api.constrains("factor_quantity")
     def _check_factor_quantity_non_negative(self):
         for rec in self:

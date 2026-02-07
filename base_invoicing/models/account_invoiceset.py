@@ -130,6 +130,11 @@ class AccountInvoiceset(models.Model):
         string="Selectable items count",
         compute="_compute_selectable_item_count",
     )
+    productlink_summary = fields.Char(
+        string="Products (selected)",
+        compute="_compute_productlink_summary",
+        help="Summary of products with selected quantities for kanban display.",
+    )
     move_line_ids = fields.One2many(
         string="Invoice Lines",
         comodel_name="account.move.line",
@@ -261,6 +266,28 @@ class AccountInvoiceset(models.Model):
         mapped = {d["invoiceset_id"][0]: d["invoiceset_id_count"] for d in data}
         for record in self:
             record.number_of_invoice_lines = mapped.get(record.id, 0)
+
+    @api.depends(
+        "productlink_ids",
+        "productlink_ids.product_id",
+        "productlink_ids.selected_item_ids",
+        "productlink_ids.lst_price",
+        "productlink_ids.product_id.product_tmpl_id.name",
+    )
+    def _compute_productlink_summary(self):
+        for record in self:
+            parts = []
+            for pl in record.productlink_ids:
+                if not pl.product_id:
+                    continue
+                name = pl.product_id.product_tmpl_id.name or pl.product_id.display_name
+                qty = pl.number_of_selected_items or 0
+                price = pl.lst_price
+                if price and price != 0:
+                    parts.append(f"{name} ({qty} @ {price:.2f})")
+                else:
+                    parts.append(f"{name} ({qty})")
+            record.productlink_summary = ", ".join(parts) if parts else ""
 
     @api.depends("productlink_ids", "productlink_ids.selectable_item_ids")
     def _compute_selectable_item_count(self):

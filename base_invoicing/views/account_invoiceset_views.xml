@@ -348,6 +348,7 @@
                 <field name="number_of_invoices_cancelled" />
                 <field name="number_of_invoice_lines" />
                 <field name="selectable_item_count" />
+                <field name="productlink_summary" />
                 <field name="amount_total_invoices" />
                 <field name="amount_total_posted" />
                 <field name="company_currency_id" />
@@ -373,14 +374,16 @@
                                         />
                                     </span>
                                 </div>
-                                <div class="o_kanban_record_top_right">
-                                    <i class="fa fa-calendar-o" aria-label="Invoice Date" role="img" title="Invoice Date" />
-                                    <field name="invoice_date" />
-                                </div>
                             </div>
                             <div class="o_kanban_record_desc">
                                 <field name="description" />
                             </div>
+                            <t t-if="record.productlink_summary.raw_value">
+                                <div class="o_kanban_record_products small text-muted mb-1">
+                                    <i class="fa fa-cube" aria-hidden="true" title="Products"/>
+                                    <field name="productlink_summary" nolabel="1"/>
+                                </div>
+                            </t>
                             <div class="o_kanban_record_dates mb-2">
                                 <div class="d-flex justify-content-between small text-muted">
                                     <span><i class="fa fa-calendar" aria-hidden="true" title="Invoice and due date"/> <field name="invoice_date"/> · Due: <field name="invoice_date_due"/></span>
