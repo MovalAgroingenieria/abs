@@ -57,6 +57,6 @@ class TestMassInvoicingSettings(TransactionCase):
         self.env.company.mass_invoicing_seq_invoiceset_code_id = seq
 
         invoiceset = self._create_invoiceset()
-        # Aquí lo único que podemos afirmar sin conocer tu simple.model
-        # es que el código existe; si el default usa secuencia, compruébalo:
+        # Without knowing simple.model, we can only assert the code exists;
+        # if the default uses a sequence, verify it accordingly.
         self.assertTrue(invoiceset.alphanum_code)
