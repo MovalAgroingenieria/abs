@@ -32,6 +32,7 @@ class AccountInvoiceset(models.Model):
 
     # simple.model v18 uses these attribute names (no leading underscore)
     set_num_code = False
+    sequence_for_codes = "base_invoicing.mass_invoicing_seq_invoiceset_code_id"
     size_name = 20
     minlength = 0
     maxlength = 20
@@ -347,6 +348,8 @@ class AccountInvoiceset(models.Model):
                 seq = company.mass_invoicing_seq_invoiceset_code_id
                 if seq and not seq.exists():
                     seq = self.env["ir.sequence"]
+                if not seq and self.sequence_for_codes:
+                    seq = self._get_sequence(self.sequence_for_codes)
                 if not seq:
                     seq = self.env.ref(
                         "base_invoicing.seq_invoiceset_code", raise_if_not_found=False

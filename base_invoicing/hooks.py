@@ -11,12 +11,26 @@ def post_init_hook(env):
     """
     env = api.Environment(env.cr, SUPERUSER_ID, dict(env.context or {}))
 
+    # Mark account.invoiceset as supporting comment templates (base_comment_template)
+    ir_model = env["ir.model"].sudo()
+    for model_name in ("account.invoiceset", "account.move"):
+        model = ir_model.search([("model", "=", model_name)], limit=1)
+        if model and not model.is_comment_template:
+            model.is_comment_template = True
+
     params = env["ir.config_parameter"].sudo()
-    params.set_param(
-        "base_invoicing.mass_invoicing_seq_invoiceset_code_id",
-        env.ref("base_invoicing.seq_invoiceset_code").id,
-    )
+    seq = env.ref("base_invoicing.seq_invoiceset_code", raise_if_not_found=False)
+    if seq:
+        params.set_param(
+            "base_invoicing.mass_invoicing_seq_invoiceset_code_id", seq.id
+        )
     params.set_param("base_invoicing.mass_invoicing_run_background", True)
+
+    if seq:
+        companies = env["res.company"].sudo().search(
+            [("mass_invoicing_seq_invoiceset_code_id", "=", False)]
+        )
+        companies.write({"mass_invoicing_seq_invoiceset_code_id": seq.id})
 
     # Legacy behavior: ensure at least one fee per partner.
     # Create fee records only for partners that do not have any.

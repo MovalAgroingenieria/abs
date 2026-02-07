@@ -262,6 +262,20 @@ class ProductCategory(models.Model):
                 }
             }
 
+    @api.onchange("aux_desc")
+    def _onchange_aux_desc(self):
+        """Validate Jinja2 template for selection lines on change."""
+        if not self.aux_desc:
+            return
+        ok, err = self._validate_jinja2_template(self.aux_desc)
+        if not ok:
+            return {
+                "warning": {
+                    "title": self.env._("Invalid template"),
+                    "message": self.env._("Template error: %s", err),
+                }
+            }
+
     def _sync_billable_item_quantity_label_translations(self):
         """Copy translations from ir.model.fields.field_description to label."""
         for record in self:
@@ -406,6 +420,42 @@ class ProductCategory(models.Model):
                     raise ValidationError(
                         record.env._(
                             "Template for invoice lines [%(lang)s]: %(err)s",
+                            lang=lang_label,
+                            err=err,
+                        )
+                    )
+
+    @api.constrains("aux_desc")
+    def _check_aux_desc_template(self):
+        """Validate Jinja2 aux_desc template in all languages before save."""
+        for record in self:
+            if not record.aux_desc:
+                continue
+            field = record._fields["aux_desc"]
+            translations = field._get_stored_translations(record)
+            to_validate = []
+            if translations and isinstance(translations, dict):
+                for lang_code, value in translations.items():
+                    if value and isinstance(value, str):
+                        to_validate.append((lang_code, value))
+            if not to_validate:
+                to_validate = [("", record.aux_desc)]
+            for lang_code, value in to_validate:
+                if not value or not value.strip():
+                    continue
+                ok, err = record._validate_jinja2_template(value, lang_code)
+                if not ok:
+                    lang_label = next(
+                        (
+                            name
+                            for code, name in self.env["res.lang"].get_installed()
+                            if code == lang_code or f"_{code}" == lang_code
+                        ),
+                        lang_code or self.env.lang,
+                    )
+                    raise ValidationError(
+                        record.env._(
+                            "Template for selection lines [%(lang)s]: %(err)s",
                             lang=lang_label,
                             err=err,
                         )

@@ -23,7 +23,6 @@
         "data/ir_sequence_data.xml",
         "data/product_category_data.xml",
         "data/base_invoicing_cron.xml",
-        "wizards/wizard_select_field_views.xml",
         "wizards/wizard_config_billable_item_fields_views.xml",
         "wizards/wizard_confirm_productlink_action_views.xml",
         "views/base_invoicing_menus.xml",
