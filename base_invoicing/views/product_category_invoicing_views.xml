@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- List for aux field lines (inline in product.category form) -->
+    <!-- List for aux field lines (inline in product.category form). Persistent in DB. -->
     <record id="product_category_aux_field_line_view_tree" model="ir.ui.view">
         <field name="name">product.category.aux.field.line.list</field>
         <field name="model">product.category.aux.field.line</field>
         <field name="arch" type="xml">
-            <list editable="bottom" create="1" delete="1">
+            <list editable="bottom" create="1" delete="1" string="Auxiliary columns" class="o_base_invoicing_aux_field_list">
                 <field name="sequence" widget="handle"/>
                 <field name="billable_model_id" column_invisible="1"/>
-                <field name="field_id" options="{'no_create': True}"/>
-                <field name="custom_label" placeholder="Label (optional)"/>
+                <field name="field_id" string="Field" options="{'no_create': True}"/>
+                <field name="custom_label" string="Column label" placeholder="Leave empty to use field name"/>
             </list>
         </field>
     </record>
@@ -173,141 +173,68 @@
                         <field name="parent_id" class="oe_inline"/>
                     </group>
 
-                    <notebook name="slave_data_notebook" colspan="4">
-                        <page name="page_calculation_config" string="Invoice Sets: Calculation Settings">
-                            <group name="group_calculation_config">
+                    <notebook name="slave_data_notebook" colspan="2">
+                        <page name="page_calculation_config" string="Calculation">
+                            <group name="group_billable_model" string="Billable model"
+                                help="Model whose records are billable. Must have a Many2one to res.partner.">
                                 <field
                                     name="billable_item_model_id"
                                     options="{'no_create': True}"
                                     modifiers="{'readonly': [['category_code', '&gt;', 1]]}"
                                 />
-                                <div class="text-muted mb-4" colspan="2">
-                                    Model whose records are billable. Must have a Many2one
-                                    to res.partner. For res.partner, the record id is used.
-                                </div>
-
-                                <span name="billable_item_quantity_group_label" class="o_form_label o_td_label">
-                                    Quantity
-                                </span>
-                                <div
-                                    name="div_billable_item_quantity_group"
-                                    class="o_address_format"
-                                    style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;"
-                                >
-                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                        <label for="billable_item_quantity_field_id" string="Field" class="o_form_label mb-0" style="min-width: 50px;"/>
-                                        <field name="billable_item_quantity_field_id" style="min-width: 180px;"
-                                               options="{'no_create': True}"/>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                        <label for="billable_item_quantity_label" string="Label" class="o_form_label mb-0" style="min-width: 50px;"/>
-                                        <field name="billable_item_quantity_label" style="min-width: 120px;"/>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                        <label for="billable_item_quantity_ratio" string="Ratio" class="o_form_label mb-0" style="min-width: 50px;"/>
-                                        <field name="billable_item_quantity_ratio" style="max-width: 80px;"/>
-                                    </div>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    Integer or float field containing the billable amount. If not set, the amount is 1.
-                                    Label can be translated. Ratio multiplies the quantity (e.g. 1.5 = 50% more).
-                                </div>
-
-                                <span
-                                    name="billable_item_group_field_label"
-                                    class="o_form_label o_td_label"
-                                    modifiers="{'invisible': [['category_code', '=', 1]]}"
-                                >
-                                    Field for grouping
-                                </span>
-                                <div
-                                    name="div_billable_item_group_field"
-                                    class="o_address_format"
-                                    style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;"
-                                    modifiers="{'invisible': [['category_code', '=', 1]]}"
-                                >
-                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                        <label for="billable_item_group_field_id" string="Field" class="o_form_label mb-0" style="min-width: 50px;"/>
-                                        <field name="billable_item_group_field_id" style="min-width: 180px;"
-                                               options="{'no_create': True}"/>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                        <label for="billable_item_group_label" string="Label" class="o_form_label mb-0" style="min-width: 50px;"/>
-                                        <field name="billable_item_group_label" style="min-width: 120px;"/>
-                                    </div>
-                                </div>
-                                <div
-                                    class="text-muted mb-4"
+                            </group>
+                            <group name="group_quantity" string="Quantity"
+                                help="Field for billable amount. Ratio multiplies quantity (e.g. 1.5 = 50% more).">
+                                <field
+                                    name="billable_item_quantity_field_id"
+                                    options="{'no_create': True}"
+                                />
+                                <field name="billable_item_quantity_label"/>
+                                <field name="billable_item_quantity_ratio"/>
+                            </group>
+                            <group name="group_grouping" string="Grouping"
+                                modifiers="{'invisible': [['category_code', '=', 1]]}"
+                                help="Extra grouping criterion when you need one invoice per customer plus another split.">
+                                <field
+                                    name="billable_item_group_field_id"
+                                    options="{'no_create': True}"
+                                />
+                                <field name="billable_item_group_label" colspan="2"/>
+                            </group>
+                            <group name="group_templates_domain" string="Templates and filters"
+                                help="Jinja2 templates use 'billable_item' as variable. Domain filters records before selection.">
+                                <field name="billable_item_detail_desc" colspan="2" placeholder="e.g. {{ billable_item.name }}"/>
+                                <field name="billable_item_model_name" invisible="1"/>
+                                <field
+                                    name="billable_item_domain"
+                                    widget="domain"
                                     colspan="2"
-                                    modifiers="{'invisible': [['category_code', '=', 1]]}"
-                                >
-                                    If you need one invoice per customer and an additional grouping criterion,
-                                    set the extra grouping field here.
-                                </div>
-
-                                <span name="billable_item_detail_desc_label" class="o_form_label o_td_label">
-                                    Template for invoice lines
-                                </span>
-                                <div
-                                    name="div_billable_item_detail_desc"
-                                    class="o_address_format"
-                                    style="display: flex; gap: 4px;"
-                                >
-                                    <field name="billable_item_detail_desc"/>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    Jinja2 template for the invoice line description. Use "billable_item" as the variable.
-                                    The '|' character will be replaced by a new line.
-                                </div>
-
-                                <span name="billable_item_domain_label" class="o_form_label o_td_label">
-                                    Pre-filter Condition
-                                </span>
-                                <div
-                                    name="div_billable_item_domain"
-                                    class="o_address_format"
-                                    style="display: flex; gap: 4px;"
-                                >
-                                    <field name="billable_item_model_name" invisible="1"/>
-                                    <field name="billable_item_domain"
-                                           widget="domain"
-                                           nolabel="1"
-                                           options="{'model': 'billable_item_model_name', 'foldable': True}"/>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    Domain applied to billable items before selection. You can add conditions
-                                    on the model fields and see how many records match.
-                                </div>
+                                    options="{'model': 'billable_item_model_name', 'foldable': True}"
+                                />
                             </group>
                         </page>
 
                         <page
                             name="page_selection_config"
-                            string="Invoice Sets: Selection Settings"
+                            string="Selection columns"
                             modifiers="{'invisible': [['billable_item_model_id', '=', false]]}"
                         >
-                            <group name="group_selection_config">
-                                <span class="o_form_label o_td_label">Auxiliary columns for selectable items</span>
-                                <div colspan="2" class="o_td_label">
-                                    <field
-                                        name="aux_field_ids"
-                                        nolabel="1"
-                                        context="{'default_category_id': id}"
-                                    />
-                                </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    Add fields from the billable items model to show as columns in the selectable items list. Use sequence to reorder.
-                                </div>
-
-                                <div class="container" colspan="2"><div class="row mt-2 mb-2"><div class="col text-center"><h4 class="text-decoration-underline">ADDITIONAL FIELDS</h4></div></div></div>
-                                <span name="aux_desc_label" class="o_form_label o_td_label">Template for selection lines</span>
-                                <div name="div_aux_desc" class="o_address_format" style="display: flex; gap: 4px;">
-                                    <field name="aux_desc"/>
-                                </div>
-                                <div class="text-muted mb-4" colspan="2">
-                                    Jinja2 template for an auxiliary description in the selectable items list.
-                                    Use "billable_item" as the variable. The '|' character will be replaced by a new line.
-                                </div>
+                            <group name="group_aux_columns" string="Auxiliary columns for selectable items"
+                                help="Add fields from the billable model to display as columns. Drag to reorder. Saved in database.">
+                                <field
+                                    name="aux_field_ids"
+                                    nolabel="1"
+                                    colspan="2"
+                                    context="{'default_category_id': id}"
+                                />
+                            </group>
+                            <group name="group_aux_template" string="Selection line template"
+                                help="Jinja2 template for auxiliary description in the selectable items list. Use 'billable_item' as variable.">
+                                <field
+                                    name="aux_desc"
+                                    colspan="2"
+                                    placeholder="e.g. {{ billable_item.display_name }}"
+                                />
                             </group>
                         </page>
                     </notebook>

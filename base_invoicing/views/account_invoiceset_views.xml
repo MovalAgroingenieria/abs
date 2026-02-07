@@ -70,12 +70,12 @@
                             <field name="number_of_invoices_cancelled" string="Cancelled" widget="statinfo" />
                         </button>
                     </div>
-
-                    <widget
-                        name="web_ribbon"
+                    <field
+                        name="state"
+                        widget="web_ribbon"
                         title="IN PROGRESS"
                         bg_color="bg-warning"
-                        modifiers="{'invisible': [['state', '!=', 'calculating']]}"
+                        invisible="state != 'calculating'"
                     />
 
                     <div class="oe_title">
@@ -132,7 +132,7 @@
                             <div
                                 name="calculation_progress"
                                 class="text-center mb-4"
-                                modifiers="{'invisible': [['state', '!=', 'calculating']]}"
+                                invisible="state != 'calculating'"
                             >
                                 <div style="display: inline-block;">
                                     <field name="invoice_generation_progress" widget="progressbar" />
@@ -424,7 +424,7 @@
                                     <span t-if="record.number_of_invoices_draft.raw_value and record.number_of_invoices_posted.raw_value" class="text-muted">·</span>
                                     <t t-if="record.number_of_invoices_posted.raw_value">
                                         <button name="action_show_invoices_posted" type="object" class="btn btn-sm btn-link p-0 text-success" title="Validated Invoices">
-                                            <i class="fa fa-check-circle" aria-hidden="true" title="Validated"/> <field name="number_of_invoices_posted"/> validated
+                                            <i class="fa fa-check-square-o" aria-hidden="true" title="Validated"/> <field name="number_of_invoices_posted"/> validated
                                         </button>
                                     </t>
                                     <span t-if="(record.number_of_invoices_draft.raw_value or record.number_of_invoices_posted.raw_value) and record.number_of_invoices_cancelled.raw_value" class="text-muted">·</span>
@@ -451,7 +451,7 @@
                             </t>
                             <div class="o_kanban_record_stats">
                                 <div class="o_kanban_stat o_kanban_stat_invoices">
-                                    <i class="fa fa-file-text-o" aria-label="Invoices" role="img" title="Invoices" />
+                                    <i class="fa fa-files-o" aria-label="Invoices" role="img" title="Invoices" />
                                     <strong><field name="number_of_invoices" /></strong>
                                     <span>invoices</span>
                                 </div>
@@ -469,7 +469,7 @@
                                     </div>
                                 </t>
                             </div>
-                            <t t-if="record.state.value == 'calculating' and record.invoice_generation_progress.raw_value">
+                            <t t-if="record.state.raw_value == 'calculating' and record.invoice_generation_progress.raw_value">
                                 <div class="o_kanban_progress_wrapper">
                                     <div class="progress o_kanban_progress">
                                         <div class="progress-bar progress-bar-striped progress-bar-animated"

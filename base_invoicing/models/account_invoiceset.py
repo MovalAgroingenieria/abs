@@ -89,6 +89,7 @@ class AccountInvoiceset(models.Model):
         default="draft",
         store=True,
         compute="_compute_state",
+        inverse="_inverse_state",
         index=True,
         tracking=True,
     )
@@ -217,6 +218,9 @@ class AccountInvoiceset(models.Model):
 
     @api.depends("all_productlinks_configured", "some_posted_invoice")
     def _compute_state(self):
+        """Auto-transition draft<->configured and calculated<->committed.
+        States 'calculating', 'calculated', 'committed' set by write() are preserved.
+        """
         for record in self:
             state = record.state
             if state == "draft" and record.all_productlinks_configured:
@@ -227,7 +231,13 @@ class AccountInvoiceset(models.Model):
                 state = "committed"
             elif state == "committed" and not record.some_posted_invoice:
                 state = "calculated"
+            # Do not overwrite 'calculating' or explicit calculated/committed
             record.state = state
+
+    def _inverse_state(self):
+        """Allow direct writes to state (e.g. calculating, calculated)."""
+        # ORM persists the value when inverse exists; no extra logic needed
+        pass
 
     @api.depends("move_ids")
     def _compute_number_of_invoices(self):
@@ -1349,6 +1359,11 @@ class AccountInvoicesetProductlink(models.Model):
         product = productlink.product_id
         category = product.product_tmpl_id.categ_id
         if not category or not category.billable_item_model_id:
+            _logger.info(
+                "[base_invoicing] populate_selectable_items: skip - no category or "
+                "billable_item_model_id (productlink_id=%s)",
+                productlink.id,
+            )
             return
 
         model_name = category.billable_item_model_id.sudo().model
@@ -1376,14 +1391,41 @@ class AccountInvoicesetProductlink(models.Model):
                 extra_domain = safe_eval(productlink.billable_item_domain, {})
                 if isinstance(extra_domain, list):
                     domain += extra_domain
+                    _logger.info(
+                        "[base_invoicing] populate_selectable_items: applied "
+                        "billable_item_domain from productlink/category: %s",
+                        productlink.billable_item_domain,
+                    )
             except (ValueError, SyntaxError) as err:
                 raise UserError(
                     self.env._("Invalid domain for billable items: %s") % str(err)
                 ) from err
+        else:
+            _logger.info(
+                "[base_invoicing] populate_selectable_items: no billable_item_domain "
+                "on category (productlink_id=%s, categ_id=%s)",
+                productlink.id,
+                category.id,
+            )
 
         if productlink.product_id.product_tmpl_id.link_with_billable_items:
             # Keep legacy behavior
             domain.append(("product_id", "=", productlink.product_id.id))
+            _logger.info(
+                "[base_invoicing] populate_selectable_items: added product_id=%s "
+                "(link_with_billable_items=True)",
+                productlink.product_id.id,
+            )
+
+        _logger.info(
+            "[base_invoicing] populate_selectable_items: model=%s domain=%s "
+            "productlink_id=%s categ_id=%s product=%s",
+            model_name,
+            domain,
+            productlink.id,
+            category.id,
+            productlink.product_id.display_name,
+        )
 
         fields_to_read = [partner_field]
         if quantity_field:
@@ -1397,6 +1439,14 @@ class AccountInvoicesetProductlink(models.Model):
         selectable_model.search([("productlink_id", "=", productlink.id)]).unlink()
 
         items = billable_model.search(domain)
+        count = len(items)
+        _logger.info(
+            "[base_invoicing] populate_selectable_items: search returned %d records "
+            "for model=%s (productlink_id=%s)",
+            count,
+            model_name,
+            productlink.id,
+        )
         if not items:
             return
 

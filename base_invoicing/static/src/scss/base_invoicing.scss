@@ -33,6 +33,16 @@
   }
 }
 
+/* Auxiliary columns list in product category form */
+.o_base_invoicing_aux_field_list {
+  .o_list_table {
+    min-width: 100%;
+  }
+  .o_data_row td {
+    vertical-align: middle;
+  }
+}
+
 /* Invoice Set Kanban - premium cards with state colors */
 .o_base_invoicing_kanban {
   .o_kanban_record {

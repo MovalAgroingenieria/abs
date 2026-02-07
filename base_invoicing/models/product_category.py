@@ -6,12 +6,16 @@
 # pylint: disable=translation-not-lazy
 # pylint: disable=translation-positional-used
 
+import logging
 import re
 
 from jinja2 import Environment, StrictUndefined, Template, TemplateError
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools.safe_eval import safe_eval
+
+_logger = logging.getLogger(__name__)
 
 
 class ProductCategory(models.Model):
@@ -155,6 +159,111 @@ class ProductCategory(models.Model):
                 else:
                     vals[field_name] = False
         return vals
+
+    def _get_domain_field_names(self, domain_str):
+        """Extract field names from domain string [('field','op',val), ...]."""
+        if not domain_str or not domain_str.strip():
+            return []
+        try:
+            domain = safe_eval(domain_str, {})
+            if not isinstance(domain, list):
+                return []
+            return list(dict.fromkeys(
+                item[0] for item in domain
+                if isinstance(item, (list, tuple)) and len(item) >= 1
+                and isinstance(item[0], str)
+            ))
+        except (ValueError, SyntaxError):
+            return []
+
+    def _ensure_billable_model_indexes(self, category):
+        """
+        Ensure indexes exist on the billable model table for fields used in
+        search, grouping and domain. Improves invoice generation performance.
+        """
+        if not category or not category.billable_item_model_id:
+            return
+        model_name = category.billable_item_model_id.sudo().model
+        try:
+            model = self.env[model_name]
+        except KeyError:
+            _logger.debug(
+                "[base_invoicing] Model %s not found, skipping index check",
+                model_name,
+            )
+            return
+        table = getattr(model, "_table", None)
+        if not table:
+            _logger.debug(
+                "[base_invoicing] Model %s has no table, skipping indexes",
+                model_name,
+            )
+            return
+        cr = self.env.cr
+        columns_to_index = set()
+
+        def add_col(fname):
+            if not fname:
+                return
+            field = model._fields.get(fname)
+            if field:
+                col = field.column
+                if isinstance(col, (list, tuple)):
+                    col = col[0] if col else field.name
+                columns_to_index.add(col or field.name)
+
+        # Partner field (critical for search/grouping)
+        partner_name = getattr(
+            model, "_billing_partner_id_name", None
+        ) or "partner_id"
+        add_col(partner_name)
+
+        # Quantity, group, domain and aux fields
+        if category.billable_item_quantity_field_id:
+            add_col(category.billable_item_quantity_field_id.name)
+        if category.billable_item_group_field_id:
+            add_col(category.billable_item_group_field_id.name)
+        for fname in self._get_domain_field_names(category.billable_item_domain):
+            add_col(fname)
+        for line in (category.aux_field_ids or []):
+            if line.field_id:
+                add_col(line.field_id.name)
+
+        for col in columns_to_index:
+            if not col:
+                continue
+            try:
+                cr.execute(
+                    "SELECT 1 FROM information_schema.columns "
+                    "WHERE table_schema='public' AND table_name=%s AND column_name=%s",
+                    (table, col),
+                )
+                if not cr.fetchone():
+                    continue
+                cr.execute(
+                    "SELECT 1 FROM pg_indexes WHERE schemaname='public' "
+                    "AND tablename=%s AND indexdef ILIKE %s",
+                    (table, f"%{col}%"),
+                )
+                if cr.fetchone():
+                    continue
+                idx_name = f"base_invoicing_idx_{table}_{col}"[:63]
+                cr.execute(
+                    f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" ("{col}")'
+                )
+                _logger.info(
+                    "[base_invoicing] Created index %s on %s(%s)",
+                    idx_name,
+                    table,
+                    col,
+                )
+            except Exception as err:
+                _logger.warning(
+                    "[base_invoicing] Could not create index on %s.%s: %s",
+                    table,
+                    col,
+                    err,
+                )
 
     # -------------------------------------------------------------------------
     # Computes
@@ -470,17 +579,29 @@ class ProductCategory(models.Model):
             record._sync_billable_item_quantity_label_translations()
         for record in records.filtered("billable_item_group_field_id"):
             record._sync_billable_item_group_label_translations()
+        for record in records.filtered("billable_item_model_id"):
+            record._ensure_billable_model_indexes(record)
         return records
 
     def write(self, vals):
         self._sanitize_vals(vals)
         has_qty_field = bool(vals.get("billable_item_quantity_field_id"))
         has_group_field = bool(vals.get("billable_item_group_field_id"))
+        billable_config = bool(
+            vals.get("billable_item_model_id")
+            or vals.get("billable_item_quantity_field_id")
+            or vals.get("billable_item_group_field_id")
+            or vals.get("billable_item_domain")
+            or vals.get("aux_field_ids")
+        )
         result = super().write(vals)
         if has_qty_field:
             self._sync_billable_item_quantity_label_translations()
         if has_group_field:
             self._sync_billable_item_group_label_translations()
+        if billable_config:
+            for record in self.filtered("billable_item_model_id"):
+                record._ensure_billable_model_indexes(record)
         return result
 
     def copy(self, default=None):
