@@ -17,11 +17,36 @@ class TestWizardConfigBillableItemFields(TransactionCase):
         cls.Productlink = cls.env["account.invoiceset.productlink"]
         cls.Wizard = cls.env["wizard.config.billable.item.fields"]
 
+        cls.IrModel = cls.env["ir.model"]
+        cls.IrModelFields = cls.env["ir.model.fields"]
+        res_partner_model = cls.IrModel.search(
+            [("model", "=", "res.partner")], limit=1
+        )
+        name_field = cls.IrModelFields.search(
+            [
+                ("model_id", "=", res_partner_model.id),
+                ("name", "=", "name"),
+                ("ttype", "=", "char"),
+            ],
+            limit=1,
+        )
+        id_field = cls.IrModelFields.search(
+            [
+                ("model_id", "=", res_partner_model.id),
+                ("name", "=", "id"),
+                ("ttype", "=", "integer"),
+            ],
+            limit=1,
+        )
+        cls.name_field = name_field
+        cls.id_field = id_field
         cls.categ = cls.Category.create(
             {
                 "name": "Cat Test",
                 "category_code": 10,
                 "aux_desc": "X",
+                "billable_item_model_id": res_partner_model.id,
+                "billable_item_group_field_id": name_field.id,
             }
         )
         tmpl = cls.ProductTemplate.create(
@@ -45,7 +70,6 @@ class TestWizardConfigBillableItemFields(TransactionCase):
             {
                 "invoiceset_id": cls.invoiceset.id,
                 "product_id": cls.product.id,
-                "billable_item_group_field": "name",
                 "billable_item_detail_desc": "Name={{ billable_item.name }}",
                 "billable_item_domain": "[]",
             }
@@ -55,41 +79,44 @@ class TestWizardConfigBillableItemFields(TransactionCase):
         wizard_env = self.Wizard.with_context(active_id=self.productlink.id)
         defaults = wizard_env.default_get(
             [
-                "billable_item_group_field",
+                "billable_item_group_field_id",
                 "billable_item_detail_desc",
                 "billable_item_domain",
                 "category_code",
                 "editable",
             ]
         )
-        self.assertEqual(defaults["billable_item_group_field"], "name")
+        self.assertEqual(defaults["billable_item_group_field_id"], self.name_field.id)
         self.assertEqual(defaults["billable_item_domain"], "[]")
         self.assertEqual(defaults["category_code"], 10)
         self.assertTrue(defaults["editable"])
 
-    def test_set_config_fields_writes_to_productlink(self):
+    def test_set_config_fields_writes_to_category(self):
         wizard = self.Wizard.with_context(active_id=self.productlink.id).create(
             {
-                "billable_item_group_field": "id",
+                "billable_item_group_field_id": self.id_field.id,
                 "billable_item_detail_desc": "ID={{ billable_item.id }}",
                 "billable_item_domain": "[('id','>',0)]",
             }
         )
         wizard.set_config_fields()
 
-        self.productlink.invalidate_recordset(
+        self.categ.invalidate_recordset(
             [
-                "billable_item_group_field",
+                "billable_item_group_field_id",
                 "billable_item_detail_desc",
                 "billable_item_domain",
             ]
         )
-        self.assertEqual(self.productlink.billable_item_group_field, "id")
+        self.productlink.invalidate_recordset(["billable_item_group_field"])
+        self.assertEqual(
+            self.productlink.billable_item_group_field, "id"
+        )
 
     def test_set_config_fields_no_active_id_closes(self):
         wizard = self.Wizard.create(
             {
-                "billable_item_group_field": "id",
+                "billable_item_group_field_id": self.id_field.id,
                 "billable_item_detail_desc": "ID={{ billable_item.id }}",
                 "billable_item_domain": "[]",
             }

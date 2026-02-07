@@ -2,7 +2,11 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 # pylint: disable=protected-access
 
+import html
+
 from jinja2 import Template, TemplateError
+from lxml import etree
+
 from odoo import api, fields, models
 
 
@@ -44,20 +48,27 @@ class AccountSelectableItem(models.Model):
         string="Additional Information",
     )
 
-    aux_01_char = fields.Char(string="Aux. field of type char #1")
-    aux_01_int = fields.Integer(string="Aux. field of type integer #1")
-    aux_01_float = fields.Float(digits=(32, 4), string="Aux. field of type float #1")
-    aux_01_bool = fields.Boolean(string="Aux. field of type boolean #1")
-
-    aux_02_char = fields.Char(string="Aux. field of type char #2")
-    aux_02_int = fields.Integer(string="Aux. field of type integer #2")
-    aux_02_float = fields.Float(digits=(32, 4), string="Aux. field of type float #2")
-    aux_02_bool = fields.Boolean(string="Aux. field of type boolean #2")
-
-    aux_03_char = fields.Char(string="Aux. field of type char #3")
-    aux_03_int = fields.Integer(string="Aux. field of type integer #3")
-    aux_03_float = fields.Float(digits=(32, 4), string="Aux. field of type float #3")
-    aux_03_bool = fields.Boolean(string="Aux. field of type boolean #3")
+    # Slots 1-20 for auxiliary fields (values stored as string for flexibility)
+    aux_01 = fields.Char(string="Aux 1")
+    aux_02 = fields.Char(string="Aux 2")
+    aux_03 = fields.Char(string="Aux 3")
+    aux_04 = fields.Char(string="Aux 4")
+    aux_05 = fields.Char(string="Aux 5")
+    aux_06 = fields.Char(string="Aux 6")
+    aux_07 = fields.Char(string="Aux 7")
+    aux_08 = fields.Char(string="Aux 8")
+    aux_09 = fields.Char(string="Aux 9")
+    aux_10 = fields.Char(string="Aux 10")
+    aux_11 = fields.Char(string="Aux 11")
+    aux_12 = fields.Char(string="Aux 12")
+    aux_13 = fields.Char(string="Aux 13")
+    aux_14 = fields.Char(string="Aux 14")
+    aux_15 = fields.Char(string="Aux 15")
+    aux_16 = fields.Char(string="Aux 16")
+    aux_17 = fields.Char(string="Aux 17")
+    aux_18 = fields.Char(string="Aux 18")
+    aux_19 = fields.Char(string="Aux 19")
+    aux_20 = fields.Char(string="Aux 20")
 
     # -------------------------------------------------------------------------
     # Computes
@@ -148,6 +159,108 @@ class AccountSelectableItem(models.Model):
         self._update_productlink_populated_for_links(
             self.mapped("productlink_id").exists()
         )
+
+    @api.model
+    def _get_view_cache_key(self, view_id=None, view_type="form", **options):
+        key = super()._get_view_cache_key(view_id, view_type, **options)
+        return key + (self.env.context.get("selectable_items_categ_id"),)
+
+    @api.model
+    def _get_view(self, view_id=None, view_type="form", **options):
+        arch, view = super()._get_view(view_id, view_type, **options)
+        if view_type not in ("list", "search"):
+            return arch, view
+
+        categ_id = self.env.context.get("selectable_items_categ_id")
+        category = self.env["product.category"].browse(categ_id) if categ_id else None
+        if not category or not category.exists():
+            # No category: hide rendered_aux_desc, no aux columns
+            self._inject_selectable_item_view_arch(arch, view_type, None)
+            return arch, view
+
+        self._inject_selectable_item_view_arch(arch, view_type, category)
+        return arch, view
+
+    def _inject_selectable_item_view_arch(self, arch, view_type, category):
+        """Inject aux columns and adjust visibility from category.aux_field_ids."""
+        if view_type == "list":
+            self._inject_list_aux_columns(arch, category)
+        else:
+            self._inject_search_aux_fields(arch, category)
+
+    def _inject_list_aux_columns(self, arch, category):
+        quantity_node = arch.find(".//field[@name='quantity']")
+        rendered_node = arch.find(".//field[@name='rendered_aux_desc']")
+        insert_after = quantity_node if quantity_node is not None else None
+        if rendered_node is not None:
+            if category and category.aux_desc:
+                rendered_node.set("string", self.env._("Additional Information"))
+            else:
+                rendered_node.set("column_invisible", "True")
+
+        if not category or not category.aux_field_ids:
+            return
+
+        # Inject aux field columns after quantity
+        for idx, line in enumerate(category.aux_field_ids.sorted("sequence")[:20], 1):
+            slot = f"aux_{idx:02d}"
+            label = (
+                line.custom_label
+                or (line.field_id.field_description if line.field_id else "")
+                or line.field_id.name
+                or slot
+            )
+            label_safe = html.escape(str(label), quote=True)
+            field_el = etree.Element("field", name=slot, string=label_safe)
+            if insert_after is not None:
+                insert_after.addnext(field_el)
+                insert_after = field_el
+            else:
+                # Prepend to first field
+                first = arch.find(".//field")
+                if first is not None:
+                    first.addprevious(field_el)
+
+    def _inject_search_aux_fields(self, arch, category):
+        if not category or not category.aux_field_ids:
+            return
+        search_node = arch.find(".")
+        if search_node is None:
+            return
+        field_group = arch.find(".//field[@name='partner_id']")
+        insert_after = field_group
+        for idx, line in enumerate(category.aux_field_ids.sorted("sequence")[:20], 1):
+            slot = f"aux_{idx:02d}"
+            label = (
+                line.custom_label
+                or (line.field_id.field_description if line.field_id else "")
+                or line.field_id.name
+                or slot
+            )
+            label_safe = html.escape(str(label), quote=True)
+            field_el = etree.Element("field", name=slot, string=label_safe)
+            if insert_after is not None:
+                insert_after.addnext(field_el)
+                insert_after = field_el
+
+        group_node = arch.find(".//group[@expand='0']")
+        if group_node is not None:
+            for idx, line in enumerate(category.aux_field_ids.sorted("sequence")[:20], 1):
+                slot = f"aux_{idx:02d}"
+                label = (
+                    line.custom_label
+                    or (line.field_id.field_description if line.field_id else "")
+                    or line.field_id.name
+                    or slot
+                )
+                label_safe = html.escape(str(label), quote=True)
+                filter_el = etree.Element(
+                    "filter",
+                    name=f"grouped_by_{slot}",
+                    string=label_safe,
+                    context=f"{{'group_by': '{slot}'}}",
+                )
+                group_node.append(filter_el)
 
     def _update_productlink_populated_for_links(self, productlinks):
         productlinks = productlinks.exists()

@@ -346,6 +346,8 @@ class AccountInvoiceset(models.Model):
                     vals.get("company_id") or self.env.company.id
                 )
                 seq = company.mass_invoicing_seq_invoiceset_code_id
+                if seq and not seq.exists():
+                    seq = self.env["ir.sequence"]
                 if not seq and self.sequence_for_codes:
                     seq = self._get_sequence(self.sequence_for_codes)
                 if seq:
@@ -437,6 +439,10 @@ class AccountInvoiceset(models.Model):
         self.ensure_one()
         tree_view = self.env.ref("base_invoicing.account_selectable_item_view_tree")
         search_view = self.env.ref("base_invoicing.account_selectable_item_view_search")
+        ctx = {"create": False}
+        first_pl = self.productlink_ids[:1]
+        if first_pl.categ_id:
+            ctx["selectable_items_categ_id"] = first_pl.categ_id.id
         return {
             "type": "ir.actions.act_window",
             "name": self.env._("Selectable Items"),
@@ -446,7 +452,7 @@ class AccountInvoiceset(models.Model):
             "search_view_id": (search_view.id, search_view.name),
             "target": "current",
             "domain": [("productlink_id.invoiceset_id", "=", self.id)],
-            "context": {"create": False},
+            "context": ctx,
         }
 
     def action_show_invoices_pending_validation(self):
@@ -1142,7 +1148,7 @@ class AccountInvoicesetProductlink(models.Model):
                 qty_field.name if qty_field else False
             )
 
-    @api.depends("product_id")
+    @api.depends("product_id", "product_id.product_tmpl_id.categ_id.billable_item_group_field_id")
     def _compute_billable_item_group_field(self):
         for record in self:
             category = (
@@ -1150,8 +1156,11 @@ class AccountInvoicesetProductlink(models.Model):
                 if record.product_id
                 else False
             )
+            group_field_id = (
+                category.billable_item_group_field_id if category else False
+            )
             record.billable_item_group_field = (
-                category.billable_item_group_field if category else False
+                group_field_id.name if group_field_id else False
             )
 
     @api.depends("product_id")
@@ -1212,6 +1221,8 @@ class AccountInvoicesetProductlink(models.Model):
             title_prefix = self.env._("Selected Items. Product:")
             domain.append(("selected", "=", True))
 
+        ctx = self._get_context_hide_fields(self.categ_id, self.invoiceset_id.state)
+        ctx["selectable_items_categ_id"] = self.categ_id.id
         return {
             "type": "ir.actions.act_window",
             "name": f"{title_prefix} {self.product_id.product_tmpl_id.name}",
@@ -1221,9 +1232,7 @@ class AccountInvoicesetProductlink(models.Model):
             "search_view_id": (search_view.id, search_view.name),
             "target": "current",
             "domain": domain,
-            "context": self._get_context_hide_fields(
-                self.categ_id, self.invoiceset_id.state
-            ),
+            "context": ctx,
         }
 
     @api.model
@@ -1235,19 +1244,6 @@ class AccountInvoicesetProductlink(models.Model):
             context["billable_item_quantity_label"] = (
                 category.billable_item_quantity_label
             )
-
-        for idx in (1, 2, 3):
-            for ttype in ("char", "int", "float", "bool"):
-                field_name = getattr(category, f"aux_0{idx}_{ttype}_field", False)
-                if not field_name:
-                    context[f"hide_aux_0{idx}_{ttype}"] = True
-                else:
-                    context[f"aux_0{idx}_{ttype}_label"] = getattr(
-                        category, f"aux_0{idx}_{ttype}_label", False
-                    )
-
-        if not category.aux_desc:
-            context["hide_rendered_aux_desc"] = True
         if current_state not in ("draft", "configured"):
             context["hide_selectors"] = True
         return context
@@ -1408,7 +1404,8 @@ class AccountInvoicesetProductlink(models.Model):
             }
 
             for dest, src in aux_map.items():
-                vals[dest] = row.get(src)
+                raw = row.get(src)
+                vals[dest] = self._aux_value_to_str(raw)
 
             create_vals.append(vals)
 
@@ -1416,15 +1413,23 @@ class AccountInvoicesetProductlink(models.Model):
             selectable_model.create(create_vals)
 
     @api.model
+    def _aux_value_to_str(self, value):
+        """Convert raw field value to string for aux Char slots."""
+        if value in (False, None):
+            return ""
+        if isinstance(value, (list, tuple)) and len(value) >= 2:
+            return str(value[1])  # many2one (id, name)
+        return str(value)
+
+    @api.model
     def _get_aux_fields_map(self, category):
         """Return mapping {dest_field_on_selectable: src_field_on_billable}."""
         mapping = {}
-        for idx in (1, 2, 3):
-            for ttype in ("char", "int", "float", "bool"):
-                src = getattr(category, f"aux_0{idx}_{ttype}_field", False)
-                if not src:
-                    continue
-                mapping[f"aux_0{idx}_{ttype}"] = src
+        for idx, line in enumerate(
+            category.aux_field_ids.sorted("sequence")[:20], start=1
+        ):
+            if line.field_id:
+                mapping[f"aux_{idx:02d}"] = line.field_id.name
         return mapping
 
     def update_populated(self):

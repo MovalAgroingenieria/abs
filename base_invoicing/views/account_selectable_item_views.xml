@@ -50,26 +50,10 @@
                     sum="Total"
                     invisible="context.get('hide_quantity', False)"
                 />
-
-                <field name="aux_01_char" invisible="context.get('hide_aux_01_char', False)" />
-                <field name="aux_01_int" invisible="context.get('hide_aux_01_int', False)" />
-                <field name="aux_01_float" invisible="context.get('hide_aux_01_float', False)" />
-                <field name="aux_01_bool" invisible="context.get('hide_aux_01_bool', False)" />
-
-                <field name="aux_02_char" invisible="context.get('hide_aux_02_char', False)" />
-                <field name="aux_02_int" invisible="context.get('hide_aux_02_int', False)" />
-                <field name="aux_02_float" invisible="context.get('hide_aux_02_float', False)" />
-                <field name="aux_02_bool" invisible="context.get('hide_aux_02_bool', False)" />
-
-                <field name="aux_03_char" invisible="context.get('hide_aux_03_char', False)" />
-                <field name="aux_03_int" invisible="context.get('hide_aux_03_int', False)" />
-                <field name="aux_03_float" invisible="context.get('hide_aux_03_float', False)" />
-                <field name="aux_03_bool" invisible="context.get('hide_aux_03_bool', False)" />
-
+                <!-- Aux columns injected by _get_view from category.aux_field_ids -->
                 <field
                     name="rendered_aux_desc"
                     string="Additional Information"
-                    invisible="context.get('hide_rendered_aux_desc', False)"
                 />
             </list>
         </field>
@@ -81,10 +65,7 @@
         <field name="arch" type="xml">
             <search string="Search items">
                 <field name="partner_id" string="Customer" />
-                <field name="aux_01_char" invisible="context.get('hide_aux_01_char', False)" />
-                <field name="aux_02_char" invisible="context.get('hide_aux_02_char', False)" />
-                <field name="aux_03_char" invisible="context.get('hide_aux_03_char', False)" />
-
+                <!-- Aux search fields injected by _get_view -->
                 <filter name="selected_yes" string="Selected: Yes" domain="[('selected', '=', True)]" />
                 <filter name="selected_no" string="Selected: No" domain="[('selected', '=', False)]" />
 
@@ -94,37 +75,7 @@
                         string="Customer"
                         context="{'group_by': 'partner_id'}"
                     />
-                    <filter
-                        name="grouped_by_aux_01_char"
-                        context="{'group_by': 'aux_01_char'}"
-                        invisible="context.get('hide_aux_01_char', False)"
-                    />
-                    <filter
-                        name="grouped_by_aux_02_char"
-                        context="{'group_by': 'aux_02_char'}"
-                        invisible="context.get('hide_aux_02_char', False)"
-                    />
-                    <filter
-                        name="grouped_by_aux_03_char"
-                        context="{'group_by': 'aux_03_char'}"
-                        invisible="context.get('hide_aux_03_char', False)"
-                    />
-                    <separator />
-                    <filter
-                        name="grouped_by_aux_01_bool"
-                        context="{'group_by': 'aux_01_bool'}"
-                        invisible="context.get('hide_aux_01_bool', False)"
-                    />
-                    <filter
-                        name="grouped_by_aux_02_bool"
-                        context="{'group_by': 'aux_02_bool'}"
-                        invisible="context.get('hide_aux_02_bool', False)"
-                    />
-                    <filter
-                        name="grouped_by_aux_03_bool"
-                        context="{'group_by': 'aux_03_bool'}"
-                        invisible="context.get('hide_aux_03_bool', False)"
-                    />
+                    <!-- Group-by filters for aux columns injected by _get_view -->
                 </group>
             </search>
         </field>

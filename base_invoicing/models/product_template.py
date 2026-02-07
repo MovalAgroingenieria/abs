@@ -138,5 +138,8 @@ class ProductTemplate(models.Model):
             "views": [(tree_view.id, "list")],
             "search_view_id": (search_view.id, search_view.name),
             "domain": [("productlink_id.product_id.product_tmpl_id", "=", self.id)],
-            "context": {"create": False},
+            "context": {
+                "create": False,
+                "selectable_items_categ_id": self.categ_id.id if self.categ_id else None,
+            },
         }

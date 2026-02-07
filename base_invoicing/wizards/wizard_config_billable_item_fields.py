@@ -21,7 +21,10 @@ class WizardConfigBillableItemFields(models.TransientModel):
         readonly=True,
     )
 
-    billable_item_group_field = fields.Char(string="Field for grouping")
+    billable_item_group_field_id = fields.Many2one(
+        comodel_name="ir.model.fields",
+        string="Field for grouping",
+    )
     billable_item_detail_desc = fields.Char(
         string="Template for invoice lines",
         translate=True,
@@ -60,7 +63,11 @@ class WizardConfigBillableItemFields(models.TransientModel):
                     if quantity_field
                     else False
                 ),
-                "billable_item_group_field": productlink.billable_item_group_field,
+                "billable_item_group_field_id": (
+                    productlink.categ_id.billable_item_group_field_id
+                    if productlink.categ_id
+                    else False
+                ),
                 "billable_item_detail_desc": productlink.billable_item_detail_desc,
                 "billable_item_domain": productlink.billable_item_domain,
                 "category_code": productlink.categ_id.category_code,
@@ -80,9 +87,9 @@ class WizardConfigBillableItemFields(models.TransientModel):
         if not productlink.exists():
             return {"type": "ir.actions.act_window_close"}
 
-        productlink.write(
+        productlink.categ_id.write(
             {
-                "billable_item_group_field": self.billable_item_group_field,
+                "billable_item_group_field_id": self.billable_item_group_field_id.id if self.billable_item_group_field_id else False,
                 "billable_item_detail_desc": self.billable_item_detail_desc,
                 "billable_item_domain": self.billable_item_domain,
             }

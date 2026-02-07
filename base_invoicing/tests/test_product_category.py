@@ -43,19 +43,33 @@ class TestProductCategory(TransactionCase):
             ],
             limit=1,
         )
+        group_field = IrModelFields.search(
+            [
+                ("model_id", "=", billable_model.id),
+                ("name", "=", "id"),
+                ("ttype", "=", "integer"),
+            ],
+            limit=1,
+        )
         c1 = self.Category.create(
             {
                 "name": "C1",
                 "billable_item_model_id": billable_model.id,
                 "billable_item_quantity_field_id": qty_field.id,
-                "aux_01_char_field": "name",
+                "billable_item_group_field_id": group_field.id,
+                "aux_field_ids": [
+                    (0, 0, {"field_id": qty_field.id}),
+                ],
             }
         )
         self.assertTrue(c1.billable_item_model_id)
+        self.assertTrue(c1.billable_item_group_field_id)
+        self.assertEqual(len(c1.aux_field_ids), 1)
 
         c1.write({"billable_item_model_id": False})
         self.assertFalse(c1.billable_item_quantity_field_id)
-        self.assertFalse(c1.aux_01_char_field)
+        self.assertFalse(c1.billable_item_group_field_id)
+        self.assertEqual(len(c1.aux_field_ids), 0)
 
     def test_display_name_short_context(self):
         c1 = self.Category.create({"name": "C1", "category_code": 2})

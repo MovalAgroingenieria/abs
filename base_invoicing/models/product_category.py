@@ -55,7 +55,18 @@ class ProductCategory(models.Model):
         tracking=True,
     )
 
-    billable_item_group_field = fields.Char(string="Field for grouping", tracking=True)
+    billable_item_group_field_id = fields.Many2one(
+        comodel_name="ir.model.fields",
+        string="Field for grouping",
+        domain="[('model_id', '=', billable_item_model_id), ('ttype', 'in', ('boolean', 'char', 'date', 'selection', 'many2one'))]",
+        ondelete="set null",
+        tracking=True,
+    )
+    billable_item_group_label = fields.Char(
+        string="Label of the grouping field",
+        translate=True,
+        tracking=True,
+    )
     billable_item_detail_desc = fields.Char(
         string="Template for invoice lines",
         translate=True,
@@ -86,116 +97,12 @@ class ProductCategory(models.Model):
         compute="_compute_selectable_item_count",
     )
 
-    # Auxiliary fields (definitions only, labels are computed)
-    aux_01_char_field = fields.Char(string="Aux. field of type char #1", tracking=True)
-    aux_01_char_label = fields.Char(
-        string="Label of the aux. field of type char #1",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_01_int_field = fields.Char(string="Aux. field of type integer #1", tracking=True)
-    aux_01_int_label = fields.Char(
-        string="Label of the aux. field of type integer #1",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_01_float_field = fields.Char(string="Aux. field of type float #1", tracking=True)
-    aux_01_float_label = fields.Char(
-        string="Label of the aux. field of type float #1",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_01_bool_field = fields.Char(string="Aux. field of type boolean #1", tracking=True)
-    aux_01_bool_label = fields.Char(
-        string="Label of the aux. field of type boolean #1",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-
-    aux_02_char_field = fields.Char(string="Aux. field of type char #2", tracking=True)
-    aux_02_char_label = fields.Char(
-        string="Label of the aux. field of type char #2",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_02_int_field = fields.Char(string="Aux. field of type integer #2", tracking=True)
-    aux_02_int_label = fields.Char(
-        string="Label of the aux. field of type integer #2",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_02_float_field = fields.Char(string="Aux. field of type float #2", tracking=True)
-    aux_02_float_label = fields.Char(
-        string="Label of the aux. field of type float #2",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_02_bool_field = fields.Char(string="Aux. field of type boolean #2", tracking=True)
-    aux_02_bool_label = fields.Char(
-        string="Label of the aux. field of type boolean #2",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-
-    aux_03_char_field = fields.Char(string="Aux. field of type char #3", tracking=True)
-    aux_03_char_label = fields.Char(
-        string="Label of the aux. field of type char #3",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_03_int_field = fields.Char(string="Aux. field of type integer #3", tracking=True)
-    aux_03_int_label = fields.Char(
-        string="Label of the aux. field of type integer #3",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_03_float_field = fields.Char(string="Aux. field of type float #3", tracking=True)
-    aux_03_float_label = fields.Char(
-        string="Label of the aux. field of type float #3",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
-    )
-    aux_03_bool_field = fields.Char(string="Aux. field of type boolean #3", tracking=True)
-    aux_03_bool_label = fields.Char(
-        string="Label of the aux. field of type boolean #3",
-        compute="_compute_aux_labels",
-        store=True,
-        readonly=False,
-        translate=True,
-        tracking=True,
+    # Auxiliary fields: list of ir.model.fields to show in selectable items
+    aux_field_ids = fields.One2many(
+        comodel_name="product.category.aux.field.line",
+        inverse_name="category_id",
+        string="Auxiliary fields",
+        copy=True,
     )
 
     aux_desc = fields.Char(string="Wildcard Template", translate=True, tracking=True)
@@ -236,41 +143,40 @@ class ProductCategory(models.Model):
                 "billable_item_quantity_field_id",
                 "billable_item_quantity_label",
                 "billable_item_quantity_ratio",
-                "billable_item_group_field",
+                "billable_item_group_field_id",
+                "billable_item_group_label",
                 "billable_item_detail_desc",
                 "billable_item_domain",
-                "aux_01_char_field",
-                "aux_01_char_label",
-                "aux_01_int_field",
-                "aux_01_int_label",
-                "aux_01_float_field",
-                "aux_01_float_label",
-                "aux_01_bool_field",
-                "aux_01_bool_label",
-                "aux_02_char_field",
-                "aux_02_char_label",
-                "aux_02_int_field",
-                "aux_02_int_label",
-                "aux_02_float_field",
-                "aux_02_float_label",
-                "aux_02_bool_field",
-                "aux_02_bool_label",
-                "aux_03_char_field",
-                "aux_03_char_label",
-                "aux_03_int_field",
-                "aux_03_int_label",
-                "aux_03_float_field",
-                "aux_03_float_label",
-                "aux_03_bool_field",
-                "aux_03_bool_label",
+                "aux_field_ids",
             ]
             for field_name in reset_fields:
-                vals[field_name] = False
+                if field_name == "aux_field_ids":
+                    vals[field_name] = [(5, 0, 0)]
+                else:
+                    vals[field_name] = False
         return vals
 
     # -------------------------------------------------------------------------
     # Computes
     # -------------------------------------------------------------------------
+
+    @api.onchange("billable_item_model_id", "billable_item_group_field_id")
+    def _onchange_billable_item_group_field_id(self):
+        """Set label from field metadata; clear field if model changed."""
+        if self.billable_item_group_field_id:
+            if (
+                self.billable_item_model_id
+                and self.billable_item_group_field_id.model_id
+                != self.billable_item_model_id
+            ):
+                self.billable_item_group_field_id = False
+                self.billable_item_group_label = False
+            else:
+                self.billable_item_group_label = (
+                    self.billable_item_group_field_id.field_description or ""
+                )
+        else:
+            self.billable_item_group_label = False
 
     @api.onchange("billable_item_model_id", "billable_item_quantity_field_id")
     def _onchange_billable_item_quantity_field_id(self):
@@ -372,6 +278,22 @@ class ProductCategory(models.Model):
                 "billable_item_quantity_label", translations
             )
 
+    def _sync_billable_item_group_label_translations(self):
+        """Copy translations from ir.model.fields.field_description to label."""
+        for record in self:
+            if not record.billable_item_group_field_id:
+                continue
+            field = record.billable_item_group_field_id
+            desc_field = field._fields.get("field_description")
+            if not desc_field or not desc_field.translate:
+                continue
+            translations = desc_field._get_stored_translations(field)
+            if not translations:
+                continue
+            record.update_field_translations(
+                "billable_item_group_label", translations
+            )
+
     @api.depends("billable_item_model_id")
     def _compute_supports_mass_billing(self):
         for record in self:
@@ -412,32 +334,6 @@ class ProductCategory(models.Model):
                     )
                 ]
             )
-
-    @api.depends(
-        "billable_item_model_id",
-        "aux_01_char_field",
-        "aux_01_int_field",
-        "aux_01_float_field",
-        "aux_01_bool_field",
-        "aux_02_char_field",
-        "aux_02_int_field",
-        "aux_02_float_field",
-        "aux_02_bool_field",
-        "aux_03_char_field",
-        "aux_03_int_field",
-        "aux_03_float_field",
-        "aux_03_bool_field",
-    )
-    def _compute_aux_labels(self):
-        for record in self:
-            model = record.billable_item_model_id.model
-            for idx in ("01", "02", "03"):
-                for ttype in ("char", "int", "float", "bool"):
-                    field_name = f"aux_{idx}_{ttype}_field"
-                    label_name = f"aux_{idx}_{ttype}_label"
-                    record[label_name] = record._get_field_label(
-                        model, record[field_name]
-                    )
 
     # -------------------------------------------------------------------------
     # Display (Odoo 18: avoid name_get)
@@ -522,14 +418,19 @@ class ProductCategory(models.Model):
         records = super().create(vals_list)
         for record in records.filtered("billable_item_quantity_field_id"):
             record._sync_billable_item_quantity_label_translations()
+        for record in records.filtered("billable_item_group_field_id"):
+            record._sync_billable_item_group_label_translations()
         return records
 
     def write(self, vals):
         self._sanitize_vals(vals)
         has_qty_field = bool(vals.get("billable_item_quantity_field_id"))
+        has_group_field = bool(vals.get("billable_item_group_field_id"))
         result = super().write(vals)
         if has_qty_field:
             self._sync_billable_item_quantity_label_translations()
+        if has_group_field:
+            self._sync_billable_item_group_label_translations()
         return result
 
     def copy(self, default=None):
@@ -601,33 +502,7 @@ class ProductCategory(models.Model):
                     self.id,
                 )
             ],
-            "context": {"create": False},
-        }
-
-    def action_select_billable_item_field(self):
-        self.ensure_one()
-        if not self.billable_item_model_id:
-            return {
-                "type": "ir.actions.client",
-                "tag": "display_notification",
-                "params": {
-                    "title": self.env._("Warning"),
-                    "message": self.env._(
-                        "It is mandatory to set the billable items model."
-                    ),
-                    "type": "warning",
-                    "sticky": False,
-                    "next": {"type": "ir.actions.act_window_close"},
-                },
-            }
-
-        return {
-            "type": "ir.actions.act_window",
-            "name": self.env._("Model: %s (%s)")
-            % (self.billable_item_model_id.model, self.billable_item_model_id.name),
-            "res_model": "wizard.select.field",
-            "view_mode": "form",
-            "target": "new",
+            "context": {"create": False, "selectable_items_categ_id": self.id},
         }
 
     # -------------------------------------------------------------------------

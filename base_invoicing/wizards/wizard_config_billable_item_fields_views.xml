@@ -31,13 +31,18 @@
                     <group modifiers="{'invisible': [['editable', '=', false]]}">
                         <separator />
                         <field
-                            name="billable_item_group_field"
+                            name="info_billable_item_model_name"
+                            invisible="1"
+                            modifiers="{}"
+                        />
+                        <field
+                            name="billable_item_group_field_id"
+                            options="{'no_create': True}"
                             modifiers="{
                                 'invisible': [['category_code', '=', 1]],
                                 'readonly': [['editable', '=', false]]
                             }"
                         />
-                        <field name="info_billable_item_model_name" invisible="1"/>
                         <field
                             name="billable_item_domain"
                             widget="domain"

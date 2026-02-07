@@ -5,7 +5,6 @@
         <record id="product_category_01" model="product.category">
             <field name="name">Partners</field>
             <field name="billable_item_domain">[]</field>
-            <field name="aux_03_int_field">number_of_invoices</field>
         </record>
     </data>
 
