@@ -200,19 +200,24 @@ class ProductCategory(models.Model):
             )
             return
         cr = self.env.cr
-        columns_to_index = set()
+        # (col_name, field) for type-aware index creation
+        to_index = []
 
         def add_col(fname):
             if not fname:
                 return
             field = model._fields.get(fname)
-            if field:
-                col = field.column
-                if isinstance(col, (list, tuple)):
-                    col = col[0] if col else field.name
-                columns_to_index.add(col or field.name)
+            if not field:
+                return
+            col = getattr(field, "column", None)
+            if col is None:
+                col = field.name
+            elif isinstance(col, (list, tuple)):
+                col = col[0] if col else field.name
+            col = col or field.name
+            to_index.append((col, field))
 
-        # Partner field (critical for search/grouping)
+        # Partner field (critical for search/grouping) - always index
         partner_name = getattr(
             model, "_billing_partner_id_name", None
         ) or "partner_id"
@@ -229,9 +234,11 @@ class ProductCategory(models.Model):
             if line.field_id:
                 add_col(line.field_id.name)
 
-        for col in columns_to_index:
-            if not col:
+        seen = set()
+        for col, field in to_index:
+            if not col or col in seen:
                 continue
+            seen.add(col)
             try:
                 cr.execute(
                     "SELECT 1 FROM information_schema.columns "
@@ -248,14 +255,30 @@ class ProductCategory(models.Model):
                 if cr.fetchone():
                     continue
                 idx_name = f"base_invoicing_idx_{table}_{col}"[:63]
-                cr.execute(
-                    f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" ("{col}")'
-                )
+                # Type-aware index: Many2one/Int/Date/Datetime -> B-tree;
+                # Char -> varchar_pattern_ops; Text -> text_pattern_ops
+                ftype = getattr(field, "type", None) or ""
+                if ftype == "char":
+                    cr.execute(
+                        f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" '
+                        f'("{col}" varchar_pattern_ops)'
+                    )
+                elif ftype == "text":
+                    cr.execute(
+                        f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" '
+                        f'("{col}" text_pattern_ops)'
+                    )
+                else:
+                    # many2one, integer, float, date, datetime, boolean: standard B-tree
+                    cr.execute(
+                        f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" ("{col}")'
+                    )
                 _logger.info(
-                    "[base_invoicing] Created index %s on %s(%s)",
+                    "[base_invoicing] Created index %s on %s(%s) type=%s",
                     idx_name,
                     table,
                     col,
+                    ftype,
                 )
             except Exception as err:
                 _logger.warning(
