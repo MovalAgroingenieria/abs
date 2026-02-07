@@ -19,12 +19,15 @@
                         />
                     </group>
 
-                    <group>
+                    <group string="Template for invoice lines"
+                        help="Jinja2 template. Use 'billable_item' as variable.">
+                        <field name="info_jinja2_shortcuts_help" nolabel="1" widget="html" colspan="2"/>
                         <field
                             name="billable_item_detail_desc"
                             widget="text"
                             rows="4"
                             readonly="1"
+                            placeholder="e.g. {{ billable_item.name }} - {{ first_q }} ({{ n_invoiced }})"
                         />
                     </group>
 

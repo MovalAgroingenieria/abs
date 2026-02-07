@@ -30,6 +30,10 @@ class WizardConfigBillableItemFields(models.TransientModel):
         translate=True,
     )
     billable_item_domain = fields.Char(string="Pre-filter on billable items")
+    info_jinja2_shortcuts_help = fields.Html(
+        string="Jinja2 variables",
+        readonly=True,
+    )
 
     category_code = fields.Integer(readonly=True)
     editable = fields.Boolean(
@@ -48,6 +52,9 @@ class WizardConfigBillableItemFields(models.TransientModel):
         productlink = self.env["account.invoiceset.productlink"].browse(active_id)
         if not productlink.exists():
             return res
+
+        if productlink.categ_id:
+            res["info_jinja2_shortcuts_help"] = productlink.categ_id.jinja2_shortcuts_help
 
         model = productlink.billable_item_model_id
         quantity_field = productlink.billable_item_quantity_field

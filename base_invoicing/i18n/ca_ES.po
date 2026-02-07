@@ -2385,6 +2385,26 @@ msgstr "Categoria del producte"
 msgid "Product Category Invoicing"
 msgstr "Facturació per categoria"
 #. module: base_invoicing
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Q1/%s"
+msgstr "T1/%s"
+
+#. module: base_invoicing
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Q2/%s"
+msgstr "T2/%s"
+
+#. module: base_invoicing
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Q3/%s"
+msgstr "T3/%s"
+
+#. module: base_invoicing
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Q4/%s"
+msgstr "T4/%s"
+
+#. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_product_product
 msgid "Product Variant"
 msgstr "Variants de producte"

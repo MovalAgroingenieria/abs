@@ -11,11 +11,106 @@ import re
 
 from jinja2 import Environment, StrictUndefined, Template, TemplateError
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 
 _logger = logging.getLogger(__name__)
+
+# Jinja2 template variable shortcuts (used in billable_item_detail_desc and aux_desc)
+JINJA2_TEMPLATE_SHORTCUTS = {
+    "billable_item": "Record from billable model (e.g. parcel, unit)",
+    "first_q": "Q1/YYYY (e.g. Q1/2026) from invoice date",
+    "second_q": "Q2/YYYY",
+    "third_q": "Q3/YYYY",
+    "fourth_q": "Q4/YYYY",
+    "invoice_date": "Date of the invoice",
+    "n_invoiced": "Number of times this item has been invoiced",
+    "invoice_index": "1-based index of this line in current invoice",
+    "partner": "Customer (res.partner)",
+    "product": "Product (product.product)",
+    "quantity": "Quantity for this line",
+    "invoiceset_code": "Code of the invoice set",
+    "groupvalue": "Value of the grouping field (e.g. lot name)",
+}
+
+
+def _quarter_labels_from_date(env, dt, lang=None):
+    """Return dict first_q, second_q, third_q, fourth_q for a date's year.
+    Uses translations from locale when lang is set (e.g. Q1→T1 in Spanish)."""
+
+    def _tr(env, lang, src):
+        """Get translated string for lang, or return src."""
+        if not lang or not env:
+            return src
+        try:
+            trans = env["ir.translation"].search(
+                [
+                    ("type", "=", "code"),
+                    ("lang", "=", lang),
+                    ("src", "=", src),
+                ],
+                limit=1,
+            )
+            return trans.value if trans and trans.value else src
+        except Exception:
+            return src
+
+    from datetime import date
+
+    if not dt:
+        today = date.today()
+        year = today.year
+    else:
+        year = dt.year if hasattr(dt, "year") else int(str(dt)[:4])
+
+    # Format strings for extraction (Q1/%s etc.) - add to po for T1/%s in Spanish
+    srcs = [_("Q1/%s"), _("Q2/%s"), _("Q3/%s"), _("Q4/%s")]
+    fmts = [_tr(env, lang, s) for s in srcs]
+    return {
+        "first_q": fmts[0] % year,
+        "second_q": fmts[1] % year,
+        "third_q": fmts[2] % year,
+        "fourth_q": fmts[3] % year,
+    }
+
+
+def get_jinja2_template_context(
+    env,
+    billable_item,
+    invoiceset=None,
+    productlink=None,
+    product=None,
+    partner=None,
+    quantity=None,
+    invoice_index=None,
+    groupvalue=None,
+):
+    """Build context dict for Jinja2 templates (billable_item_detail_desc, aux_desc)."""
+    ctx = {"billable_item": billable_item}
+    dt = invoiceset.invoice_date if invoiceset else None
+    lang = partner.lang if partner else None
+    ctx.update(_quarter_labels_from_date(env, dt, lang=lang))
+    ctx["invoice_date"] = dt
+    ctx["groupvalue"] = groupvalue or ""
+    if product:
+        ctx["product"] = product
+    if partner:
+        ctx["partner"] = partner
+    if quantity is not None:
+        ctx["quantity"] = quantity
+    if invoiceset:
+        ctx["invoiceset_code"] = invoiceset.alphanum_code or ""
+    if invoice_index is not None:
+        ctx["invoice_index"] = invoice_index
+    # n_invoiced: count of invoice lines for this billable item
+    if billable_item and env:
+        count = env["account.move.line"].search_count([
+            ("billable_item_model", "=", billable_item._name),
+            ("billable_item_res_id", "=", billable_item.id),
+        ])
+        ctx["n_invoiced"] = count
+    return ctx
 
 
 class ProductCategory(models.Model):
@@ -108,8 +203,29 @@ class ProductCategory(models.Model):
         string="Auxiliary fields",
         copy=True,
     )
-
+    tax_ids = fields.Many2many(
+        comodel_name="account.tax",
+        relation="product_category_account_tax_rel",
+        column1="category_id",
+        column2="tax_id",
+        string="Customer Taxes (override)",
+        domain="[('type_tax_use', '=', 'sale')]",
+        help="Optional. If set, these taxes are applied to invoice lines instead of the product's taxes.",
+    )
+    # Map billable item fields → account.move.line fields (e.g. analytic_account_id, ter_parcel_id)
+    move_line_field_map_ids = fields.One2many(
+        comodel_name="product.category.invoice.line.field.map",
+        inverse_name="category_id",
+        string="Invoice Line Field Mapping",
+        copy=True,
+        help="When creating invoice lines, values from the billable record are copied "
+        "to these account.move.line fields (e.g. analytic account, parcel reference).",
+    )
     aux_desc = fields.Char(string="Wildcard Template", translate=True, tracking=True)
+    jinja2_shortcuts_help = fields.Html(
+        compute="_compute_jinja2_shortcuts_help",
+        string="Template variables",
+    )
 
     _sql_constraints = [
         (
@@ -152,9 +268,10 @@ class ProductCategory(models.Model):
                 "billable_item_detail_desc",
                 "billable_item_domain",
                 "aux_field_ids",
+                "move_line_field_map_ids",
             ]
             for field_name in reset_fields:
-                if field_name == "aux_field_ids":
+                if field_name in ("aux_field_ids", "move_line_field_map_ids"):
                     vals[field_name] = [(5, 0, 0)]
                 else:
                     vals[field_name] = False
@@ -363,22 +480,44 @@ class ProductCategory(models.Model):
             template = env.from_string(template_str)
         except TemplateError as err:
             return False, self._humanize_template_error(err)
-        # Try render with mock billable_item
+        # Try render with mock context (all template variables)
         try:
             if self.billable_item_model_id:
-                mock = self.env[self.billable_item_model_id.model].new({})
+                mock_item = self.env[self.billable_item_model_id.model].new({})
             else:
-                mock = type(
+                mock_item = type(
                     "Mock",
                     (),
                     {"id": 0, "name": "", "display_name": "", "__str__": lambda s: ""},
                 )()
-            template.render(billable_item=mock)
+            mock_ctx = get_jinja2_template_context(
+                self.env,
+                billable_item=mock_item,
+                invoiceset=None,
+                quantity=0,
+            )
+            template.render(**mock_ctx)
         except TemplateError as err:
             return False, self._humanize_template_error(err)
         except Exception as err:
             return False, self._humanize_template_error(err)
         return True, None
+
+    @api.depends()
+    def _compute_jinja2_shortcuts_help(self):
+        for _ in self:
+            rows = "".join(
+                f'<tr><td><code>{{{{ {k} }}}}</code></td>'
+                f'<td>{v}</td></tr>'
+                for k, v in JINJA2_TEMPLATE_SHORTCUTS.items()
+            )
+            self.jinja2_shortcuts_help = (
+                f'<div class="alert alert-info mb-0">'
+                f'<strong>{self.env._("Jinja2 template variables")}</strong>'
+                f'<table class="table table-sm table-borderless mt-2 mb-0">'
+                f"{rows}"
+                f"</table></div>"
+            )
 
     @api.onchange("billable_item_detail_desc")
     def _onchange_billable_item_detail_desc(self):

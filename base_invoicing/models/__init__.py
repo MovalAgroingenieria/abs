@@ -11,6 +11,7 @@ from . import (
     billable_item_test,
     product_category,
     product_category_aux_field,
+    product_category_invoice_line_field_map,
     product_product,
     product_template,
     res_company_ext,

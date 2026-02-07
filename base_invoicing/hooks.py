@@ -32,6 +32,11 @@ def post_init_hook(env):
         )
         companies.write({"mass_invoicing_seq_invoiceset_code_id": seq.id})
 
+    # Backfill compatible_billable_field_ids for existing field maps (new Many2many)
+    Map = env["product.category.invoice.line.field.map"].sudo()
+    for rec in Map.search([]):
+        rec._update_compatible_billable_field_ids()
+
     # Legacy behavior: ensure at least one fee per partner.
     # Create fee records only for partners that do not have any.
     partners = env["res.partner"].with_context(active_test=False).sudo().search([])

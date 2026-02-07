@@ -76,6 +76,12 @@ class AccountSelectableItemHybridView(models.Model):
         readonly=True,
         ondelete="set null",
     )
+    pivot_view_id = fields.Many2one(
+        comodel_name="ir.ui.view",
+        string="Pivot view",
+        readonly=True,
+        ondelete="set null",
+    )
 
     _sql_constraints = [
         (
@@ -133,15 +139,17 @@ class AccountSelectableItemHybridView(models.Model):
         model_name = billable_model.model
         billable_table = self.env[model_name]._table
 
-        # 1. Build SQL query
-        query = self._build_sql_query(category, model_name, billable_table)
+        # 1. Build SQL query (uses filtered columns that exist in DB)
+        query, bt_cols_raw = self._build_sql_query(
+            category, model_name, billable_table
+        )
         view_table = self.view_table
 
         # 2. Create PostgreSQL view
         self._create_view(view_table, query)
 
-        # 3. Define columns for ir.model.fields (from query structure)
-        field_specs = self._get_field_specs(category, model_name)
+        # 3. Define columns for ir.model.fields (must match SQL columns)
+        field_specs = self._get_field_specs(category, model_name, bt_cols_raw)
 
         # 4. Create ir.model with fields
         IrModel = self.env["ir.model"].sudo()
@@ -259,7 +267,34 @@ if selectable_ids:
         })
         self.search_view_id = search_view.id
 
+        # 9. Create pivot view (groupable aux columns + x_quantity as measure)
+        pivot_fields = self._build_pivot_view_fields(field_specs)
+        pivot_arch = (
+            f'<?xml version="1.0"?><pivot string="Selectable Items">'
+            f"{pivot_fields}</pivot>"
+        )
+        pivot_view = View.create({
+            "name": f"Pivot selectable hybrid ({model_name})",
+            "type": "pivot",
+            "model": self.model_name,
+            "arch": pivot_arch,
+        })
+        self.pivot_view_id = pivot_view.id
+
         return self
+
+    def _build_pivot_view_fields(self, field_specs):
+        """Build pivot: row=groupable fields, measure=x_quantity."""
+        groupable_types = {"many2one", "char", "selection", "boolean"}
+        row_parts = []
+        for fname, _desc, ttype, _relation in field_specs:
+            if fname in ("x_selectable_item_id", "x_productlink_id"):
+                continue
+            if ttype in groupable_types:
+                row_parts.append(f'<field name="{fname}" type="row"/>')
+        # Measure: quantity
+        measure = '<field name="x_quantity" type="measure"/>'
+        return "".join(row_parts) + measure
 
     def _build_search_groupby(self, field_specs):
         """Build group by filters for many2one and char fields."""
@@ -278,7 +313,7 @@ if selectable_ids:
         return "".join(parts)
 
     def _build_sql_query(self, category, model_name, billable_table):
-        """Build the SQL for the hybrid view."""
+        """Build the SQL for the hybrid view. Returns (query, bt_cols_raw)."""
         si_table = "account_selectable_item"
         bt_alias = "bt"
 
@@ -291,12 +326,11 @@ if selectable_ids:
             "si.partner_id AS x_partner_id",
         ]
 
-        # Columns from billable table (aux_field_ids or default)
-        bt_cols_raw = self._get_billable_columns(category, model_name, bt_alias)
-        if bt_cols_raw:
-            bt_cols = [c[0] for c in bt_cols_raw]
-        else:
-            bt_cols = [f"{bt_alias}.id AS x_id", f"{bt_alias}.name AS x_name"]
+        # Columns from billable table (only those that exist in DB)
+        bt_cols_raw = self._get_billable_columns(
+            category, model_name, billable_table, bt_alias
+        )
+        bt_cols = [c[0] for c in bt_cols_raw]
 
         # Build SELECT with row_number for id
         select_parts = [
@@ -314,34 +348,67 @@ if selectable_ids:
           ON si.billable_item_model = %s
           AND si.billable_item_res_id = {bt_alias}.id
         """
-        return query
+        return query, bt_cols_raw
 
-    def _get_billable_columns(self, category, model_name, bt_alias):
-        """Return [(sql_expr, alias), ...] for billable table columns."""
+    def _get_model_field_column(self, model, field_name):
+        """
+        Get the database column name from the actual model field object.
+        Respects inheritance: uses model._fields[field_name].column.
+        Returns None if field does not exist or is not stored.
+        """
+        odoo_field = model._fields.get(field_name)
+        if not odoo_field:
+            return None
+        if not getattr(odoo_field, "store", True):
+            return None
+        col = getattr(odoo_field, "column", None)
+        if col is None:
+            return field_name
+        if isinstance(col, (list, tuple)):
+            return col[0] if col else field_name
+        return col or field_name
+
+    def _get_billable_columns(self, category, model_name, billable_table, bt_alias):
+        """Return [(sql_expr, alias, field_info), ...] for billable table columns.
+        Uses the actual model field object (model._fields) for the column name,
+        so inheritance is respected.
+        """
+        try:
+            model = self.env[model_name]
+        except KeyError:
+            return []
         cols = []
         if category.aux_field_ids:
             for idx, line in enumerate(
                 category.aux_field_ids.sorted("sequence")[:20], start=1
             ):
-                if line.field_id:
-                    fname = line.field_id.name
-                    alias = f"x_aux_{idx:02d}"
-                    cols.append((f"{bt_alias}.{fname} AS {alias}", alias, line.field_id))
+                if not line.field_id:
+                    continue
+                ir_field = line.field_id
+                col_name = self._get_model_field_column(model, ir_field.name)
+                if col_name is None:
+                    _logger.debug(
+                        "[base_invoicing] Skipping field %s: not found or not stored on %s",
+                        ir_field.name,
+                        model_name,
+                    )
+                    continue
+                alias = f"x_aux_{idx:02d}"
+                cols.append((f"{bt_alias}.{col_name} AS {alias}", alias, ir_field))
         else:
-            # Default: id and name if exist on billable model
-            try:
-                billable_model = self.env[model_name]
-                if "id" in billable_model._fields:
-                    cols.append((f"{bt_alias}.id AS x_id", "x_id", None))
-                if "name" in billable_model._fields:
-                    cols.append((f"{bt_alias}.name AS x_name", "x_name", None))
-            except KeyError:
-                pass
+            # Default: id and name from model fields (use actual column)
+            id_col = self._get_model_field_column(model, "id")
+            if id_col:
+                cols.append((f"{bt_alias}.{id_col} AS x_id", "x_id", None))
+            name_col = self._get_model_field_column(model, "name")
+            if name_col:
+                cols.append((f"{bt_alias}.{name_col} AS x_name", "x_name", None))
         return cols
 
-    def _get_field_specs(self, category, model_name):
+    def _get_field_specs(self, category, model_name, bt_cols_raw):
         """Return [(field_name, description, ttype, relation), ...] for ir.model.fields.
-        All field names must start with x_ for manual/custom fields."""
+        Must match the columns in bt_cols_raw (only those that exist in DB).
+        """
         specs = [
             ("x_selectable_item_id", "Selectable Item ID", "integer", ""),
             ("x_productlink_id", "Product link", "many2one", "account.invoiceset.productlink"),
@@ -349,21 +416,24 @@ if selectable_ids:
             ("x_quantity", "Quantity", "float", ""),
             ("x_partner_id", "Customer", "many2one", "res.partner"),
         ]
-        if category.aux_field_ids:
-            for idx, line in enumerate(
-                category.aux_field_ids.sorted("sequence")[:20], start=1
-            ):
-                if line.field_id:
-                    f = line.field_id
-                    alias = f"x_aux_{idx:02d}"
-                    ttype = f.ttype
-                    if ttype in ("one2many", "many2many", "binary", "html"):
-                        ttype = "char"
-                    desc = line.custom_label or f.field_description or alias
-                    specs.append((alias, desc, ttype, f.relation or ""))
-        else:
-            specs.append(("x_id", "ID", "integer", ""))
-            specs.append(("x_name", "Name", "char", ""))
+        custom_labels = {
+            line.field_id.id: line.custom_label
+            for line in (category.aux_field_ids or [])
+            if line.field_id
+        }
+        for _sql_expr, alias, field_info in bt_cols_raw:
+            if field_info:
+                f = field_info
+                ttype = f.ttype
+                if ttype in ("one2many", "many2many", "binary", "html"):
+                    ttype = "char"
+                desc = custom_labels.get(f.id) or f.field_description or alias
+                specs.append((alias, desc, ttype, f.relation or ""))
+            else:
+                if alias == "x_id":
+                    specs.append(("x_id", "ID", "integer", ""))
+                elif alias == "x_name":
+                    specs.append(("x_name", "Name", "char", ""))
         return specs
 
     def _build_tree_view_fields(self, field_specs):

@@ -41,6 +41,7 @@
     "uninstall_hook": "uninstall_hook",
     "assets": {
         "web.assets_backend": [
+            "base_invoicing/static/src/js/productlink_section_and_note_list.js",
             "base_invoicing/static/src/scss/base_invoicing.scss",
             "base_invoicing/static/src/xml/button_back.xml",
             "base_invoicing/static/src/js/massive_invoicing_list_renderer.js",

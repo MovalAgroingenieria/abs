@@ -5,6 +5,8 @@
 import html
 
 from jinja2 import Template, TemplateError
+
+from .product_category import get_jinja2_template_context
 from lxml import etree
 
 from odoo import api, fields, models
@@ -106,8 +108,19 @@ class AccountSelectableItem(models.Model):
                 record.rendered_aux_desc = ""
                 continue
 
+            productlink = record.productlink_id
+            invoiceset = productlink.invoiceset_id if productlink else None
+            ctx = get_jinja2_template_context(
+                record.env,
+                billable_item=billable_item,
+                invoiceset=invoiceset,
+                productlink=productlink,
+                product=productlink.product_id if productlink else None,
+                partner=record.partner_id if record.partner_id else None,
+                quantity=record.quantity,
+            )
             try:
-                rendered = Template(template_src).render(billable_item=billable_item)
+                rendered = Template(template_src).render(**ctx)
             except TemplateError as err:
                 rendered = record.env._("Error in template: %(error)s", error=str(err))
 
@@ -275,4 +288,7 @@ class AccountSelectableItem(models.Model):
         counts = {d["productlink_id"][0]: d["productlink_id_count"] for d in data}
 
         for productlink in productlinks:
-            productlink.write({"populated": bool(counts.get(productlink.id, 0))})
+            if productlink.display_type in ("line_section", "line_note"):
+                productlink.write({"populated": True})
+            else:
+                productlink.write({"populated": bool(counts.get(productlink.id, 0))})

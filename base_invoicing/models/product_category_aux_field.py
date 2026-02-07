@@ -9,6 +9,13 @@ class ProductCategoryAuxFieldLine(models.Model):
     _description = "Auxiliary field definition for selectable items"
     _order = "sequence, id"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("category_id") and self.env.context.get("default_category_id"):
+                vals["category_id"] = self.env.context["default_category_id"]
+        return super().create(vals_list)
+
     category_id = fields.Many2one(
         comodel_name="product.category",
         string="Product Category",

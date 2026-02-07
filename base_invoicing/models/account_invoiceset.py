@@ -16,8 +16,10 @@ from collections import defaultdict
 from datetime import timedelta
 
 from jinja2 import Template, TemplateError
-from odoo import api, fields, models
-from odoo.exceptions import UserError
+
+from .product_category import get_jinja2_template_context
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 from odoo.tools.sql import SQL
 
@@ -296,11 +298,15 @@ class AccountInvoiceset(models.Model):
                 [("productlink_id.invoiceset_id", "=", record.id)]
             )
 
-    @api.depends("productlink_ids", "productlink_ids.populated")
+    @api.depends("productlink_ids", "productlink_ids.populated", "productlink_ids.display_type")
     def _compute_all_productlinks_configured(self):
         for record in self:
-            record.all_productlinks_configured = bool(record.productlink_ids) and all(
-                pl.populated for pl in record.productlink_ids
+            product_productlinks = record.productlink_ids.filtered(
+                lambda p: p.display_type == "product"
+            )
+            record.all_productlinks_configured = (
+                bool(product_productlinks)
+                and all(pl.populated for pl in product_productlinks)
             )
 
     @api.depends("move_ids", "move_ids.state")
@@ -478,12 +484,51 @@ class AccountInvoiceset(models.Model):
 
     def action_show_selectable_items(self):
         self.ensure_one()
+        ctx = {"create": False}
+        pl_ids = self.productlink_ids.ids
+        if not pl_ids:
+            return self._action_show_selectable_items_fallback(ctx, pl_ids)
+
+        # Use hybrid if all productlinks share the same category with billable config
+        categories = self.productlink_ids.mapped("categ_id")
+        categories = categories.filtered(
+            lambda c: c and c.billable_item_model_id
+        )
+        if len(categories) == 1:
+            hybrid = self.env["account.selectable.item.hybrid.view"]._get_or_create_for_category(
+                categories
+            )
+            if hybrid and hybrid.model_id and hybrid.tree_view_id and hybrid.search_view_id:
+                hybrid_domain = [("x_productlink_id", "in", pl_ids)]
+                if self.state not in ("draft", "configured"):
+                    hybrid_domain.append(("x_selected", "=", True))
+                views = []
+                if hybrid.pivot_view_id:
+                    views.append((hybrid.pivot_view_id.id, "pivot"))
+                views.append((hybrid.tree_view_id.id, "list"))
+                ctx["selectable_items_categ_id"] = categories.id
+                return {
+                    "type": "ir.actions.act_window",
+                    "name": self.env._("Selectable Items"),
+                    "res_model": hybrid.model_name,
+                    "view_mode": "pivot,list" if hybrid.pivot_view_id else "list",
+                    "views": views,
+                    "search_view_id": hybrid.search_view_id.id,
+                    "target": "current",
+                    "domain": hybrid_domain,
+                    "context": ctx,
+                }
+
+        return self._action_show_selectable_items_fallback(ctx, pl_ids)
+
+    def _action_show_selectable_items_fallback(self, ctx, pl_ids):
+        """Fallback to account.selectable.item when hybrid not applicable."""
         tree_view = self.env.ref("base_invoicing.account_selectable_item_view_tree")
         search_view = self.env.ref("base_invoicing.account_selectable_item_view_search")
-        ctx = {"create": False}
         first_pl = self.productlink_ids[:1]
         if first_pl.categ_id:
             ctx["selectable_items_categ_id"] = first_pl.categ_id.id
+        domain = [("productlink_id.invoiceset_id", "=", self.id)] if self.id else []
         return {
             "type": "ir.actions.act_window",
             "name": self.env._("Selectable Items"),
@@ -492,7 +537,7 @@ class AccountInvoiceset(models.Model):
             "views": [(tree_view.id, "list")],
             "search_view_id": (search_view.id, search_view.name),
             "target": "current",
-            "domain": [("productlink_id.invoiceset_id", "=", self.id)],
+            "domain": domain,
             "context": ctx,
         }
 
@@ -801,7 +846,9 @@ class AccountInvoiceset(models.Model):
     def _get_invoice_data(self, invoiceset):
         invoice_data_raw = []
 
-        for productlink in invoiceset.productlink_ids:
+        for productlink in invoiceset.productlink_ids.sorted("sequence"):
+            if productlink.display_type in ("line_section", "line_note"):
+                continue
             if not productlink.billable_item_model_id:
                 continue
 
@@ -854,38 +901,95 @@ class AccountInvoiceset(models.Model):
                     "quantity": quantity,
                     "billable_item_model": model_name,
                     "billable_item_res_id": billable_item.id,
+                    "_productlink": productlink,
+                    "_groupvalue": groupvalue,
                 }
-
-                if productlink.billable_item_detail_desc:
-                    lang = partner.lang if partner else False
-                    template_src = (
-                        productlink.with_context(lang=lang).billable_item_detail_desc
-                        if lang
-                        else productlink.billable_item_detail_desc
-                    )
-                    try:
-                        name = Template(template_src).render(
-                            billable_item=billable_item
-                        )
-                        if name:
-                            vals["name"] = name
-                    except TemplateError:
-                        # Keep legacy behavior: ignore template errors
-                        pass
 
                 invoice_data_raw.append(vals)
 
         if not invoice_data_raw:
             return []
 
-        grouped = defaultdict(list)
+        # Group product lines by (invoice_key, productlink_id)
+        by_key_pl = defaultdict(lambda: defaultdict(list))
         for item in invoice_data_raw:
-            grouped[item["invoice_key"]].append(item)
+            pl = item.get("_productlink")
+            if pl:
+                by_key_pl[item["invoice_key"]][pl.id].append(item)
 
-        return [
-            {"invoice_key": key, "partner_id": lines[0]["partner_id"], "lines": lines}
-            for key, lines in grouped.items()
-        ]
+        # Build ordered lines per invoice: follow productlink sequence, inject section/note
+        result = []
+        productlinks_ordered = invoiceset.productlink_ids.sorted("sequence")
+        for invoice_key in by_key_pl:
+            partner_id = next(
+                (it["partner_id"] for it in invoice_data_raw if it["invoice_key"] == invoice_key),
+                None,
+            )
+            if not partner_id:
+                continue
+            ordered_lines = []
+            idx = 0
+            total_product_lines = sum(
+                len(by_key_pl[invoice_key].get(p.id, []))
+                for p in productlinks_ordered
+                if p.display_type == "product"
+            )
+            for pl in productlinks_ordered:
+                if pl.display_type in ("line_section", "line_note"):
+                    ordered_lines.append({
+                        "display_type": pl.display_type,
+                        "name": pl.line_name or "",
+                        "_productlink": pl,
+                    })
+                else:
+                    pl_items = by_key_pl[invoice_key].get(pl.id, [])
+                    for item in pl_items:
+                        idx += 1
+                        item["_invoice_index"] = idx
+                        item["_invoice_total"] = total_product_lines
+                    ordered_lines.extend(pl_items)
+
+            # Re-run template render with correct _invoice_index
+            for item in ordered_lines:
+                if item.get("_productlink") and item.get("billable_item_model"):
+                    productlink = item["_productlink"]
+                    if productlink.billable_item_detail_desc:
+                        billable_item = self.env[item["billable_item_model"]].browse(
+                            item.get("billable_item_res_id")
+                        )
+                        partner = self.env["res.partner"].browse(item["partner_id"])
+                        product = self.env["product.product"].browse(item.get("product_id"))
+                        ctx = get_jinja2_template_context(
+                            self.env,
+                            billable_item=billable_item,
+                            invoiceset=invoiceset,
+                            productlink=productlink,
+                            product=product,
+                            partner=partner,
+                            quantity=item.get("quantity", 0),
+                            invoice_index=item.get("_invoice_index"),
+                            groupvalue=item.get("_groupvalue", ""),
+                        )
+                        lang = partner.lang if partner else False
+                        template_src = (
+                            productlink.with_context(lang=lang).billable_item_detail_desc
+                            if lang
+                            else productlink.billable_item_detail_desc
+                        )
+                        try:
+                            name = Template(template_src).render(**ctx)
+                            if name:
+                                item["name"] = name
+                        except TemplateError:
+                            pass
+
+            result.append({
+                "invoice_key": invoice_key,
+                "partner_id": partner_id,
+                "lines": ordered_lines,
+            })
+
+        return result
 
     # -------------------------------------------------------------------------
     # Invoice creation
@@ -929,18 +1033,40 @@ class AccountInvoiceset(models.Model):
 
         lines = []
         for line in invoice_data.get("lines", []):
-            line_vals = {
-                "product_id": line["product_id"],
-                "quantity": line["quantity"],
-                "billable_item_model": line["billable_item_model"],
-                "billable_item_res_id": line["billable_item_res_id"],
-            }
-            if line.get("name"):
-                line_vals["name"] = line["name"]
-            # If account.move.line has a Many2one to the billable model, fill it
-            m2o_field = self._get_move_line_m2o_to_model(line["billable_item_model"])
-            if m2o_field and line.get("billable_item_res_id"):
-                line_vals[m2o_field] = line["billable_item_res_id"]
+            display_type = line.get("display_type")
+            if display_type in ("line_section", "line_note"):
+                line_vals = {
+                    "display_type": display_type,
+                    "name": line.get("name", ""),
+                }
+            else:
+                line_vals = {
+                    "product_id": line["product_id"],
+                    "quantity": line["quantity"],
+                    "billable_item_model": line["billable_item_model"],
+                    "billable_item_res_id": line["billable_item_res_id"],
+                }
+                if line.get("name"):
+                    line_vals["name"] = line["name"]
+                productlink = line.get("_productlink")
+                category = (
+                    productlink.product_id.product_tmpl_id.categ_id
+                    if productlink and productlink.product_id and productlink.product_id.product_tmpl_id
+                    else None
+                )
+                if category:
+                    if category.tax_ids:
+                        line_vals["tax_ids"] = [(6, 0, category.tax_ids.ids)]
+                    m2o_field = self._get_move_line_m2o_to_model(line["billable_item_model"])
+                    if m2o_field and line.get("billable_item_res_id"):
+                        line_vals[m2o_field] = line["billable_item_res_id"]
+                    billable_item = self.env[line["billable_item_model"]].browse(
+                        line.get("billable_item_res_id")
+                    )
+                    if billable_item.exists() and category.move_line_field_map_ids:
+                        self._apply_move_line_field_mappings(
+                            line_vals, billable_item, category.move_line_field_map_ids
+                        )
             lines.append((0, 0, line_vals))
         if lines:
             vals["invoice_line_ids"] = lines
@@ -967,6 +1093,51 @@ class AccountInvoiceset(models.Model):
             limit=1,
         )
         return field.name if field else False
+
+    @api.model
+    def _apply_move_line_field_mappings(self, line_vals, billable_item, map_ids):
+        """
+        Apply field mappings: copy values from billable_item and/or default records
+        to line_vals for account.move.line creation. Handles analytic_distribution
+        conversion when billable has analytic_account_id (Many2one).
+        """
+        for map_rec in map_ids:
+            ml_field = map_rec.move_line_field_id
+            if not ml_field:
+                continue
+            ml_name = ml_field.name
+            value = None
+
+            if map_rec.value_source == "fixed":
+                if map_rec._move_line_field_expects_record():
+                    value = map_rec.default_record_ref
+                else:
+                    value = map_rec._parse_fixed_value(ml_field, map_rec.fixed_value)
+            else:
+                # from_billable or billable_or_fixed: try billable first
+                bi_field = map_rec.billable_item_field_id
+                if bi_field:
+                    try:
+                        value = getattr(billable_item, bi_field.name, None)
+                    except (AttributeError, KeyError):
+                        pass
+                if (value is None or value is False) and map_rec.value_source == "billable_or_fixed":
+                    if map_rec._move_line_field_expects_record():
+                        value = map_rec.default_record_ref
+                    else:
+                        value = map_rec._parse_fixed_value(ml_field, map_rec.fixed_value)
+
+            if value is None or value is False:
+                continue
+            # analytic_distribution: Many2one analytic_account_id → {str(id): 100.0}
+            if ml_name == "analytic_distribution":
+                if hasattr(value, "id") and value.id:
+                    line_vals[ml_name] = {str(value.id): 100.0}
+                continue
+            # Many2one: use id
+            if ml_field.ttype == "many2one":
+                value = value.id if hasattr(value, "id") else value
+            line_vals[ml_name] = value
 
     # -------------------------------------------------------------------------
     # Stop/cancel helpers
@@ -1035,19 +1206,37 @@ class AccountInvoiceset(models.Model):
 class AccountInvoicesetProductlink(models.Model):
     _name = "account.invoiceset.productlink"
     _description = "Invoice Set Product"
+    _order = "sequence, id"
+
+    DISPLAY_TYPE_SELECTION = [
+        ("product", "Product"),
+        ("line_section", "Section"),
+        ("line_note", "Note"),
+    ]
 
     max_size_productlink_code = 100
 
+    sequence = fields.Integer(default=10, string="Sequence")
     invoiceset_id = fields.Many2one(
         string="Invoice Set",
         comodel_name="account.invoiceset",
         index=True,
         ondelete="cascade",
     )
+    display_type = fields.Selection(
+        DISPLAY_TYPE_SELECTION,
+        string="Line type",
+        default="product",
+        required=True,
+    )
+    line_name = fields.Char(
+        string="Section / Note",
+        help="Label for section or note. Shown in invoice lines when type is Section or Note.",
+    )
     product_id = fields.Many2one(
         string="Product",
         comodel_name="product.product",
-        required=True,
+        required=False,
         index=True,
         ondelete="restrict",
     )
@@ -1133,22 +1322,68 @@ class AccountInvoicesetProductlink(models.Model):
         ("name_unique", "UNIQUE (name)", "Existing Product."),
     ]
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.display_type in ("line_section", "line_note"):
+                rec.write({"populated": True})
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if "display_type" in vals:
+            for rec in self:
+                if rec.display_type in ("line_section", "line_note"):
+                    rec.write({"populated": True})
+        return res
+
+    @api.constrains("display_type", "product_id")
+    def _check_product_required(self):
+        for rec in self:
+            if rec.display_type == "product" and not rec.product_id:
+                raise ValidationError(_("Product is required for product lines."))
+
+    @api.constrains("invoiceset_id", "product_id", "display_type")
+    def _check_product_unique_per_invoiceset(self):
+        for rec in self:
+            if rec.display_type != "product" or not rec.product_id:
+                continue
+            dup = self.search(
+                [
+                    ("invoiceset_id", "=", rec.invoiceset_id.id),
+                    ("product_id", "=", rec.product_id.id),
+                    ("display_type", "=", "product"),
+                    ("id", "!=", rec.id),
+                ],
+                limit=1,
+            )
+            if dup:
+                raise ValidationError(
+                    _("The same product cannot appear more than once in an invoice set.")
+                )
+
     @api.depends(
         "invoiceset_id",
         "invoiceset_id.alphanum_code",
         "product_id",
         "product_id.product_tmpl_id.name",
+        "display_type",
+        "sequence",
     )
     def _compute_name(self):
         default_lang = self.env.lang or "en_US"
         for record in self:
             name = ""
-            if record.invoiceset_id and record.product_id:
-                product_name = record.product_id.product_tmpl_id.with_context(
-                    lang=default_lang
-                ).name
-                name = f"{record.invoiceset_id.alphanum_code}-{product_name}"
-            record.name = (name or "")[: self.max_size_productlink_code]
+            if record.invoiceset_id:
+                if record.display_type == "product" and record.product_id:
+                    product_name = record.product_id.product_tmpl_id.with_context(
+                        lang=default_lang
+                    ).name
+                    name = f"{record.invoiceset_id.alphanum_code}-{product_name}"
+                elif record.display_type in ("line_section", "line_note"):
+                    name = f"{record.invoiceset_id.alphanum_code}-{record.display_type}-{record.sequence}-{record.id or 0}"
+            record.name = (name or f"pl-{record.id}")[: self.max_size_productlink_code]
 
     @api.depends("product_id")
     def _compute_categ_id(self):
@@ -1271,12 +1506,16 @@ class AccountInvoicesetProductlink(models.Model):
             hybrid_domain = [("x_productlink_id", "=", self.id)]
             if self.invoiceset_id.state not in ("draft", "configured"):
                 hybrid_domain.append(("x_selected", "=", True))
+            views = []
+            if hybrid.pivot_view_id:
+                views.append((hybrid.pivot_view_id.id, "pivot"))
+            views.append((hybrid.tree_view_id.id, "list"))
             return {
                 "type": "ir.actions.act_window",
                 "name": f"{title_prefix} {self.product_id.product_tmpl_id.name}",
                 "res_model": hybrid.model_name,
-                "view_mode": "list",
-                "views": [(hybrid.tree_view_id.id, "list")],
+                "view_mode": "pivot,list" if hybrid.pivot_view_id else "list",
+                "views": views,
                 "search_view_id": hybrid.search_view_id.id,
                 "target": "current",
                 "domain": hybrid_domain,

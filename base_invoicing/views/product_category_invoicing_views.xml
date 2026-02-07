@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- List for invoice line field mapping (inline in product.category form). -->
+    <record id="product_category_invoice_line_field_map_view_tree" model="ir.ui.view">
+        <field name="name">product.category.invoice.line.field.map.list</field>
+        <field name="model">product.category.invoice.line.field.map</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" create="1" delete="1" string="Field mapping"
+                class="o_base_invoicing_move_line_field_map_list">
+                <field name="sequence" widget="handle"/>
+                <field name="billable_model_id" column_invisible="1"/>
+                <field name="compatible_billable_field_ids" column_invisible="1"/>
+                <field name="move_line_expects_record" column_invisible="1"/>
+                <field name="value_source" optional="show"/>
+                <field name="move_line_field_id" string="Invoice line field" options="{'no_create': True, 'no_open': True}"/>
+                <field name="billable_item_field_id" string="Billable item field" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="default_record_ref" string="Default record" optional="show"/>
+                <field name="fixed_value" string="Fixed value" optional="show"
+                    column_invisible="['|', ('value_source', 'not in', ['fixed', 'billable_or_fixed']), ('move_line_expects_record', '=', True)]"/>
+            </list>
+        </field>
+    </record>
+
     <!-- List for aux field lines (inline in product.category form). Persistent in DB. -->
     <record id="product_category_aux_field_line_view_tree" model="ir.ui.view">
         <field name="name">product.category.aux.field.line.list</field>
@@ -8,8 +29,9 @@
         <field name="arch" type="xml">
             <list editable="bottom" create="1" delete="1" string="Auxiliary columns" class="o_base_invoicing_aux_field_list">
                 <field name="sequence" widget="handle"/>
+                <field name="category_id" column_invisible="1"/>
                 <field name="billable_model_id" column_invisible="1"/>
-                <field name="field_id" string="Field" options="{'no_create': True}"/>
+                <field name="field_id" string="Field" options="{'no_create': True, 'no_open': True}"/>
                 <field name="custom_label" string="Column label" placeholder="Leave empty to use field name"/>
             </list>
         </field>
@@ -192,6 +214,12 @@
                                 <field name="billable_item_quantity_label"/>
                                 <field name="billable_item_quantity_ratio"/>
                             </group>
+                            <group name="group_taxes" string="Taxes (optional override)">
+                                <field
+                                    name="tax_ids"
+                                    widget="many2many_tags"
+                                    help="If set, these taxes replace the product's customer taxes on invoice lines."/>
+                            </group>
                             <group name="group_grouping" string="Grouping"
                                 modifiers="{'invisible': [['category_code', '=', 1]]}"
                                 help="Extra grouping criterion when you need one invoice per customer plus another split.">
@@ -203,7 +231,8 @@
                             </group>
                             <group name="group_templates_domain" string="Templates and filters"
                                 help="Jinja2 templates use 'billable_item' as variable. Domain filters records before selection.">
-                                <field name="billable_item_detail_desc" colspan="2" placeholder="e.g. {{ billable_item.name }}"/>
+                                <field name="jinja2_shortcuts_help" colspan="2" nolabel="1" widget="html"/>
+                                <field name="billable_item_detail_desc" colspan="2" placeholder="e.g. {{ billable_item.name }} - {{ first_q }} ({{ n_invoiced }})"/>
                                 <field name="billable_item_model_name" invisible="1"/>
                                 <field
                                     name="billable_item_domain"
@@ -220,7 +249,7 @@
                             modifiers="{'invisible': [['billable_item_model_id', '=', false]]}"
                         >
                             <group name="group_aux_columns" string="Auxiliary columns for selectable items"
-                                help="Add fields from the billable model to display as columns. Drag to reorder. Saved in database.">
+                                help="Add fields from the billable model to display as columns. Fields without a DB column are skipped when building the view. Drag to reorder. Saved in database.">
                                 <field
                                     name="aux_field_ids"
                                     nolabel="1"
@@ -229,11 +258,29 @@
                                 />
                             </group>
                             <group name="group_aux_template" string="Selection line template"
-                                help="Jinja2 template for auxiliary description in the selectable items list. Use 'billable_item' as variable.">
+                                help="Jinja2 template for auxiliary description. Same variables as invoice line template.">
+                                <field name="jinja2_shortcuts_help" colspan="2" nolabel="1" widget="html"/>
                                 <field
                                     name="aux_desc"
                                     colspan="2"
-                                    placeholder="e.g. {{ billable_item.display_name }}"
+                                    placeholder="e.g. {{ billable_item.display_name }} - {{ n_invoiced }}"
+                                />
+                            </group>
+                        </page>
+
+                        <page
+                            name="page_invoice_line_field_map"
+                            string="Invoice line fields"
+                            modifiers="{'invisible': [['billable_item_model_id', '=', false]]}"
+                        >
+                            <group name="group_move_line_field_map"
+                                string="Map billable fields or default records to invoice line fields"
+                                help="When creating invoice lines, values are copied to account.move.line fields. You can use: (1) a field from the billable record, (2) a fixed record as default, or (3) billable field with fallback to a fixed record if empty.">
+                                <field
+                                    name="move_line_field_map_ids"
+                                    nolabel="1"
+                                    colspan="2"
+                                    context="{'default_category_id': id}"
                                 />
                             </group>
                         </page>

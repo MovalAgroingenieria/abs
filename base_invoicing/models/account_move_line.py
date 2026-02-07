@@ -22,7 +22,9 @@ class AccountMoveLine(models.Model):
         comodel_name="product.category",
         compute="_compute_categ_id",
         store=True,
-        string="Product Category",
+        string="Invoice Category",
+        help="Product category for invoicing (from product template). "
+        "Avoids label clash with account.product_category_id.",
     )
     invoice_user_id = fields.Many2one(
         comodel_name="res.users",

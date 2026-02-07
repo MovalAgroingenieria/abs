@@ -166,21 +166,41 @@
                             <field
                                 name="productlink_ids"
                                 nolabel="1"
+                                widget="productlink_section_and_note_one2many"
+                                context="{'default_display_type': 'product'}"
                                 modifiers="{'readonly': [['state', 'not in', ['draft', 'configured']]]}"
                             >
                                 <list
                                     editable="bottom"
-                                    delete="false"
+                                    delete="1"
+                                    create="1"
+                                    default_order="sequence, id"
+                                    string="Lot lines"
+                                    decoration-muted="display_type in ('line_section', 'line_note')"
                                     class="o_base_invoicing_account_invoiceset_productlink"
                                 >
+                                    <control>
+                                        <create name="add_line_control" string="Add a line" context="{'default_display_type': 'product'}"/>
+                                        <create name="add_section_control" string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                        <create name="add_note_control" string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                    </control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="display_type" column_invisible="1" force_save="1"/>
+                                    <field
+                                        name="line_name"
+                                        string="Section / Note"
+                                        optional="show"
+                                        widget="list.section_and_note_text"
+                                    />
                                     <field
                                         name="product_id"
                                         string="Product"
                                         domain="[('product_tmpl_id.categ_id.supports_mass_billing', '=', True)]"
                                         options="{'no_quick_create': True, 'no_create_edit': True}"
+                                        optional="show"
                                     />
-                                    <field name="categ_id" string="Category" />
-                                    <field name="lst_price" string="Unit Price" />
+                                    <field name="categ_id" string="Category"/>
+                                    <field name="lst_price" string="Unit Price"/>
 
                                     <button
                                         name="action_config_billable_item_fields"
@@ -188,7 +208,7 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-cog"
-                                        modifiers="{'invisible': [['id', '=', False]]}"
+                                        modifiers="{'invisible': [['|', ['id', '=', False], ['display_type', '!=', 'product']]]}"
                                     />
                                     <button
                                         name="action_show_selectable_items"
@@ -196,7 +216,7 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-plug"
-                                        modifiers="{'invisible': [['id', '=', False]]}"
+                                        modifiers="{'invisible': [['|', ['id', '=', False], ['display_type', '!=', 'product']]]}"
                                     />
                                     <button
                                         name="action_refresh_selectable_items"
@@ -204,7 +224,7 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-refresh"
-                                        modifiers="{'invisible': [['id', '=', False]]}"
+                                        modifiers="{'invisible': [['|', ['id', '=', False], ['display_type', '!=', 'product']]]}"
                                     />
                                     <button
                                         name="action_delete_selectable_items"
@@ -212,10 +232,14 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-eraser"
-                                        modifiers="{'invisible': [['id', '=', False]]}"
+                                        modifiers="{'invisible': [['|', ['id', '=', False], ['display_type', '!=', 'product']]]}"
                                     />
 
-                                    <field name="number_of_selected_items" string="No. of lines" />
+                                    <field
+                                        name="number_of_selected_items"
+                                        string="No. of lines"
+                                        modifiers="{'invisible': [['display_type', '!=', 'product']]}"
+                                    />
 
                                     <button
                                         name="action_delete_line"
