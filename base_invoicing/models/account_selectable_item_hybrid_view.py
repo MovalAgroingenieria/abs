@@ -21,14 +21,30 @@ def _model_to_suffix(model_name):
     return (model_name or "").replace(".", "_").replace("-", "_").lower()
 
 
+def _build_suffix(model_name, category_id):
+    """Build suffix: model + category id for uniqueness. E.g. ter_parcel_42."""
+    base = _model_to_suffix(model_name)
+    if not base:
+        return ""
+    if category_id is not None:
+        return f"{base}_{category_id}"
+    return base
+
+
 class AccountSelectableItemHybridView(models.Model):
     _name = "account.selectable.item.hybrid.view"
-    _description = "Hybrid SQL view for selectable items (config per billable model)"
+    _description = "Hybrid SQL view for selectable items (config per billable model + category)"
 
     billable_model_id = fields.Many2one(
         comodel_name="ir.model",
         string="Billable model",
         required=True,
+        ondelete="cascade",
+        index=True,
+    )
+    category_id = fields.Many2one(
+        comodel_name="product.category",
+        string="Product category",
         ondelete="cascade",
         index=True,
     )
@@ -63,33 +79,46 @@ class AccountSelectableItemHybridView(models.Model):
 
     _sql_constraints = [
         (
-            "billable_model_uniq",
-            "UNIQUE(billable_model_id)",
-            "A hybrid view already exists for this billable model.",
+            "billable_model_category_uniq",
+            "UNIQUE(billable_model_id, category_id)",
+            "A hybrid view already exists for this billable model and category.",
         ),
     ]
 
-    @api.depends("billable_model_id.model")
+    @api.depends("billable_model_id.model", "category_id")
     def _compute_view_table(self):
         for rec in self:
-            suffix = _model_to_suffix(rec.billable_model_id.model if rec.billable_model_id else "")
+            suffix = _build_suffix(
+                rec.billable_model_id.model if rec.billable_model_id else "",
+                rec.category_id.id if rec.category_id else None,
+            )
             rec.view_table = f"{_PREFIX}{suffix}" if suffix else ""
 
-    @api.depends("billable_model_id.model")
+    @api.depends("billable_model_id.model", "category_id")
     def _compute_model_name(self):
         for rec in self:
-            suffix = _model_to_suffix(rec.billable_model_id.model if rec.billable_model_id else "")
+            suffix = _build_suffix(
+                rec.billable_model_id.model if rec.billable_model_id else "",
+                rec.category_id.id if rec.category_id else None,
+            )
             rec.model_name = f"x_base_invoicing.selectable_{suffix}" if suffix else ""
 
     @api.model
     def _get_or_create_for_category(self, category):
-        """Get or create hybrid view for the category's billable model."""
+        """Get or create hybrid view for the category's billable model + category."""
         if not category or not category.billable_item_model_id:
             return self.env["account.selectable.item.hybrid.view"]
         model_id = category.billable_item_model_id.id
-        hybrid = self.search([("billable_model_id", "=", model_id)], limit=1)
+        domain = [
+            ("billable_model_id", "=", model_id),
+            ("category_id", "=", category.id),
+        ]
+        hybrid = self.search(domain, limit=1)
         if not hybrid:
-            hybrid = self.create({"billable_model_id": model_id})
+            hybrid = self.create({
+                "billable_model_id": model_id,
+                "category_id": category.id,
+            })
             hybrid._build_hybrid_view(category)
         elif not hybrid.model_id:
             hybrid._build_hybrid_view(category)
@@ -349,6 +378,20 @@ if selectable_ids:
             escaped_desc = desc.replace('"', "&quot;")
             parts.append(f'<field name="{fname}" string="{escaped_desc}"{extra}/>')
         return "".join(parts)
+
+    def unlink(self):
+        """Drop PostgreSQL view before unlinking."""
+        for rec in self:
+            if rec.view_table:
+                try:
+                    drop_sql = odoo_sql.SQL(
+                        "DROP VIEW IF EXISTS %s CASCADE",
+                        odoo_sql.SQL.identifier(rec.view_table),
+                    )
+                    self.env.cr.execute(drop_sql)
+                except ProgrammingError:
+                    pass
+        return super().unlink()
 
     def _create_view(self, view_table, query):
         """Create or replace PostgreSQL view."""
