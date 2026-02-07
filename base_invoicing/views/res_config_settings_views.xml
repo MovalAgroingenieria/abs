@@ -30,6 +30,15 @@
                     >
                         <field name="mass_invoicing_run_background" />
                     </setting>
+
+                    <setting
+                        id="mass_invoicing_progress_batch_size"
+                        string="Invoice batch size for progress"
+                        company_dependent="1"
+                        help="Invoices per batch when committing progress in background. Higher = faster generation, less frequent progress updates."
+                    >
+                        <field name="mass_invoicing_progress_batch_size" />
+                    </setting>
                 </block>
             </xpath>
         </field>

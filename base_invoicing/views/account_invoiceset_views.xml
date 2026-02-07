@@ -5,7 +5,7 @@
         <field name="name">account.invoiceset.view.form</field>
         <field name="model">account.invoiceset</field>
         <field name="arch" type="xml">
-            <form duplicate="0" js_class="invoiceset_view_form">
+            <form duplicate="1" js_class="invoiceset_view_form">
                 <header>
                     <button
                         name="calculate_invoiceset"
@@ -35,6 +35,12 @@
                     <div class="oe_button_box" name="button_box">
                         <button name="action_show_invoices" type="object" class="oe_stat_button" icon="fa-dollar">
                             <field name="number_of_invoices" string="Invoices" widget="statinfo" />
+                        </button>
+                        <button name="action_show_invoice_lines" type="object" class="oe_stat_button" icon="fa-list-alt">
+                            <field name="number_of_invoice_lines" string="Invoice Lines" widget="statinfo" />
+                        </button>
+                        <button name="action_show_selectable_items" type="object" class="oe_stat_button" icon="fa-plug">
+                            <field name="selectable_item_count" string="Selectable Items" widget="statinfo" />
                         </button>
                     </div>
 
@@ -115,6 +121,16 @@
                                     />
                                 </div>
                             </div>
+
+                            <group
+                                name="calculation_info"
+                                string="Last calculation"
+                                modifiers="{'invisible': ['|', ['state', 'not in', ['calculated', 'committed']], ['calculation_finished_at', '=', False]]}"
+                            >
+                                <field name="calculation_started_at" />
+                                <field name="calculation_finished_at" />
+                                <field name="calculation_speed_inv_per_sec" />
+                            </group>
                         </group>
                     </group>
 
@@ -145,6 +161,7 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-cog"
+                                        modifiers="{'invisible': [['id', '=', False]]}"
                                     />
                                     <button
                                         name="action_show_selectable_items"
@@ -152,6 +169,7 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-plug"
+                                        modifiers="{'invisible': [['id', '=', False]]}"
                                     />
                                     <button
                                         name="action_refresh_selectable_items"
@@ -159,6 +177,7 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-refresh"
+                                        modifiers="{'invisible': [['id', '=', False]]}"
                                     />
                                     <button
                                         name="action_delete_selectable_items"
@@ -166,6 +185,7 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-eraser"
+                                        modifiers="{'invisible': [['id', '=', False]]}"
                                     />
 
                                     <field name="number_of_selected_items" string="No. of lines" />
@@ -176,6 +196,7 @@
                                         type="object"
                                         class="oe_stat_button"
                                         icon="fa-trash"
+                                        modifiers="{'invisible': [['id', '=', False]]}"
                                     />
                                 </list>
                             </field>
@@ -218,6 +239,7 @@
                 <field name="payment_term_id" string="Payment Term" optional="hide" />
                 <field name="journal_id" string="Journal" optional="hide" />
                 <field name="number_of_invoices" string="No. of invoices" optional="show" />
+                <field name="calculation_duration_display" string="Calc. time" optional="show" />
                 <field
                     name="state"
                     string="Status"
@@ -269,52 +291,77 @@
         <field name="name">account.invoiceset.view.kanban</field>
         <field name="model">account.invoiceset</field>
         <field name="arch" type="xml">
-            <kanban class="o_kanban_mobile" sample="1" js_class="account_documents_kanban">
+            <kanban class="o_kanban_mobile o_base_invoicing_kanban" sample="1" js_class="account_documents_kanban">
                 <field name="alphanum_code" />
                 <field name="description" />
                 <field name="invoice_date" />
                 <field name="state" />
                 <field name="invoice_user_id" />
                 <field name="number_of_invoices" />
+                <field name="invoice_generation_progress" />
+                <field name="calculation_duration_display" />
+                <field name="calculation_speed_inv_per_sec" />
+                <field name="journal_id" />
+                <field name="payment_term_id" />
                 <templates>
                     <t t-name="card">
-                        <div t-attf-class="oe_kanban_global_click">
-                            <div class="row">
-                                <div class="col-6 o_kanban_record_headings">
-                                    <strong>
+                        <div class="oe_kanban_global_click o_base_invoicing_kanban_card"
+                             t-att-data-state="record.state.value">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_top_left">
+                                    <span class="o_kanban_record_code">
                                         <field name="alphanum_code" />
-                                    </strong>
+                                    </span>
+                                    <span class="o_kanban_record_status">
+                                        <field
+                                            name="state"
+                                            widget="label_selection"
+                                            options="{'classes': {'draft': 'o_kanban_status_draft', 'configured': 'o_kanban_status_configured', 'calculating': 'o_kanban_status_calculating', 'calculated': 'o_kanban_status_calculated', 'committed': 'o_kanban_status_committed'}}"
+                                        />
+                                    </span>
                                 </div>
-                                <div class="col-6 text-end">
-                                    <strong>
-                                        <i class="fa fa-clock" aria-label="Date" role="img" />
-                                        <t t-esc="record.invoice_date.value" />
-                                    </strong>
+                                <div class="o_kanban_record_top_right">
+                                    <i class="fa fa-calendar-o" aria-label="Date" role="img" title="Date" />
+                                    <field name="invoice_date" />
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <field name="description" />
-                                </div>
+                            <div class="o_kanban_record_desc">
+                                <field name="description" />
                             </div>
-                            <div class="row">
-                                <div class="col-6">
-                                    <t t-if="record.number_of_invoices.value">
-                                        <span>
-                                            <t t-esc="record.number_of_invoices.value" />
-                                        </span>
-                                        <span>
-                                            <t t-esc="_('invoices')" />
-                                        </span>
-                                    </t>
+                            <div class="o_kanban_record_stats">
+                                <div class="o_kanban_stat o_kanban_stat_invoices">
+                                    <i class="fa fa-file-text-o" aria-label="Invoices" role="img" title="Invoices" />
+                                    <strong><field name="number_of_invoices" /></strong>
+                                    <span>invoices</span>
                                 </div>
-                                <div class="col-6 text-end">
-                                    <field
-                                        name="state"
-                                        widget="label_selection"
-                                        options="{'classes': {'draft': 'info', 'configured': 'primary', 'calculating': 'warning', 'calculated': 'muted', 'committed': 'success'}}"
-                                    />
+                                <t t-if="record.calculation_duration_display.raw_value">
+                                    <div class="o_kanban_stat o_kanban_stat_duration">
+                                        <i class="fa fa-clock-o" aria-label="Duration" role="img" title="Duration" />
+                                        <field name="calculation_duration_display" />
+                                    </div>
+                                </t>
+                                <t t-if="record.calculation_speed_inv_per_sec.raw_value">
+                                    <div class="o_kanban_stat o_kanban_stat_speed">
+                                        <i class="fa fa-tachometer" aria-label="Speed" role="img" title="Speed" />
+                                        <field name="calculation_speed_inv_per_sec" />
+                                        <span class="text-muted"> inv/s</span>
+                                    </div>
+                                </t>
+                            </div>
+                            <t t-if="record.state.value == 'calculating' and record.invoice_generation_progress.raw_value">
+                                <div class="o_kanban_progress_wrapper">
+                                    <div class="progress o_kanban_progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                             role="progressbar"
+                                             t-attf-style="width: #{record.invoice_generation_progress.raw_value or 0}%"
+                                             t-att-aria-valuenow="record.invoice_generation_progress.raw_value"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100" />
+                                    </div>
                                 </div>
+                            </t>
+                            <div class="o_kanban_record_footer">
+                                <field name="invoice_user_id" widget="many2one_avatar_user" />
                             </div>
                         </div>
                     </t>
@@ -326,21 +373,19 @@
     <record id="account_invoiceset_action" model="ir.actions.act_window">
         <field name="name">Invoice Sets</field>
         <field name="res_model">account.invoiceset</field>
-        <field name="view_mode">list,form,kanban</field>
+        <field name="view_mode">kanban,list,form</field>
         <field
             name="view_ids"
             eval="[
                 (5, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('account_invoiceset_view_kanban')}),
                 (0, 0, {'view_mode': 'list', 'view_id': ref('account_invoiceset_view_list')}),
-                (0, 0, {'view_mode': 'form', 'view_id': ref('account_invoiceset_view_form')}),
-                (0, 0, {'view_mode': 'kanban', 'view_id': ref('account_invoiceset_view_kanban')})
+                (0, 0, {'view_mode': 'form', 'view_id': ref('account_invoiceset_view_form')})
             ]"
         />
         <field name="search_view_id" ref="account_invoiceset_view_search" />
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                <t t-esc="_('Create a new invoice set')" />
-            </p>
+            <p class="o_view_nocontent_smiling_face">Create a new invoice set</p>
         </field>
         <field name="context">{'short_name_categories': True}</field>
     </record>

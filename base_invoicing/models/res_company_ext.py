@@ -16,3 +16,9 @@ class ResCompany(models.Model):
         string="Run invoice set calculation in background",
         default=False,
     )
+
+    mass_invoicing_progress_batch_size = fields.Integer(
+        string="Invoice batch size for progress commits",
+        default=50,
+        help="Number of invoices per batch when committing progress in background mode. Higher = faster but less responsive progress bar.",
+    )

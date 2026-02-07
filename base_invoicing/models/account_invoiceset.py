@@ -97,16 +97,37 @@ class AccountInvoiceset(models.Model):
         readonly=True,
         help="Set when state enters 'calculating'; used to detect stale processes.",
     )
+    calculation_finished_at = fields.Datetime(
+        string="Calculation finished at",
+        readonly=True,
+    )
+    calculation_speed_inv_per_sec = fields.Float(
+        string="Calculation speed (invoices/sec)",
+        readonly=True,
+    )
+    calculation_duration_display = fields.Char(
+        string="Calculation duration",
+        compute="_compute_calculation_duration_display",
+    )
 
     move_ids = fields.One2many(
         string="Invoices",
         comodel_name="account.move",
         inverse_name="invoiceset_id",
+        copy=False,
     )
     number_of_invoices = fields.Integer(
         string="Number of invoices",
         store=True,
         compute="_compute_number_of_invoices",
+    )
+    number_of_invoice_lines = fields.Integer(
+        string="Number of invoice lines",
+        compute="_compute_number_of_invoice_lines",
+    )
+    selectable_item_count = fields.Integer(
+        string="Selectable items count",
+        compute="_compute_selectable_item_count",
     )
     move_line_ids = fields.One2many(
         string="Invoice Lines",
@@ -128,7 +149,7 @@ class AccountInvoiceset(models.Model):
     invoice_generation_progress = fields.Float(
         string="Percentage of progress during invoice generation",
         default=0.0,
-        compute="_compute_invoice_generation_progress",
+        readonly=True,
     )
     calculated = fields.Boolean(
         default=False,
@@ -146,6 +167,25 @@ class AccountInvoiceset(models.Model):
         comodel_name="res.partner",
         default=lambda self: self.env.company.partner_id,
         tracking=True,
+    )
+    company_id = fields.Many2one(
+        comodel_name="res.company",
+        default=lambda self: self.env.company,
+        required=True,
+        index=True,
+    )
+    amount_total_invoices = fields.Monetary(
+        string="Total Amount",
+        compute="_compute_amount_total_invoices",
+        currency_field="company_currency_id",
+    )
+    company_currency_id = fields.Many2one(
+        related="company_id.currency_id",
+        string="Company Currency",
+    )
+    number_of_invoices_draft = fields.Integer(
+        string="Invoices to validate",
+        compute="_compute_number_of_invoices_draft",
     )
 
     # -------------------------------------------------------------------------
@@ -189,22 +229,29 @@ class AccountInvoiceset(models.Model):
         for record in self:
             record.number_of_invoices = mapped.get(record.id, 0)
 
+    @api.depends("move_line_ids")
+    def _compute_number_of_invoice_lines(self):
+        data = self.env["account.move.line"].read_group(
+            [("invoiceset_id", "in", self.ids)],
+            ["invoiceset_id"],
+            ["invoiceset_id"],
+        )
+        mapped = {d["invoiceset_id"][0]: d["invoiceset_id_count"] for d in data}
+        for record in self:
+            record.number_of_invoice_lines = mapped.get(record.id, 0)
+
+    @api.depends("productlink_ids", "productlink_ids.selectable_item_ids")
+    def _compute_selectable_item_count(self):
+        for record in self:
+            record.selectable_item_count = self.env["account.selectable.item"].search_count(
+                [("productlink_id.invoiceset_id", "=", record.id)]
+            )
+
     @api.depends("productlink_ids", "productlink_ids.populated")
     def _compute_all_productlinks_configured(self):
         for record in self:
             record.all_productlinks_configured = bool(record.productlink_ids) and all(
                 pl.populated for pl in record.productlink_ids
-            )
-
-    def _compute_invoice_generation_progress(self):
-        progress_model = self.env["account.invoiceset.progress"].sudo()
-        progress_by_set = {
-            p.invoiceset_id.id: p.invoice_generation_progress
-            for p in progress_model.search([("invoiceset_id", "in", self.ids)])
-        }
-        for record in self:
-            record.invoice_generation_progress = float(
-                progress_by_set.get(record.id, 0.0) or 0.0
             )
 
     @api.depends("move_ids", "move_ids.state")
@@ -213,6 +260,24 @@ class AccountInvoiceset(models.Model):
             record.some_posted_invoice = any(
                 m.state == "posted" for m in record.move_ids
             )
+
+    @api.depends("calculation_started_at", "calculation_finished_at")
+    def _compute_calculation_duration_display(self):
+        for record in self:
+            if record.calculation_started_at and record.calculation_finished_at:
+                delta = record.calculation_finished_at - record.calculation_started_at
+                total_sec = int(delta.total_seconds())
+                if total_sec < 60:
+                    record.calculation_duration_display = f"{total_sec}s"
+                elif total_sec < 3600:
+                    m, s = divmod(total_sec, 60)
+                    record.calculation_duration_display = f"{m}m {s}s"
+                else:
+                    h, r = divmod(total_sec, 3600)
+                    m, s = divmod(r, 60)
+                    record.calculation_duration_display = f"{h}h {m}m {s}s"
+            else:
+                record.calculation_duration_display = ""
 
     # -------------------------------------------------------------------------
     # CRUD
@@ -230,6 +295,18 @@ class AccountInvoiceset(models.Model):
             [{"invoiceset_id": inv.id} for inv in invoicesets]
         )
         return invoicesets
+
+    def copy(self, default=None):
+        default = dict(default or {})
+        default["calculation_started_at"] = False
+        default["calculation_finished_at"] = False
+        default["calculation_speed_inv_per_sec"] = 0.0
+        default["invoice_generation_progress"] = 0.0
+        new_invoiceset = super().copy(default)
+        for pl in new_invoiceset.productlink_ids:
+            pl.selectable_item_ids.unlink()
+            pl.write({"populated": False})
+        return new_invoiceset
 
     def unlink(self):
         for record in self:
@@ -264,6 +341,41 @@ class AccountInvoiceset(models.Model):
             "target": "current",
             "domain": [("invoiceset_id", "=", self.id)],
             "context": {"default_move_type": "out_invoice"},
+        }
+
+    def action_show_invoice_lines(self):
+        self.ensure_one()
+        tree_view = self.env.ref("base_invoicing.account_move_line_view_list")
+        search_view = self.env.ref("base_invoicing.account_move_line_view_search")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Invoice Lines"),
+            "res_model": "account.move.line",
+            "view_mode": "list",
+            "views": [(tree_view.id, "list")],
+            "search_view_id": (search_view.id, search_view.name),
+            "target": "current",
+            "domain": [("invoiceset_id", "=", self.id)],
+            "context": {
+                "create": False,
+                "search_default_grouped_by_invoiceset_id": 1,
+            },
+        }
+
+    def action_show_selectable_items(self):
+        self.ensure_one()
+        tree_view = self.env.ref("base_invoicing.account_selectable_item_view_tree")
+        search_view = self.env.ref("base_invoicing.account_selectable_item_view_search")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Selectable Items"),
+            "res_model": "account.selectable.item",
+            "view_mode": "list",
+            "views": [(tree_view.id, "list")],
+            "search_view_id": (search_view.id, search_view.name),
+            "target": "current",
+            "domain": [("productlink_id.invoiceset_id", "=", self.id)],
+            "context": {"create": False},
         }
 
     # -------------------------------------------------------------------------
@@ -374,14 +486,18 @@ class AccountInvoiceset(models.Model):
 
         # Reset progress for background runs
         if background:
+            invoiceset.write({"invoice_generation_progress": 0.0})
             self.env["account.invoiceset.progress"].sudo().search(
                 [("invoiceset_id", "=", invoiceset.id)],
                 limit=1,
             ).write({"invoice_generation_progress": 0.0, "stop_order": False})
 
+        started_at = fields.Datetime.now()
         invoiceset.write({
             "state": "calculating",
-            "calculation_started_at": fields.Datetime.now(),
+            "calculation_started_at": started_at,
+            "calculation_finished_at": False,
+            "calculation_speed_inv_per_sec": 0.0,
         })
         suffix = (
             self.env._("(background)") if background else self.env._("(foreground)")
@@ -395,31 +511,62 @@ class AccountInvoiceset(models.Model):
             if not invoice_data:
                 cancelled = True
             else:
-                progress = 0.0
-                step = 100.0 / len(invoice_data) if invoice_data else 100.0
+                total_invoices = len(invoice_data)
                 progress_model = self.env["account.invoiceset.progress"].sudo()
+                progress_row = (
+                    progress_model.search(
+                        [("invoiceset_id", "=", invoiceset.id)], limit=1
+                    )
+                    if background
+                    else None
+                )
+                # Batch size: commit/update progress every N invoices (avoids 1 commit per invoice)
+                company = self.env.company
+                progress_batch_size = max(
+                    1,
+                    int(company.mass_invoicing_progress_batch_size or 50),
+                )
 
-                for inv_data in invoice_data:
+                for idx, inv_data in enumerate(invoice_data):
                     invoice = self.create_invoice(invoiceset, inv_data)
                     if invoice:
                         number_of_invoices += 1
 
-                    if background:
-                        row = progress_model.search(
-                            [("invoiceset_id", "=", invoiceset.id)], limit=1
-                        )
-                        if row.stop_order:
-                            invoiceset.cancel_invoices()
-                            cancelled = True
-                            number_of_invoices = 0
-                            break
+                    if background and progress_row:
+                        do_batch = (idx + 1) % progress_batch_size == 0 or (
+                            idx + 1
+                        ) == total_invoices
+                        if do_batch:
+                            progress_row.invalidate_recordset()
+                            progress_row = progress_model.search(
+                                [("invoiceset_id", "=", invoiceset.id)], limit=1
+                            )
+                            if progress_row.stop_order:
+                                invoiceset.cancel_invoices()
+                                cancelled = True
+                                number_of_invoices = 0
+                                break
 
-                        progress += step
-                        row.write({"invoice_generation_progress": progress})
+                            progress = 100.0 * (idx + 1) / total_invoices
+                            progress_row.write(
+                                {"invoice_generation_progress": progress}
+                            )
+                            invoiceset.with_context(
+                                tracking_disable=True
+                            ).write({"invoice_generation_progress": progress})
+                            self.env.cr.commit()
 
+            finished_at = fields.Datetime.now()
+            duration_sec = (finished_at - started_at).total_seconds()
+            speed = (
+                number_of_invoices / duration_sec
+                if duration_sec and duration_sec > 0
+                else 0.0
+            )
             invoiceset.write({
                 "state": "configured" if cancelled else "calculated",
-                "calculation_started_at": False,
+                "calculation_finished_at": finished_at,
+                "calculation_speed_inv_per_sec": round(speed, 2),
             })
             end_suffix = (
                 self.env._("Cancelled")
@@ -432,13 +579,19 @@ class AccountInvoiceset(models.Model):
 
             if background:
                 # Reset progress bar for next run
+                invoiceset.write({"invoice_generation_progress": 0.0})
                 self.env["account.invoiceset.progress"].sudo().search(
                     [("invoiceset_id", "=", invoiceset.id)],
                     limit=1,
                 ).write({"invoice_generation_progress": 0.0, "stop_order": False})
 
         except (UserError, ValueError, TemplateError) as err:
-            invoiceset.write({"state": "configured", "calculation_started_at": False})
+            invoiceset.write({
+                "state": "configured",
+                "calculation_started_at": False,
+                "calculation_finished_at": False,
+                "calculation_speed_inv_per_sec": 0.0,
+            })
             invoiceset.message_post(
                 body=self.env._("Calculation Process: ERROR...") + " " + str(err)
             )
@@ -606,6 +759,10 @@ class AccountInvoiceset(models.Model):
             }
             if line.get("name"):
                 line_vals["name"] = line["name"]
+            # If account.move.line has a Many2one to the billable model, fill it
+            m2o_field = self._get_move_line_m2o_to_model(line["billable_item_model"])
+            if m2o_field and line.get("billable_item_res_id"):
+                line_vals[m2o_field] = line["billable_item_res_id"]
             lines.append((0, 0, line_vals))
         if lines:
             vals["invoice_line_ids"] = lines
@@ -614,6 +771,24 @@ class AccountInvoiceset(models.Model):
             vals["comment_template_ids"] = [(6, 0, invoiceset.comment_template_ids.ids)]
 
         return self.env["account.move"].create(vals)
+
+    @api.model
+    def _get_move_line_m2o_to_model(self, model_name):
+        """
+        Return the field name of the first Many2one on account.move.line
+        that points to the given model, or False if none exists.
+        """
+        if not model_name:
+            return False
+        field = self.env["ir.model.fields"].search(
+            [
+                ("model", "=", "account.move.line"),
+                ("relation", "=", model_name),
+                ("ttype", "=", "many2one"),
+            ],
+            limit=1,
+        )
+        return field.name if field else False
 
     # -------------------------------------------------------------------------
     # Stop/cancel helpers
@@ -663,7 +838,12 @@ class AccountInvoiceset(models.Model):
     def cancel_invoices(self):
         self.ensure_one()
         self.move_ids.unlink()
-        self.write({"state": "configured", "calculation_started_at": False})
+        self.write({
+            "state": "configured",
+            "calculation_started_at": False,
+            "calculation_finished_at": False,
+            "calculation_speed_inv_per_sec": 0.0,
+        })
 
     @api.model
     def action_refresh_all_invoicesets_in_calculation_process(self):

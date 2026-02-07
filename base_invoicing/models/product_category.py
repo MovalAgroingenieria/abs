@@ -73,6 +73,19 @@ class ProductCategory(models.Model):
         store=True,
     )
 
+    invoiceset_count = fields.Integer(
+        string="Invoice Sets Count",
+        compute="_compute_invoiceset_count",
+    )
+    invoice_line_count = fields.Integer(
+        string="Invoice Lines Count",
+        compute="_compute_invoice_line_count",
+    )
+    selectable_item_count = fields.Integer(
+        string="Selectable Items Count",
+        compute="_compute_selectable_item_count",
+    )
+
     # Auxiliary fields (definitions only, labels are computed)
     aux_01_char_field = fields.Char(string="Aux. field of type char #1", tracking=True)
     aux_01_char_label = fields.Char(
@@ -364,6 +377,42 @@ class ProductCategory(models.Model):
         for record in self:
             record.supports_mass_billing = bool(record.billable_item_model_id)
 
+    def _compute_invoiceset_count(self):
+        for record in self:
+            record.invoiceset_count = self.env["account.invoiceset"].search_count(
+                [
+                    (
+                        "productlink_ids.product_id.product_tmpl_id.categ_id",
+                        "=",
+                        record.id,
+                    )
+                ]
+            )
+
+    def _compute_invoice_line_count(self):
+        data = self.env["account.move.line"].read_group(
+            [("categ_id", "in", self.ids), ("invoiceset_id", "!=", False)],
+            ["categ_id"],
+            ["categ_id"],
+        )
+        mapped = {d["categ_id"][0]: d["categ_id_count"] for d in data if d["categ_id"]}
+        for record in self:
+            record.invoice_line_count = mapped.get(record.id, 0)
+
+    def _compute_selectable_item_count(self):
+        for record in self:
+            record.selectable_item_count = self.env[
+                "account.selectable.item"
+            ].search_count(
+                [
+                    (
+                        "productlink_id.product_id.product_tmpl_id.categ_id",
+                        "=",
+                        record.id,
+                    )
+                ]
+            )
+
     @api.depends(
         "billable_item_model_id",
         "aux_01_char_field",
@@ -499,6 +548,61 @@ class ProductCategory(models.Model):
     # -------------------------------------------------------------------------
     # Actions
     # -------------------------------------------------------------------------
+
+    def action_view_invoicesets(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Invoice Sets"),
+            "res_model": "account.invoiceset",
+            "view_mode": "list,form",
+            "domain": [
+                (
+                    "productlink_ids.product_id.product_tmpl_id.categ_id",
+                    "=",
+                    self.id,
+                )
+            ],
+            "context": {"create": False},
+        }
+
+    def action_view_invoice_lines(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Invoice Lines"),
+            "res_model": "account.move.line",
+            "view_mode": "list,form",
+            "domain": [
+                ("categ_id", "=", self.id),
+                ("invoiceset_id", "!=", False),
+            ],
+            "context": {
+                "create": False,
+                "search_default_grouped_by_invoiceset_id": 1,
+            },
+        }
+
+    def action_view_selectable_items(self):
+        self.ensure_one()
+        tree_view = self.env.ref("base_invoicing.account_selectable_item_view_tree")
+        search_view = self.env.ref("base_invoicing.account_selectable_item_view_search")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Selectable Items"),
+            "res_model": "account.selectable.item",
+            "view_mode": "list",
+            "views": [(tree_view.id, "list")],
+            "search_view_id": (search_view.id, search_view.name),
+            "domain": [
+                (
+                    "productlink_id.product_id.product_tmpl_id.categ_id",
+                    "=",
+                    self.id,
+                )
+            ],
+            "context": {"create": False},
+        }
 
     def action_select_billable_item_field(self):
         self.ensure_one()

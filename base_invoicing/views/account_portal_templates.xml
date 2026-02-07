@@ -3,7 +3,7 @@
 
     <template id="portal_my_invoices" inherit_id="account.portal_my_invoices">
         <xpath expr="//th[hasclass('d-md-table-cell')]" position="after">
-            <th t-esc="_('Invoice Set')" />
+            <th>Invoice Set</th>
         </xpath>
         <xpath expr="//td[hasclass('d-md-table-cell')]" position="after">
             <td>

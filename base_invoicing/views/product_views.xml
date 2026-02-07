@@ -20,6 +20,35 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_form_view" />
         <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_open_documents']" position="after">
+                <button
+                    name="action_view_invoices"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-dollar"
+                    modifiers="{'invisible': ['supports_mass_billing', '=', false]}"
+                >
+                    <field name="invoice_count" widget="statinfo" string="Invoices" />
+                </button>
+                <button
+                    name="action_view_invoice_lines"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-list-alt"
+                    modifiers="{'invisible': ['supports_mass_billing', '=', false]}"
+                >
+                    <field name="invoice_line_count" widget="statinfo" string="Invoice Lines" />
+                </button>
+                <button
+                    name="action_view_selectable_items"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-plug"
+                    modifiers="{'invisible': ['supports_mass_billing', '=', false]}"
+                >
+                    <field name="selectable_item_count" widget="statinfo" string="Selectable Items" />
+                </button>
+            </xpath>
             <xpath expr="//page[@name='inventory']" position="after">
                 <field name="sale_ok" invisible="1" />
                 <field name="supports_mass_billing" invisible="1" />

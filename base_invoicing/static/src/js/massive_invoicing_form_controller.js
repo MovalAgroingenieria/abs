@@ -6,7 +6,8 @@ import { formView } from "@web/views/form/form_view";
 import { useService } from "@web/core/utils/hooks";
 import { onWillUnmount, useEffect } from "@odoo/owl";
 
-const INTERVAL = 2000;
+const INTERVAL_IDLE = 2000;
+const INTERVAL_CALCULATING = 400;  // Fast refresh for real-time progress
 
 export class MassiveInvoicingFormController extends FormController {
     setup() {
@@ -37,7 +38,7 @@ export class MassiveInvoicingFormController extends FormController {
             return;
         }
 
-        this._intervalId = setInterval(async () => {
+        const poll = async () => {
             this._previousBackground = this._currentBackground;
 
             this._currentBackground = await this.orm.call(
@@ -47,19 +48,22 @@ export class MassiveInvoicingFormController extends FormController {
             );
 
             if (this._currentBackground || (!this._currentBackground && this._previousBackground)) {
-                // v18: según versión, una de estas 2 existe.
                 if (this.model?.load) {
                     await this.model.load();
                 } else if (this.model?.root?.load) {
                     await this.model.root.load();
                 }
             }
-        }, INTERVAL);
+
+            const nextMs = this._currentBackground ? INTERVAL_CALCULATING : INTERVAL_IDLE;
+            this._intervalId = setTimeout(poll, nextMs);
+        };
+        poll();
     }
 
     _clearInterval() {
         if (this._intervalId) {
-            clearInterval(this._intervalId);
+            clearTimeout(this._intervalId);
             this._intervalId = false;
         }
     }

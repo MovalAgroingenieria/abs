@@ -9,6 +9,7 @@ from . import (
     account_selectable_item,
     billable_item_test,
     product_category,
+    product_product,
     product_template,
     res_company_ext,
     res_config_settings,

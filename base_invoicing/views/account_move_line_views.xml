@@ -1,6 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Journal Items (apuntes contables) - add lote search and column to accounting views -->
+    <record id="view_move_line_tree_inherit_base_invoicing" model="ir.ui.view">
+        <field name="name">account.move.line.list.inherit.base_invoicing</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_move_line_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='journal_id']" position="after">
+                <field name="invoiceset_id" string="Invoice Set" optional="hide" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_move_line_filter_inherit_base_invoicing" model="ir.ui.view">
+        <field name="name">account.move.line.search.inherit.base_invoicing</field>
+        <field name="model">account.move.line</field>
+        <field name="inherit_id" ref="account.view_account_move_line_filter" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='move_id']" position="after">
+                <field name="invoiceset_id" string="Invoice Set" />
+            </xpath>
+            <xpath expr="//filter[@name='to_check']" position="after">
+                <separator />
+                <filter
+                    string="From invoice set"
+                    name="from_invoiceset_yes"
+                    domain="[('invoiceset_id', '!=', False)]"
+                />
+                <filter
+                    string="Not from invoice set"
+                    name="from_invoiceset_no"
+                    domain="[('invoiceset_id', '=', False)]"
+                />
+            </xpath>
+            <xpath expr="//filter[@name='group_by_move']" position="before">
+                <filter
+                    name="grouped_by_invoiceset_id"
+                    string="Invoice Set"
+                    domain="[]"
+                    context="{'group_by': 'invoiceset_id'}"
+                />
+            </xpath>
+        </field>
+    </record>
+
     <record id="account_move_line_view_list" model="ir.ui.view">
         <field name="name">account.move.line.view.list</field>
         <field name="model">account.move.line</field>
@@ -146,9 +190,7 @@
                             <t t-if="record.invoiceset_id.value">
                                 <div class="row">
                                     <div class="col-12">
-                                        <span class="text-muted">
-                                            <t t-esc="_('Invoice Set')" />
-                                        </span>
+                                        <span class="text-muted">Invoice Set</span>
                                         <span>
                                             <field name="invoiceset_id" />
                                         </span>
@@ -165,9 +207,7 @@
                             <div class="row">
                                 <div class="col-12">
                                     <field name="product_id" />
-                                    <span class="text-muted">
-                                        <t t-esc="_('. Quantity:')" />
-                                    </span>
+                                        <span class="text-muted">. Quantity:</span>
                                     <field name="quantity" />
                                 </div>
                             </div>
@@ -234,11 +274,9 @@
         />
         <field name="search_view_id" ref="account_move_line_view_search" />
         <field name="domain">[('credit', '&gt;', 0), ('quantity', '&gt;', 0)]</field>
-        <field name="context">{'search_default_from_invoiceset_yes': 1}</field>
+        <field name="context">{'search_default_from_invoiceset_yes': 1, 'search_default_grouped_by_invoiceset_id': 1}</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                <t t-esc="_('Invoice Lines')" />
-            </p>
+            <p class="o_view_nocontent_smiling_face">Invoice Lines</p>
         </field>
     </record>
 

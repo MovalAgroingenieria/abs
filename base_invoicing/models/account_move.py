@@ -14,5 +14,5 @@ class AccountMove(models.Model):
         ondelete="restrict",
         copy=False,
         readonly=True,
-        check_company=True,
+        check_company=False,
     )

@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Kanban: first view, super pro design -->
+    <record id="product_category_kanban_view_invoicing" model="ir.ui.view">
+        <field name="name">Product Category Invoicing Kanban</field>
+        <field name="model">product.category</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile o_kanban_product_category_invoicing" sample="1">
+                <field name="name"/>
+                <field name="complete_name"/>
+                <field name="parent_id"/>
+                <field name="product_count"/>
+                <field name="supports_mass_billing"/>
+                <field name="billable_item_model_id"/>
+                <field name="category_code"/>
+                <templates>
+                    <t t-name="card" class="o_kanban_invoicing_category">
+                        <div class="d-flex flex-column h-100 o_kanban_card_content">
+                            <div class="o_kanban_record_top">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <strong class="o_kanban_record_title flex-grow-1">
+                                        <field name="name"/>
+                                    </strong>
+                                    <span t-if="record.supports_mass_billing.raw_value"
+                                          class="badge rounded-pill text-bg-success ms-2">
+                                        <i class="fa fa-check-circle" role="img" aria-label="Configured"/> Configured
+                                    </span>
+                                    <span t-else=""
+                                          class="badge rounded-pill text-bg-secondary ms-2">
+                                        <i class="fa fa-cog" role="img" aria-label="Pending"/> Pending
+                                    </span>
+                                </div>
+                                <div t-if="record.parent_id.raw_value" class="text-muted small mb-1">
+                                    <i class="fa fa-folder-o" role="img" aria-label="Folder"/> <field name="complete_name"/>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_body flex-grow-1">
+                                <div t-if="record.billable_item_model_id.raw_value" class="mb-2">
+                                    <span class="text-primary">
+                                        <i class="fa fa-database" role="img" aria-label="Model"/> <field name="billable_item_model_id" widget="many2one" options="{'no_create': True}"/>
+                                    </span>
+                                </div>
+                                <div class="d-flex gap-3 align-items-center">
+                                    <div class="o_kanban_record_bottom_left">
+                                        <span class="badge text-bg-light border">
+                                            <field name="product_count"/> Products
+                                        </span>
+                                    </div>
+                                    <div t-if="record.category_code.raw_value &gt; 0" class="badge text-bg-info">
+                                        Category #<field name="category_code" nolabel="1"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Tree: standalone list for invoicing -->
+    <record id="product_category_tree_view_invoicing" model="ir.ui.view">
+        <field name="name">Product Category Invoicing List</field>
+        <field name="model">product.category</field>
+        <field name="arch" type="xml">
+            <list string="Product Categories" class="o_base_invoicing_product_category" sample="1">
+                <field name="name" string="Category"/>
+                <field name="complete_name" optional="hide"/>
+                <field name="parent_id" optional="show"/>
+                <field name="product_count" string="Products" optional="show"/>
+                <field name="supports_mass_billing" string="Invoicing" widget="boolean_toggle" optional="hide"/>
+                <field name="billable_item_model_id" string="Model" optional="show"/>
+                <field name="category_code" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search: dedicated for invoicing action -->
+    <record id="product_category_search_view_invoicing" model="ir.ui.view">
+        <field name="name">Product Category Invoicing Search</field>
+        <field name="model">product.category</field>
+        <field name="arch" type="xml">
+            <search string="Product Categories (Invoicing)">
+                <field name="name" string="Category" filter_domain="[('name', 'ilike', self)]"/>
+                <field name="parent_id"/>
+                <field name="billable_item_model_id"/>
+                <filter name="supports_mass_billing_yes" string="Configured" domain="[('supports_mass_billing', '=', True)]"/>
+                <filter name="supports_mass_billing_no" string="Pending" domain="[('supports_mass_billing', '=', False)]"/>
+                <separator/>
+                <filter name="group_parent" string="Parent" context="{'group_by': 'parent_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Standalone form view for invoicing configuration only. High priority
+         so it is preferred when opening product.category. -->
+    <record id="product_category_form_view_invoicing" model="ir.ui.view">
+        <field name="name">Product Category Invoicing</field>
+        <field name="model">product.category</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <form class="oe_form_configuration" string="Product Category Invoicing">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button"
+                            name="action_view_invoicesets"
+                            type="object"
+                            icon="fa-cubes">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="invoiceset_count"/></span>
+                                <span class="o_stat_text"> Invoice Sets</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button"
+                            name="action_view_invoice_lines"
+                            type="object"
+                            icon="fa-list-alt">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="invoice_line_count"/></span>
+                                <span class="o_stat_text"> Invoice Lines</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button"
+                            name="action_view_selectable_items"
+                            type="object"
+                            icon="fa-plug">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="selectable_item_count"/></span>
+                                <span class="o_stat_text"> Selectable Items</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button"
+                            name="%(product.product_template_action_all)d"
+                            icon="fa-th-list"
+                            type="action"
+                            context="{'search_default_categ_id': id, 'default_categ_id': id, 'group_expand': True}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="product_count"/></span>
+                                <span class="o_stat_text"> Products</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Category"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Lamps"/>
+                            <span modifiers="{'invisible': [['category_code', '!=', 1]]}">
+                                <span>(Standard Category)</span>
+                            </span>
+                            <span modifiers="{'invisible': [['category_code', '&lt;', 2]]}">
+                                <span>(Category #</span>
+                                <field name="category_code" nolabel="1"/>
+                                <span>)</span>
+                            </span>
+                        </h1>
+                    </div>
+                    <group name="first" col="2">
+                        <field name="parent_id" class="oe_inline"/>
+                    </group>
+
+                    <notebook name="slave_data_notebook" colspan="4">
+                        <page name="page_calculation_config" string="Invoice Sets: Calculation Settings">
+                            <group name="group_calculation_config">
+                                <field
+                                    name="billable_item_model_id"
+                                    options="{'no_create': True}"
+                                    modifiers="{'readonly': [['category_code', '&gt;', 1]]}"
+                                />
+                                <div class="text-muted mb-4" colspan="2">
+                                    Model whose records are billable. Must have a Many2one
+                                    to res.partner. For res.partner, the record id is used.
+                                </div>
+
+                                <span name="billable_item_quantity_group_label" class="o_form_label o_td_label">
+                                    Quantity
+                                </span>
+                                <div
+                                    name="div_billable_item_quantity_group"
+                                    class="o_address_format"
+                                    style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;"
+                                >
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <label for="billable_item_quantity_field_id" string="Field" class="o_form_label mb-0" style="min-width: 50px;"/>
+                                        <field name="billable_item_quantity_field_id" style="min-width: 180px;"
+                                               options="{'no_create': True}"/>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <label for="billable_item_quantity_label" string="Label" class="o_form_label mb-0" style="min-width: 50px;"/>
+                                        <field name="billable_item_quantity_label" style="min-width: 120px;"/>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        <label for="billable_item_quantity_ratio" string="Ratio" class="o_form_label mb-0" style="min-width: 50px;"/>
+                                        <field name="billable_item_quantity_ratio" style="max-width: 80px;"/>
+                                    </div>
+                                </div>
+                                <div class="text-muted mb-4" colspan="2">
+                                    Integer or float field containing the billable amount. If not set, the amount is 1.
+                                    Label can be translated. Ratio multiplies the quantity (e.g. 1.5 = 50% more).
+                                </div>
+
+                                <span
+                                    name="billable_item_group_field_label"
+                                    class="o_form_label o_td_label"
+                                    modifiers="{'invisible': [['category_code', '=', 1]]}"
+                                >
+                                    Field for grouping
+                                </span>
+                                <div
+                                    name="div_billable_item_group_field"
+                                    class="o_address_format"
+                                    style="display: flex; gap: 4px;"
+                                    modifiers="{'invisible': [['category_code', '=', 1]]}"
+                                >
+                                    <field name="billable_item_group_field" style="max-width:150px"/>
+                                    <div name="button_billable_item_group_field">
+                                        <button
+                                            name="action_select_billable_item_field"
+                                            type="object"
+                                            title="Select the field for grouping"
+                                            icon="fa-table"
+                                            context="{'field': 'billable_item_group_field', 'types': 'boolean,char,date,selection,many2one'}"
+                                        />
+                                    </div>
+                                </div>
+                                <div
+                                    class="text-muted mb-4"
+                                    colspan="2"
+                                    modifiers="{'invisible': [['category_code', '=', 1]]}"
+                                >
+                                    If you need one invoice per customer and an additional grouping criterion,
+                                    set the extra grouping field here.
+                                </div>
+
+                                <span name="billable_item_detail_desc_label" class="o_form_label o_td_label">
+                                    Template for invoice lines
+                                </span>
+                                <div
+                                    name="div_billable_item_detail_desc"
+                                    class="o_address_format"
+                                    style="display: flex; gap: 4px;"
+                                >
+                                    <field name="billable_item_detail_desc"/>
+                                </div>
+                                <div class="text-muted mb-4" colspan="2">
+                                    Jinja2 template for the invoice line description. Use "billable_item" as the variable.
+                                    The '|' character will be replaced by a new line.
+                                </div>
+
+                                <span name="billable_item_domain_label" class="o_form_label o_td_label">
+                                    Pre-filter Condition
+                                </span>
+                                <div
+                                    name="div_billable_item_domain"
+                                    class="o_address_format"
+                                    style="display: flex; gap: 4px;"
+                                >
+                                    <field name="billable_item_model_name" invisible="1"/>
+                                    <field name="billable_item_domain"
+                                           widget="domain"
+                                           nolabel="1"
+                                           options="{'model': 'billable_item_model_name', 'foldable': True}"/>
+                                </div>
+                                <div class="text-muted mb-4" colspan="2">
+                                    Domain applied to billable items before selection. You can add conditions
+                                    on the model fields and see how many records match.
+                                </div>
+                            </group>
+                        </page>
+
+                        <page
+                            name="page_selection_config"
+                            string="Invoice Sets: Selection Settings"
+                            modifiers="{'invisible': [['billable_item_model_id', '=', false]]}"
+                        >
+                            <group name="group_selection_config">
+                                <div class="container" colspan="2">
+                                    <div class="row mb-2">
+                                        <div class="col text-center">
+                                            <h4 class="text-decoration-underline">GROUP 1</h4>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <span name="aux_01_char_field_label" class="o_form_label o_td_label">Aux. field of type char (name / label)</span>
+                                <div name="div_aux_01_char_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_01_char_field" style="max-width:150px"/>
+                                    <div name="button_aux_01_char_field">
+                                        <button name="action_select_billable_item_field" type="object" title="Select the char field" icon="fa-table" context="{'field': 'aux_01_char_field', 'types': 'char'}"/>
+                                    </div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_01_char_label"/>
+                                </div>
+                                <span name="aux_01_int_field_label" class="o_form_label o_td_label">Aux. field of type integer (name / label)</span>
+                                <div name="div_aux_01_int_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_01_int_field" style="max-width:150px"/>
+                                    <div name="button_aux_01_int_field">
+                                        <button name="action_select_billable_item_field" type="object" title="Select the integer field" icon="fa-table" context="{'field': 'aux_01_int_field', 'types': 'integer'}"/>
+                                    </div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_01_int_label"/>
+                                </div>
+                                <span name="aux_01_float_field_label" class="o_form_label o_td_label">Aux. field of type float (name / label)</span>
+                                <div name="div_aux_01_float_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_01_float_field" style="max-width:150px"/>
+                                    <div name="button_aux_01_float_field">
+                                        <button name="action_select_billable_item_field" type="object" title="Select the float field" icon="fa-table" context="{'field': 'aux_01_float_field', 'types': 'float'}"/>
+                                    </div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_01_float_label"/>
+                                </div>
+                                <span name="aux_01_bool_field_label" class="o_form_label o_td_label">Aux. field of type boolean (name / label)</span>
+                                <div name="div_aux_01_bool_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_01_bool_field" style="max-width:150px"/>
+                                    <div name="button_aux_01_bool_field">
+                                        <button name="action_select_billable_item_field" type="object" title="Select the bool field" icon="fa-table" context="{'field': 'aux_01_bool_field', 'types': 'boolean'}"/>
+                                    </div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_01_bool_label"/>
+                                </div>
+                                <div class="text-muted mb-4" colspan="2">Setting any of these fields will show the corresponding informational columns in the selectable items list view.</div>
+
+                                <div class="container" colspan="2"><div class="row mt-2 mb-2"><div class="col text-center"><h4 class="text-decoration-underline">GROUP 2</h4></div></div></div>
+                                <span name="aux_02_char_field_label" class="o_form_label o_td_label">Aux. field of type char (name / label)</span>
+                                <div name="div_aux_02_char_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_02_char_field" style="max-width:150px"/>
+                                    <div name="button_aux_02_char_field"><button name="action_select_billable_item_field" type="object" title="Select the char field" icon="fa-table" context="{'field': 'aux_02_char_field', 'types': 'char'}"/></div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_02_char_label"/>
+                                </div>
+                                <span name="aux_02_int_field_label" class="o_form_label o_td_label">Aux. field of type integer (name / label)</span>
+                                <div name="div_aux_02_int_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_02_int_field" style="max-width:150px"/>
+                                    <div name="button_aux_02_int_field"><button name="action_select_billable_item_field" type="object" title="Select the integer field" icon="fa-table" context="{'field': 'aux_02_int_field', 'types': 'integer'}"/></div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_02_int_label"/>
+                                </div>
+                                <span name="aux_02_float_field_label" class="o_form_label o_td_label">Aux. field of type float (name / label)</span>
+                                <div name="div_aux_02_float_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_02_float_field" style="max-width:150px"/>
+                                    <div name="button_aux_02_float_field"><button name="action_select_billable_item_field" type="object" title="Select the float field" icon="fa-table" context="{'field': 'aux_02_float_field', 'types': 'float'}"/></div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_02_float_label"/>
+                                </div>
+                                <span name="aux_02_bool_field_label" class="o_form_label o_td_label">Aux. field of type boolean (name / label)</span>
+                                <div name="div_aux_02_bool_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_02_bool_field" style="max-width:150px"/>
+                                    <div name="button_aux_02_bool_field"><button name="action_select_billable_item_field" type="object" title="Select the bool field" icon="fa-table" context="{'field': 'aux_02_bool_field', 'types': 'boolean'}"/></div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_02_bool_label"/>
+                                </div>
+
+                                <div class="container" colspan="2"><div class="row mt-2 mb-2"><div class="col text-center"><h4 class="text-decoration-underline">GROUP 3</h4></div></div></div>
+                                <span name="aux_03_char_field_label" class="o_form_label o_td_label">Aux. field of type char (name / label)</span>
+                                <div name="div_aux_03_char_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_03_char_field" style="max-width:150px"/>
+                                    <div name="button_aux_03_char_field"><button name="action_select_billable_item_field" type="object" title="Select the char field" icon="fa-table" context="{'field': 'aux_03_char_field', 'types': 'char'}"/></div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_03_char_label"/>
+                                </div>
+                                <span name="aux_03_int_field_label" class="o_form_label o_td_label">Aux. field of type integer (name / label)</span>
+                                <div name="div_aux_03_int_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_03_int_field" style="max-width:150px"/>
+                                    <div name="button_aux_03_int_field"><button name="action_select_billable_item_field" type="object" title="Select the integer field" icon="fa-table" context="{'field': 'aux_03_int_field', 'types': 'integer'}"/></div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_03_int_label"/>
+                                </div>
+                                <span name="aux_03_float_field_label" class="o_form_label o_td_label">Aux. field of type float (name / label)</span>
+                                <div name="div_aux_03_float_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_03_float_field" style="max-width:150px"/>
+                                    <div name="button_aux_03_float_field"><button name="action_select_billable_item_field" type="object" title="Select the float field" icon="fa-table" context="{'field': 'aux_03_float_field', 'types': 'float'}"/></div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_03_float_label"/>
+                                </div>
+                                <span name="aux_03_bool_field_label" class="o_form_label o_td_label">Aux. field of type boolean (name / label)</span>
+                                <div name="div_aux_03_bool_field" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_03_bool_field" style="max-width:150px"/>
+                                    <div name="button_aux_03_bool_field"><button name="action_select_billable_item_field" type="object" title="Select the bool field" icon="fa-table" context="{'field': 'aux_03_bool_field', 'types': 'boolean'}"/></div>
+                                    <span style="margin-top:3px">/</span>
+                                    <field name="aux_03_bool_label"/>
+                                </div>
+
+                                <div class="container" colspan="2"><div class="row mt-2 mb-2"><div class="col text-center"><h4 class="text-decoration-underline">ADDITIONAL FIELDS</h4></div></div></div>
+                                <span name="aux_desc_label" class="o_form_label o_td_label">Template for selection lines</span>
+                                <div name="div_aux_desc" class="o_address_format" style="display: flex; gap: 4px;">
+                                    <field name="aux_desc"/>
+                                </div>
+                                <div class="text-muted mb-4" colspan="2">
+                                    Jinja2 template for an auxiliary description in the selectable items list.
+                                    Use "billable_item" as the variable. The '|' character will be replaced by a new line.
+                                </div>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="product_category_action_invoicing" model="ir.actions.act_window">
+        <field name="name">Product Categories (Invoicing)</field>
+        <field name="res_model">product.category</field>
+         <field name="domain">[('supports_mass_billing', '=', True)]</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'sequence': 0, 'view_mode': 'kanban', 'view_id': ref('base_invoicing.product_category_kanban_view_invoicing')}),
+            (0, 0, {'sequence': 1, 'view_mode': 'list', 'view_id': ref('base_invoicing.product_category_tree_view_invoicing')}),
+            (0, 0, {'sequence': 2, 'view_mode': 'form', 'view_id': ref('base_invoicing.product_category_form_view_invoicing')})
+        ]"/>
+        <field name="search_view_id" ref="product_category_search_view_invoicing"/>
+        <field name="context">{'short_name_categories': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure product categories for massive invoicing.
+            </p>
+            <p>
+                Categories with a billable model configured will appear in invoice sets.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_product_category_invoicing"
+        name="Product Categories"
+        parent="base_invoicing.menu_finance_receivables_massive_invoicing"
+        action="product_category_action_invoicing"
+        sequence="20"
+    />
+
+    <!-- Product variants with supports_mass_billing categories only -->
+    <record id="product_product_form_view_invoicing" model="ir.ui.view">
+        <field name="name">product.product.form.invoicing</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="attributes">
+                <attribute name="domain">[('supports_mass_billing', '=', True)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_product_action_invoicing" model="ir.actions.act_window">
+        <field name="name">Products (Invoicing Lots)</field>
+        <field name="res_model">product.product</field>
+        <field name="domain">[('product_tmpl_id.supports_mass_billing', '=', True)]</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'sequence': 0, 'view_mode': 'list', 'view_id': ref('product.product_product_tree_view')}),
+            (0, 0, {'sequence': 1, 'view_mode': 'form', 'view_id': ref('base_invoicing.product_product_form_view_invoicing')})
+        ]"/>
+        <field name="search_view_id" ref="product.product_search_form_view"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Products in categories that support massive invoicing.
+            </p>
+            <p>
+                Only categories with a billable model configured are shown when selecting a category.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_product_product_invoicing"
+        name="Products"
+        parent="base_invoicing.menu_finance_receivables_massive_invoicing"
+        action="product_product_action_invoicing"
+        sequence="30"
+    />
+
+</odoo>

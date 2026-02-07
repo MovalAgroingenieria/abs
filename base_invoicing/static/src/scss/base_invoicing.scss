@@ -33,6 +33,129 @@
   }
 }
 
+/* Invoice Set Kanban - premium cards */
+.o_base_invoicing_kanban {
+  .o_base_invoicing_kanban_card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all 0.25s ease;
+    overflow: hidden;
+
+    &:hover {
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    &[data-state="draft"] {
+      border-left: 4px solid #6c757d;
+    }
+    &[data-state="configured"] {
+      border-left: 4px solid #0d6efd;
+    }
+    &[data-state="calculating"] {
+      border-left: 4px solid #fd7e14;
+    }
+    &[data-state="calculated"] {
+      border-left: 4px solid #6c757d;
+    }
+    &[data-state="committed"] {
+      border-left: 4px solid #198754;
+    }
+  }
+
+  .o_kanban_record_top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  .o_kanban_record_top_left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .o_kanban_record_code {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--bs-body-color, #212529);
+  }
+
+  .o_kanban_record_top_right {
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color);
+  }
+
+  .o_kanban_record_desc {
+    font-size: 0.9rem;
+    color: var(--bs-body-color);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .o_kanban_record_stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .o_kanban_stat {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+
+    i {
+      opacity: 0.7;
+    }
+  }
+
+  .o_kanban_stat_invoices {
+    strong {
+      margin-right: 0.2rem;
+    }
+  }
+
+  .o_kanban_progress_wrapper {
+    margin: 0.5rem 0;
+  }
+
+  .o_kanban_progress {
+    height: 6px;
+    background-color: rgba(253, 126, 20, 0.2);
+    border-radius: 3px;
+  }
+
+  .o_kanban_progress .progress-bar {
+    background: linear-gradient(90deg, #fd7e14, #ffc107);
+  }
+
+  .o_kanban_record_footer {
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    margin-top: 0.5rem;
+  }
+
+  .o_kanban_status_draft {
+    background-color: #6c757d !important;
+  }
+  .o_kanban_status_configured {
+    background-color: #0d6efd !important;
+  }
+  .o_kanban_status_calculating {
+    background-color: #fd7e14 !important;
+  }
+  .o_kanban_status_calculated {
+    background-color: #6c757d !important;
+  }
+  .o_kanban_status_committed {
+    background-color: #198754 !important;
+  }
+}
+
 .o_base_invoicing_account_invoiceset {
   [data-name="alphanum_code"] {
     width: 100px;
@@ -56,6 +179,11 @@
   [data-name="state"] {
     width: 120px;
     min-width: 120px;
+  }
+
+  [data-name="calculation_duration_display"] {
+    width: 100px;
+    min-width: 100px;
   }
 }
 

@@ -16,3 +16,8 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.mass_invoicing_run_background",
         readonly=False,
     )
+
+    mass_invoicing_progress_batch_size = fields.Integer(
+        related="company_id.mass_invoicing_progress_batch_size",
+        readonly=False,
+    )
