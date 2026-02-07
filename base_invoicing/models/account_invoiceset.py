@@ -171,12 +171,16 @@ class AccountInvoiceset(models.Model):
     company_id = fields.Many2one(
         comodel_name="res.company",
         default=lambda self: self.env.company,
-        required=True,
         index=True,
     )
     amount_total_invoices = fields.Monetary(
-        string="Total Amount",
+        string="Total Amount (draft + validated)",
         compute="_compute_amount_total_invoices",
+        currency_field="company_currency_id",
+    )
+    amount_total_posted = fields.Monetary(
+        string="Validated Amount",
+        compute="_compute_amount_total_posted",
         currency_field="company_currency_id",
     )
     company_currency_id = fields.Many2one(
@@ -186,6 +190,14 @@ class AccountInvoiceset(models.Model):
     number_of_invoices_draft = fields.Integer(
         string="Invoices to validate",
         compute="_compute_number_of_invoices_draft",
+    )
+    number_of_invoices_posted = fields.Integer(
+        string="Validated invoices",
+        compute="_compute_number_of_invoices_posted",
+    )
+    number_of_invoices_cancelled = fields.Integer(
+        string="Cancelled invoices",
+        compute="_compute_number_of_invoices_cancelled",
     )
 
     # -------------------------------------------------------------------------
@@ -261,6 +273,42 @@ class AccountInvoiceset(models.Model):
                 m.state == "posted" for m in record.move_ids
             )
 
+    @api.depends("move_ids", "move_ids.amount_total_signed", "move_ids.state")
+    def _compute_amount_total_invoices(self):
+        for record in self:
+            total = sum(
+                m.amount_total_signed for m in record.move_ids if m.state != "cancel"
+            )
+            record.amount_total_invoices = total
+
+    @api.depends("move_ids", "move_ids.amount_total_signed", "move_ids.state")
+    def _compute_amount_total_posted(self):
+        for record in self:
+            record.amount_total_posted = sum(
+                m.amount_total_signed for m in record.move_ids if m.state == "posted"
+            )
+
+    @api.depends("move_ids", "move_ids.state")
+    def _compute_number_of_invoices_draft(self):
+        for record in self:
+            record.number_of_invoices_draft = sum(
+                1 for m in record.move_ids if m.state == "draft"
+            )
+
+    @api.depends("move_ids", "move_ids.state")
+    def _compute_number_of_invoices_posted(self):
+        for record in self:
+            record.number_of_invoices_posted = sum(
+                1 for m in record.move_ids if m.state == "posted"
+            )
+
+    @api.depends("move_ids", "move_ids.state")
+    def _compute_number_of_invoices_cancelled(self):
+        for record in self:
+            record.number_of_invoices_cancelled = sum(
+                1 for m in record.move_ids if m.state == "cancel"
+            )
+
     @api.depends("calculation_started_at", "calculation_finished_at")
     def _compute_calculation_duration_display(self):
         for record in self:
@@ -286,8 +334,20 @@ class AccountInvoiceset(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if not vals.get("company_id") and vals.get("journal_id"):
+                journal = self.env["account.journal"].browse(vals["journal_id"])
+                if journal.exists():
+                    vals["company_id"] = journal.company_id.id
+            if not vals.get("company_id"):
+                vals["company_id"] = self.env.company.id
             if not vals.get("alphanum_code") or vals.get("alphanum_code") == "/":
-                seq = self.env.company.mass_invoicing_seq_invoiceset_code_id
+                # Use same sequence as "Create new": company first, else config param
+                company = self.env["res.company"].browse(
+                    vals.get("company_id") or self.env.company.id
+                )
+                seq = company.mass_invoicing_seq_invoiceset_code_id
+                if not seq and self.sequence_for_codes:
+                    seq = self._get_sequence(self.sequence_for_codes)
                 if seq:
                     vals["alphanum_code"] = seq.next_by_id()
         invoicesets = super().create(vals_list)
@@ -296,8 +356,19 @@ class AccountInvoiceset(models.Model):
         )
         return invoicesets
 
+    def copy_data(self, default=None):
+        default = dict(default or {})
+        # Force new code: exclude from copy so create() generates next sequence
+        default.setdefault("alphanum_code", False)
+        default.setdefault("calculation_started_at", False)
+        default.setdefault("calculation_finished_at", False)
+        default.setdefault("calculation_speed_inv_per_sec", 0.0)
+        default.setdefault("invoice_generation_progress", 0.0)
+        return super().copy_data(default)
+
     def copy(self, default=None):
         default = dict(default or {})
+        default["alphanum_code"] = False  # Triggers sequence in create()
         default["calculation_started_at"] = False
         default["calculation_finished_at"] = False
         default["calculation_speed_inv_per_sec"] = 0.0
@@ -376,6 +447,66 @@ class AccountInvoiceset(models.Model):
             "target": "current",
             "domain": [("productlink_id.invoiceset_id", "=", self.id)],
             "context": {"create": False},
+        }
+
+    def action_show_invoices_pending_validation(self):
+        self.ensure_one()
+        tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
+        form_view = self.env.ref("base_invoicing.view_move_form")
+        search_view = self.env.ref("base_invoicing.view_account_invoice_filter")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Invoices to Validate"),
+            "res_model": "account.move",
+            "view_mode": "list,form",
+            "views": [(tree_view.id, "list"), (form_view.id, "form")],
+            "search_view_id": (search_view.id, search_view.name),
+            "target": "current",
+            "domain": [
+                ("invoiceset_id", "=", self.id),
+                ("state", "=", "draft"),
+            ],
+            "context": {"default_move_type": "out_invoice"},
+        }
+
+    def action_show_invoices_posted(self):
+        self.ensure_one()
+        tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
+        form_view = self.env.ref("base_invoicing.view_move_form")
+        search_view = self.env.ref("base_invoicing.view_account_invoice_filter")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Validated Invoices"),
+            "res_model": "account.move",
+            "view_mode": "list,form",
+            "views": [(tree_view.id, "list"), (form_view.id, "form")],
+            "search_view_id": (search_view.id, search_view.name),
+            "target": "current",
+            "domain": [
+                ("invoiceset_id", "=", self.id),
+                ("state", "=", "posted"),
+            ],
+            "context": {"default_move_type": "out_invoice"},
+        }
+
+    def action_show_invoices_cancelled(self):
+        self.ensure_one()
+        tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
+        form_view = self.env.ref("base_invoicing.view_move_form")
+        search_view = self.env.ref("base_invoicing.view_account_invoice_filter")
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Cancelled Invoices"),
+            "res_model": "account.move",
+            "view_mode": "list,form",
+            "views": [(tree_view.id, "list"), (form_view.id, "form")],
+            "search_view_id": (search_view.id, search_view.name),
+            "target": "current",
+            "domain": [
+                ("invoiceset_id", "=", self.id),
+                ("state", "=", "cancel"),
+            ],
+            "context": {"default_move_type": "out_invoice"},
         }
 
     # -------------------------------------------------------------------------

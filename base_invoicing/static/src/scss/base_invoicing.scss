@@ -33,34 +33,33 @@
   }
 }
 
-/* Invoice Set Kanban - premium cards */
+/* Invoice Set Kanban - premium cards with state colors */
 .o_base_invoicing_kanban {
+  .o_kanban_record {
+    &:has(.o_kanban_card_state_draft) {
+      border-left: 4px solid #6c757d !important;
+    }
+    &:has(.o_kanban_card_state_configured) {
+      border-left: 4px solid #0d6efd !important;
+    }
+    &:has(.o_kanban_card_state_calculating) {
+      border-left: 4px solid #fd7e14 !important;
+    }
+    &:has(.o_kanban_card_state_calculated) {
+      border-left: 4px solid #6c757d !important;
+    }
+    &:has(.o_kanban_card_state_committed) {
+      border-left: 4px solid #198754 !important;
+    }
+  }
+
   .o_base_invoicing_kanban_card {
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
     transition: all 0.25s ease;
     overflow: hidden;
 
     &:hover {
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-      transform: translateY(-1px);
-    }
-
-    &[data-state="draft"] {
-      border-left: 4px solid #6c757d;
-    }
-    &[data-state="configured"] {
-      border-left: 4px solid #0d6efd;
-    }
-    &[data-state="calculating"] {
-      border-left: 4px solid #fd7e14;
-    }
-    &[data-state="calculated"] {
-      border-left: 4px solid #6c757d;
-    }
-    &[data-state="committed"] {
-      border-left: 4px solid #198754;
+      filter: brightness(0.98);
     }
   }
 
