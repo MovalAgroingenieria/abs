@@ -32,7 +32,6 @@ class AccountInvoiceset(models.Model):
 
     # simple.model v18 uses these attribute names (no leading underscore)
     set_num_code = False
-    sequence_for_codes = "base_invoicing.mass_invoicing_seq_invoiceset_code_id"
     size_name = 20
     minlength = 0
     maxlength = 20
@@ -348,8 +347,10 @@ class AccountInvoiceset(models.Model):
                 seq = company.mass_invoicing_seq_invoiceset_code_id
                 if seq and not seq.exists():
                     seq = self.env["ir.sequence"]
-                if not seq and self.sequence_for_codes:
-                    seq = self._get_sequence(self.sequence_for_codes)
+                if not seq:
+                    seq = self.env.ref(
+                        "base_invoicing.seq_invoiceset_code", raise_if_not_found=False
+                    )
                 if seq:
                     vals["alphanum_code"] = seq.next_by_id()
         invoicesets = super().create(vals_list)
@@ -1212,9 +1213,6 @@ class AccountInvoicesetProductlink(models.Model):
             self.populate_selectable_items(self)
             self.update_populated()
 
-        tree_view = self.env.ref("base_invoicing.account_selectable_item_view_tree")
-        search_view = self.env.ref("base_invoicing.account_selectable_item_view_search")
-
         title_prefix = self.env._("Selectable Items. Product:")
         domain = [("productlink_id", "=", self.id)]
         if self.invoiceset_id.state not in ("draft", "configured"):
@@ -1222,6 +1220,31 @@ class AccountInvoicesetProductlink(models.Model):
             domain.append(("selected", "=", True))
 
         ctx = self._get_context_hide_fields(self.categ_id, self.invoiceset_id.state)
+        ctx["create"] = False
+
+        # Try hybrid view (shows billable model columns) or fallback to standard list
+        hybrid = self.env["account.selectable.item.hybrid.view"]._get_or_create_for_category(
+            self.categ_id
+        )
+        if hybrid and hybrid.model_id and hybrid.tree_view_id and hybrid.search_view_id:
+            # Hybrid model uses x_productlink_id, x_selected (x_ prefix for manual fields)
+            hybrid_domain = [("x_productlink_id", "=", self.id)]
+            if self.invoiceset_id.state not in ("draft", "configured"):
+                hybrid_domain.append(("x_selected", "=", True))
+            return {
+                "type": "ir.actions.act_window",
+                "name": f"{title_prefix} {self.product_id.product_tmpl_id.name}",
+                "res_model": hybrid.model_name,
+                "view_mode": "list",
+                "views": [(hybrid.tree_view_id.id, "list")],
+                "search_view_id": hybrid.search_view_id.id,
+                "target": "current",
+                "domain": hybrid_domain,
+                "context": ctx,
+            }
+
+        tree_view = self.env.ref("base_invoicing.account_selectable_item_view_tree")
+        search_view = self.env.ref("base_invoicing.account_selectable_item_view_search")
         ctx["selectable_items_categ_id"] = self.categ_id.id
         return {
             "type": "ir.actions.act_window",

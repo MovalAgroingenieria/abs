@@ -2693,6 +2693,20 @@ msgstr "cat. nº "
 
 #. module: base_invoicing
 #. odoo-python
+#: code:addons/base_invoicing/models/account_selectable_item_hybrid_view.py:0
+#, python-format
+msgid "Activate"
+msgstr "Activar"
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_selectable_item_hybrid_view.py:0
+#, python-format
+msgid "Deactivate"
+msgstr "Desactivar"
+
+#. module: base_invoicing
+#. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
 #, python-format
 msgid "standard cat."

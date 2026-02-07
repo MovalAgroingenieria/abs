@@ -29,9 +29,18 @@ def post_init_hook(env):
 
 
 def uninstall_hook(env):
-    """Cleanup configuration parameters on uninstall."""
+    """Cleanup configuration parameters and hybrid views on uninstall."""
     env = api.Environment(env.cr, SUPERUSER_ID, dict(env.context or {}))
     params = (
         env["ir.config_parameter"].sudo().search([("key", "=like", "base_invoicing.%")])
     )
     params.unlink()
+
+    # Drop hybrid view models (x_base_invoicing.selectable_*)
+    hybrid_models = (
+        env["ir.model"]
+        .sudo()
+        .search([("model", "=like", "x_base_invoicing.selectable_%")])
+    )
+    if hybrid_models:
+        hybrid_models.with_context(_force_unlink=True).unlink()

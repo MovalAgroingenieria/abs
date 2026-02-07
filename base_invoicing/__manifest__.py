@@ -45,6 +45,7 @@
             "base_invoicing/static/src/scss/base_invoicing.scss",
             "base_invoicing/static/src/xml/button_back.xml",
             "base_invoicing/static/src/js/massive_invoicing_list_renderer.js",
+            "base_invoicing/static/src/js/selectable_item_hybrid_list.esm.js",
             "base_invoicing/static/src/js/massive_invoicing_search_model.js",
             "base_invoicing/static/src/js/massive_invoicing_form_controller.js",
             "base_invoicing/static/lib/base_invoicing_iconset/iconset.css",
