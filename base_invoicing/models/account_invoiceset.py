@@ -7,7 +7,6 @@
 # pylint: disable=translation-not-lazy
 # pylint: disable=translation-positional-used
 # pylint: disable=too-many-lines
-# pylint: disable=too-many-locals
 # pylint: disable=except-pass
 
 import logging
@@ -16,12 +15,12 @@ from collections import defaultdict
 from datetime import timedelta
 
 from jinja2 import Template, TemplateError
-
-from .product_category import get_jinja2_template_context
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 from odoo.tools.sql import SQL
+
+from .product_category import get_jinja2_template_context
 
 _logger = logging.getLogger(__name__)
 
@@ -294,19 +293,20 @@ class AccountInvoiceset(models.Model):
     @api.depends("productlink_ids", "productlink_ids.selectable_item_ids")
     def _compute_selectable_item_count(self):
         for record in self:
-            record.selectable_item_count = self.env["account.selectable.item"].search_count(
-                [("productlink_id.invoiceset_id", "=", record.id)]
-            )
+            record.selectable_item_count = self.env[
+                "account.selectable.item"
+            ].search_count([("productlink_id.invoiceset_id", "=", record.id)])
 
-    @api.depends("productlink_ids", "productlink_ids.populated", "productlink_ids.display_type")
+    @api.depends(
+        "productlink_ids", "productlink_ids.populated", "productlink_ids.display_type"
+    )
     def _compute_all_productlinks_configured(self):
         for record in self:
             product_productlinks = record.productlink_ids.filtered(
                 lambda p: p.display_type == "product"
             )
-            record.all_productlinks_configured = (
-                bool(product_productlinks)
-                and all(pl.populated for pl in product_productlinks)
+            record.all_productlinks_configured = bool(product_productlinks) and all(
+                pl.populated for pl in product_productlinks
             )
 
     @api.depends("move_ids", "move_ids.state")
@@ -491,14 +491,17 @@ class AccountInvoiceset(models.Model):
 
         # Use hybrid if all productlinks share the same category with billable config
         categories = self.productlink_ids.mapped("categ_id")
-        categories = categories.filtered(
-            lambda c: c and c.billable_item_model_id
-        )
+        categories = categories.filtered(lambda c: c and c.billable_item_model_id)
         if len(categories) == 1:
-            hybrid = self.env["account.selectable.item.hybrid.view"]._get_or_create_for_category(
-                categories
-            )
-            if hybrid and hybrid.model_id and hybrid.tree_view_id and hybrid.search_view_id:
+            hybrid = self.env[
+                "account.selectable.item.hybrid.view"
+            ]._get_or_create_for_category(categories)
+            if (
+                hybrid
+                and hybrid.model_id
+                and hybrid.tree_view_id
+                and hybrid.search_view_id
+            ):
                 hybrid_domain = [("x_productlink_id", "in", pl_ids)]
                 if self.state not in ("draft", "configured"):
                     hybrid_domain.append(("x_selected", "=", True))
@@ -699,6 +702,50 @@ class AccountInvoiceset(models.Model):
     # -------------------------------------------------------------------------
 
     @api.model
+    def _run_invoice_generation_loop(self, invoiceset, invoice_data, background):
+        """Create invoices from invoice_data; update progress and handle stop.
+        Returns (count, cancelled).
+        """
+        number_of_invoices = 0
+        cancelled = False
+        total_invoices = len(invoice_data)
+        progress_model = self.env["account.invoiceset.progress"].sudo()
+        progress_row = (
+            progress_model.search([("invoiceset_id", "=", invoiceset.id)], limit=1)
+            if background
+            else None
+        )
+        company = self.env.company
+        progress_batch_size = max(
+            1, int(company.mass_invoicing_progress_batch_size or 50)
+        )
+        for idx, inv_data in enumerate(invoice_data):
+            invoice = self.create_invoice(invoiceset, inv_data)
+            if invoice:
+                number_of_invoices += 1
+            if background and progress_row:
+                do_batch = (idx + 1) % progress_batch_size == 0 or (
+                    idx + 1
+                ) == total_invoices
+                if do_batch:
+                    progress_row.invalidate_recordset()
+                    progress_row = progress_model.search(
+                        [("invoiceset_id", "=", invoiceset.id)], limit=1
+                    )
+                    if progress_row.stop_order:
+                        invoiceset.cancel_invoices()
+                        cancelled = True
+                        number_of_invoices = 0
+                        break
+                    progress = 100.0 * (idx + 1) / total_invoices
+                    progress_row.write({"invoice_generation_progress": progress})
+                    invoiceset.with_context(tracking_disable=True).write(
+                        {"invoice_generation_progress": progress}
+                    )
+                    self.env.cr.commit()  # pylint: disable=invalid-commit
+        return number_of_invoices, cancelled
+
+    @api.model
     def invoice_generation(self, invoiceset_id, background=False, from_cron=False):
         invoiceset = self.browse(invoiceset_id)
         if not invoiceset.exists() or invoiceset.state != "configured":
@@ -716,12 +763,14 @@ class AccountInvoiceset(models.Model):
             ).write({"invoice_generation_progress": 0.0, "stop_order": False})
 
         started_at = fields.Datetime.now()
-        invoiceset.write({
-            "state": "calculating",
-            "calculation_started_at": started_at,
-            "calculation_finished_at": False,
-            "calculation_speed_inv_per_sec": 0.0,
-        })
+        invoiceset.write(
+            {
+                "state": "calculating",
+                "calculation_started_at": started_at,
+                "calculation_finished_at": False,
+                "calculation_speed_inv_per_sec": 0.0,
+            }
+        )
         suffix = (
             self.env._("(background)") if background else self.env._("(foreground)")
         )
@@ -734,50 +783,9 @@ class AccountInvoiceset(models.Model):
             if not invoice_data:
                 cancelled = True
             else:
-                total_invoices = len(invoice_data)
-                progress_model = self.env["account.invoiceset.progress"].sudo()
-                progress_row = (
-                    progress_model.search(
-                        [("invoiceset_id", "=", invoiceset.id)], limit=1
-                    )
-                    if background
-                    else None
+                number_of_invoices, cancelled = self._run_invoice_generation_loop(
+                    invoiceset, invoice_data, background
                 )
-                # Batch size: commit/update progress every N invoices (avoids 1 commit per invoice)
-                company = self.env.company
-                progress_batch_size = max(
-                    1,
-                    int(company.mass_invoicing_progress_batch_size or 50),
-                )
-
-                for idx, inv_data in enumerate(invoice_data):
-                    invoice = self.create_invoice(invoiceset, inv_data)
-                    if invoice:
-                        number_of_invoices += 1
-
-                    if background and progress_row:
-                        do_batch = (idx + 1) % progress_batch_size == 0 or (
-                            idx + 1
-                        ) == total_invoices
-                        if do_batch:
-                            progress_row.invalidate_recordset()
-                            progress_row = progress_model.search(
-                                [("invoiceset_id", "=", invoiceset.id)], limit=1
-                            )
-                            if progress_row.stop_order:
-                                invoiceset.cancel_invoices()
-                                cancelled = True
-                                number_of_invoices = 0
-                                break
-
-                            progress = 100.0 * (idx + 1) / total_invoices
-                            progress_row.write(
-                                {"invoice_generation_progress": progress}
-                            )
-                            invoiceset.with_context(
-                                tracking_disable=True
-                            ).write({"invoice_generation_progress": progress})
-                            self.env.cr.commit()
 
             finished_at = fields.Datetime.now()
             duration_sec = (finished_at - started_at).total_seconds()
@@ -786,11 +794,13 @@ class AccountInvoiceset(models.Model):
                 if duration_sec and duration_sec > 0
                 else 0.0
             )
-            invoiceset.write({
-                "state": "configured" if cancelled else "calculated",
-                "calculation_finished_at": finished_at,
-                "calculation_speed_inv_per_sec": round(speed, 2),
-            })
+            invoiceset.write(
+                {
+                    "state": "configured" if cancelled else "calculated",
+                    "calculation_finished_at": finished_at,
+                    "calculation_speed_inv_per_sec": round(speed, 2),
+                }
+            )
             end_suffix = (
                 self.env._("Cancelled")
                 if cancelled
@@ -809,12 +819,14 @@ class AccountInvoiceset(models.Model):
                 ).write({"invoice_generation_progress": 0.0, "stop_order": False})
 
         except (UserError, ValueError, TemplateError) as err:
-            invoiceset.write({
-                "state": "configured",
-                "calculation_started_at": False,
-                "calculation_finished_at": False,
-                "calculation_speed_inv_per_sec": 0.0,
-            })
+            invoiceset.write(
+                {
+                    "state": "configured",
+                    "calculation_started_at": False,
+                    "calculation_finished_at": False,
+                    "calculation_speed_inv_per_sec": 0.0,
+                }
+            )
             invoiceset.message_post(
                 body=self.env._("Calculation Process: ERROR...") + " " + str(err)
             )
@@ -843,7 +855,7 @@ class AccountInvoiceset(models.Model):
         return invoice_data
 
     @api.model
-    def _get_invoice_data(self, invoiceset):
+    def _get_invoice_data(self, invoiceset):  # noqa: C901
         invoice_data_raw = []
 
         for productlink in invoiceset.productlink_ids.sorted("sequence"):
@@ -922,7 +934,11 @@ class AccountInvoiceset(models.Model):
         productlinks_ordered = invoiceset.productlink_ids.sorted("sequence")
         for invoice_key in by_key_pl:
             partner_id = next(
-                (it["partner_id"] for it in invoice_data_raw if it["invoice_key"] == invoice_key),
+                (
+                    it["partner_id"]
+                    for it in invoice_data_raw
+                    if it["invoice_key"] == invoice_key
+                ),
                 None,
             )
             if not partner_id:
@@ -936,11 +952,13 @@ class AccountInvoiceset(models.Model):
             )
             for pl in productlinks_ordered:
                 if pl.display_type in ("line_section", "line_note"):
-                    ordered_lines.append({
-                        "display_type": pl.display_type,
-                        "name": pl.line_name or "",
-                        "_productlink": pl,
-                    })
+                    ordered_lines.append(
+                        {
+                            "display_type": pl.display_type,
+                            "name": pl.line_name or "",
+                            "_productlink": pl,
+                        }
+                    )
                 else:
                     pl_items = by_key_pl[invoice_key].get(pl.id, [])
                     for item in pl_items:
@@ -958,10 +976,12 @@ class AccountInvoiceset(models.Model):
                             item.get("billable_item_res_id")
                         )
                         partner = self.env["res.partner"].browse(item["partner_id"])
-                        product = self.env["product.product"].browse(item.get("product_id"))
+                        product = self.env["product.product"].browse(
+                            item.get("product_id")
+                        )
                         ctx = get_jinja2_template_context(
                             self.env,
-                            billable_item=billable_item,
+                            billable_item,
                             invoiceset=invoiceset,
                             productlink=productlink,
                             product=product,
@@ -972,7 +992,9 @@ class AccountInvoiceset(models.Model):
                         )
                         lang = partner.lang if partner else False
                         template_src = (
-                            productlink.with_context(lang=lang).billable_item_detail_desc
+                            productlink.with_context(
+                                lang=lang
+                            ).billable_item_detail_desc
                             if lang
                             else productlink.billable_item_detail_desc
                         )
@@ -983,11 +1005,13 @@ class AccountInvoiceset(models.Model):
                         except TemplateError:
                             pass
 
-            result.append({
-                "invoice_key": invoice_key,
-                "partner_id": partner_id,
-                "lines": ordered_lines,
-            })
+            result.append(
+                {
+                    "invoice_key": invoice_key,
+                    "partner_id": partner_id,
+                    "lines": ordered_lines,
+                }
+            )
 
         return result
 
@@ -1051,13 +1075,17 @@ class AccountInvoiceset(models.Model):
                 productlink = line.get("_productlink")
                 category = (
                     productlink.product_id.product_tmpl_id.categ_id
-                    if productlink and productlink.product_id and productlink.product_id.product_tmpl_id
+                    if productlink
+                    and productlink.product_id
+                    and productlink.product_id.product_tmpl_id
                     else None
                 )
                 if category:
                     if category.tax_ids:
                         line_vals["tax_ids"] = [(6, 0, category.tax_ids.ids)]
-                    m2o_field = self._get_move_line_m2o_to_model(line["billable_item_model"])
+                    m2o_field = self._get_move_line_m2o_to_model(
+                        line["billable_item_model"]
+                    )
                     if m2o_field and line.get("billable_item_res_id"):
                         line_vals[m2o_field] = line["billable_item_res_id"]
                     billable_item = self.env[line["billable_item_model"]].browse(
@@ -1121,11 +1149,15 @@ class AccountInvoiceset(models.Model):
                         value = getattr(billable_item, bi_field.name, None)
                     except (AttributeError, KeyError):
                         pass
-                if (value is None or value is False) and map_rec.value_source == "billable_or_fixed":
+                if (
+                    value is None or value is False
+                ) and map_rec.value_source == "billable_or_fixed":
                     if map_rec._move_line_field_expects_record():
                         value = map_rec.default_record_ref
                     else:
-                        value = map_rec._parse_fixed_value(ml_field, map_rec.fixed_value)
+                        value = map_rec._parse_fixed_value(
+                            ml_field, map_rec.fixed_value
+                        )
 
             if value is None or value is False:
                 continue
@@ -1187,12 +1219,14 @@ class AccountInvoiceset(models.Model):
     def cancel_invoices(self):
         self.ensure_one()
         self.move_ids.unlink()
-        self.write({
-            "state": "configured",
-            "calculation_started_at": False,
-            "calculation_finished_at": False,
-            "calculation_speed_inv_per_sec": 0.0,
-        })
+        self.write(
+            {
+                "state": "configured",
+                "calculation_started_at": False,
+                "calculation_finished_at": False,
+                "calculation_speed_inv_per_sec": 0.0,
+            }
+        )
 
     @api.model
     def action_refresh_all_invoicesets_in_calculation_process(self):
@@ -1360,7 +1394,9 @@ class AccountInvoicesetProductlink(models.Model):
             )
             if dup:
                 raise ValidationError(
-                    _("The same product cannot appear more than once in an invoice set.")
+                    _(
+                        "The same product cannot appear more than once in an invoice set."
+                    )
                 )
 
     @api.depends(
@@ -1420,11 +1456,11 @@ class AccountInvoicesetProductlink(models.Model):
                 else False
             )
             qty_field = category.billable_item_quantity_field_id if category else False
-            record.billable_item_quantity_field = (
-                qty_field.name if qty_field else False
-            )
+            record.billable_item_quantity_field = qty_field.name if qty_field else False
 
-    @api.depends("product_id", "product_id.product_tmpl_id.categ_id.billable_item_group_field_id")
+    @api.depends(
+        "product_id", "product_id.product_tmpl_id.categ_id.billable_item_group_field_id"
+    )
     def _compute_billable_item_group_field(self):
         for record in self:
             category = (
@@ -1498,9 +1534,9 @@ class AccountInvoicesetProductlink(models.Model):
         ctx["create"] = False
 
         # Try hybrid view (shows billable model columns) or fallback to standard list
-        hybrid = self.env["account.selectable.item.hybrid.view"]._get_or_create_for_category(
-            self.categ_id
-        )
+        hybrid = self.env[
+            "account.selectable.item.hybrid.view"
+        ]._get_or_create_for_category(self.categ_id)
         if hybrid and hybrid.model_id and hybrid.tree_view_id and hybrid.search_view_id:
             # Hybrid model uses x_productlink_id, x_selected (x_ prefix for manual fields)
             hybrid_domain = [("x_productlink_id", "=", self.id)]

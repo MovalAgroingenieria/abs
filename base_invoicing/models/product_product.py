@@ -7,13 +7,16 @@ from odoo import api, models
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
-    @api.depends("product_tmpl_id", "categ_id", "categ_id.name", "categ_id.supports_mass_billing")
+    @api.depends(
+        "product_tmpl_id", "categ_id", "categ_id.name", "categ_id.supports_mass_billing"
+    )
     def _compute_display_name(self):
-        super()._compute_display_name()
+        result = super()._compute_display_name()
         for record in self.filtered(
             lambda r: r.categ_id and r.categ_id.supports_mass_billing
         ):
             record.display_name = f"[{record.categ_id.name}] {record.display_name}"
+        return result
 
     def action_view_invoices(self):
         self.ensure_one()

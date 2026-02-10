@@ -36,7 +36,6 @@
         "views/product_views.xml",
         "views/account_portal_templates.xml",
     ],
-
     "post_init_hook": "post_init_hook",
     "uninstall_hook": "uninstall_hook",
     "assets": {

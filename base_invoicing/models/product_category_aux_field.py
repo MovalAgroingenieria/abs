@@ -12,7 +12,9 @@ class ProductCategoryAuxFieldLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if not vals.get("category_id") and self.env.context.get("default_category_id"):
+            if not vals.get("category_id") and self.env.context.get(
+                "default_category_id"
+            ):
                 vals["category_id"] = self.env.context["default_category_id"]
         return super().create(vals_list)
 
@@ -44,7 +46,11 @@ class ProductCategoryAuxFieldLine(models.Model):
     @api.onchange("category_id", "category_id.billable_item_model_id")
     def _onchange_category_clear_field(self):
         """Clear field_id when category or its billable model changes incompatibly."""
-        if self.field_id and self.category_id and self.category_id.billable_item_model_id:
+        if (
+            self.field_id
+            and self.category_id
+            and self.category_id.billable_item_model_id
+        ):
             if self.field_id.model_id != self.category_id.billable_item_model_id:
                 self.field_id = False
 

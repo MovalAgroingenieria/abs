@@ -54,7 +54,9 @@ class WizardConfigBillableItemFields(models.TransientModel):
             return res
 
         if productlink.categ_id:
-            res["info_jinja2_shortcuts_help"] = productlink.categ_id.jinja2_shortcuts_help
+            res["info_jinja2_shortcuts_help"] = (
+                productlink.categ_id.jinja2_shortcuts_help
+            )
 
         model = productlink.billable_item_model_id
         quantity_field = productlink.billable_item_quantity_field
@@ -71,8 +73,9 @@ class WizardConfigBillableItemFields(models.TransientModel):
                     else False
                 ),
                 "billable_item_group_field_id": (
-                    productlink.categ_id.billable_item_group_field_id
+                    productlink.categ_id.billable_item_group_field_id.id
                     if productlink.categ_id
+                    and productlink.categ_id.billable_item_group_field_id
                     else False
                 ),
                 "billable_item_detail_desc": productlink.billable_item_detail_desc,
@@ -96,7 +99,11 @@ class WizardConfigBillableItemFields(models.TransientModel):
 
         productlink.categ_id.write(
             {
-                "billable_item_group_field_id": self.billable_item_group_field_id.id if self.billable_item_group_field_id else False,
+                "billable_item_group_field_id": (
+                    self.billable_item_group_field_id.id
+                    if self.billable_item_group_field_id
+                    else False
+                ),
                 "billable_item_detail_desc": self.billable_item_detail_desc,
                 "billable_item_domain": self.billable_item_domain,
             }

@@ -9,9 +9,8 @@
 import logging
 import re
 
-from jinja2 import Environment, StrictUndefined, Template, TemplateError
-
-from odoo import _, api, fields, models
+from jinja2 import Environment, StrictUndefined, TemplateError
+from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 
@@ -64,8 +63,8 @@ def _quarter_labels_from_date(env, dt, lang=None):
     else:
         year = dt.year if hasattr(dt, "year") else int(str(dt)[:4])
 
-    # Format strings for extraction (Q1/%s etc.) - add to po for T1/%s in Spanish
-    srcs = [_("Q1/%s"), _("Q2/%s"), _("Q3/%s"), _("Q4/%s")]
+    # Format strings for extraction (Q1/%s etc.) - use env._ so lang is from env
+    srcs = [env._("Q1/%s"), env._("Q2/%s"), env._("Q3/%s"), env._("Q4/%s")]
     fmts = [_tr(env, lang, s) for s in srcs]
     return {
         "first_q": fmts[0] % year,
@@ -75,40 +74,38 @@ def _quarter_labels_from_date(env, dt, lang=None):
     }
 
 
-def get_jinja2_template_context(
-    env,
-    billable_item,
-    invoiceset=None,
-    productlink=None,
-    product=None,
-    partner=None,
-    quantity=None,
-    invoice_index=None,
-    groupvalue=None,
-):
-    """Build context dict for Jinja2 templates (billable_item_detail_desc, aux_desc)."""
+def get_jinja2_template_context(env, billable_item, **kwargs):
+    """Build context dict for Jinja2 templates (billable_item_detail_desc, aux_desc).
+
+    Optional kwargs: invoiceset, productlink, product, partner, quantity,
+    invoice_index, groupvalue.
+    """
+    invoiceset = kwargs.get("invoiceset")
+    partner = kwargs.get("partner")
     ctx = {"billable_item": billable_item}
     dt = invoiceset.invoice_date if invoiceset else None
     lang = partner.lang if partner else None
     ctx.update(_quarter_labels_from_date(env, dt, lang=lang))
     ctx["invoice_date"] = dt
-    ctx["groupvalue"] = groupvalue or ""
-    if product:
-        ctx["product"] = product
+    ctx["groupvalue"] = kwargs.get("groupvalue") or ""
+    if kwargs.get("product"):
+        ctx["product"] = kwargs["product"]
     if partner:
         ctx["partner"] = partner
-    if quantity is not None:
-        ctx["quantity"] = quantity
+    if kwargs.get("quantity") is not None:
+        ctx["quantity"] = kwargs["quantity"]
     if invoiceset:
         ctx["invoiceset_code"] = invoiceset.alphanum_code or ""
-    if invoice_index is not None:
-        ctx["invoice_index"] = invoice_index
+    if kwargs.get("invoice_index") is not None:
+        ctx["invoice_index"] = kwargs["invoice_index"]
     # n_invoiced: count of invoice lines for this billable item
     if billable_item and env:
-        count = env["account.move.line"].search_count([
-            ("billable_item_model", "=", billable_item._name),
-            ("billable_item_res_id", "=", billable_item.id),
-        ])
+        count = env["account.move.line"].search_count(
+            [
+                ("billable_item_model", "=", billable_item._name),
+                ("billable_item_res_id", "=", billable_item.id),
+            ]
+        )
         ctx["n_invoiced"] = count
     return ctx
 
@@ -242,13 +239,13 @@ class ProductCategory(models.Model):
     @api.model
     def _get_billable_item_model_domain(self):
         """Models that have a Many2one to res.partner (eligible for billable items)."""
-        models = self.env["common.metadata"].get_models_with_many2one(
+        model_recs = self.env["common.metadata"].get_models_with_many2one(
             "res.partner",
             many2one_name="",  # any Many2one to res.partner
             include_model=True,
             exclude_transient=True,
         )
-        ids = models.ids
+        ids = model_recs.ids
         return [("id", "in", ids)] if ids else [("id", "=", 0)]
 
     def _get_field_label(self, model_name, field_name):
@@ -285,15 +282,19 @@ class ProductCategory(models.Model):
             domain = safe_eval(domain_str, {})
             if not isinstance(domain, list):
                 return []
-            return list(dict.fromkeys(
-                item[0] for item in domain
-                if isinstance(item, (list, tuple)) and len(item) >= 1
-                and isinstance(item[0], str)
-            ))
+            return list(
+                dict.fromkeys(
+                    item[0]
+                    for item in domain
+                    if isinstance(item, (list, tuple))
+                    and len(item) >= 1
+                    and isinstance(item[0], str)
+                )
+            )
         except (ValueError, SyntaxError):
             return []
 
-    def _ensure_billable_model_indexes(self, category):
+    def _ensure_billable_model_indexes(self, category):  # noqa: C901
         """
         Ensure indexes exist on the billable model table for fields used in
         search, grouping and domain. Improves invoice generation performance.
@@ -335,9 +336,7 @@ class ProductCategory(models.Model):
             to_index.append((col, field))
 
         # Partner field (critical for search/grouping) - always index
-        partner_name = getattr(
-            model, "_billing_partner_id_name", None
-        ) or "partner_id"
+        partner_name = getattr(model, "_billing_partner_id_name", None) or "partner_id"
         add_col(partner_name)
 
         # Quantity, group, domain and aux fields
@@ -347,7 +346,7 @@ class ProductCategory(models.Model):
             add_col(category.billable_item_group_field_id.name)
         for fname in self._get_domain_field_names(category.billable_item_domain):
             add_col(fname)
-        for line in (category.aux_field_ids or []):
+        for line in category.aux_field_ids or []:
             if line.field_id:
                 add_col(line.field_id.name)
 
@@ -488,14 +487,15 @@ class ProductCategory(models.Model):
                 mock_item = type(
                     "Mock",
                     (),
-                    {"id": 0, "name": "", "display_name": "", "__str__": lambda s: ""},
+                    {
+                        "id": 0,
+                        "name": "",
+                        "display_name": "",
+                        "_name": "mock.billable.item",
+                        "__str__": lambda s: "",
+                    },
                 )()
-            mock_ctx = get_jinja2_template_context(
-                self.env,
-                billable_item=mock_item,
-                invoiceset=None,
-                quantity=0,
-            )
+            mock_ctx = get_jinja2_template_context(self.env, mock_item, quantity=0)
             template.render(**mock_ctx)
         except TemplateError as err:
             return False, self._humanize_template_error(err)
@@ -505,10 +505,9 @@ class ProductCategory(models.Model):
 
     @api.depends()
     def _compute_jinja2_shortcuts_help(self):
-        for _ in self:
+        for _rec in self:
             rows = "".join(
-                f'<tr><td><code>{{{{ {k} }}}}</code></td>'
-                f'<td>{v}</td></tr>'
+                f"<tr><td><code>{{{{ {k} }}}}</code></td>" f"<td>{v}</td></tr>"
                 for k, v in JINJA2_TEMPLATE_SHORTCUTS.items()
             )
             self.jinja2_shortcuts_help = (
@@ -575,9 +574,7 @@ class ProductCategory(models.Model):
             translations = desc_field._get_stored_translations(field)
             if not translations:
                 continue
-            record.update_field_translations(
-                "billable_item_group_label", translations
-            )
+            record.update_field_translations("billable_item_group_label", translations)
 
     @api.depends("billable_item_model_id")
     def _compute_supports_mass_billing(self):

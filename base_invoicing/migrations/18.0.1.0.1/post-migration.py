@@ -1,7 +1,8 @@
 # Copyright 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
+# pylint: disable=invalid-name,broad-exception-caught,except-pass
 
-from odoo import api, SUPERUSER_ID
+from odoo import SUPERUSER_ID, api
 from odoo.tools import sql as odoo_sql
 
 
@@ -14,10 +15,10 @@ def migrate(cr, version):
     if not version:
         return
     env = api.Environment(cr, SUPERUSER_ID, {})
-    Hybrid = env["account.selectable.item.hybrid.view"].with_context(
+    hybrid_model = env["account.selectable.item.hybrid.view"].with_context(
         active_test=False
     )
-    legacy = Hybrid.search([("category_id", "=", False)])
+    legacy = hybrid_model.search([("category_id", "=", False)])
     if not legacy:
         return
 

@@ -88,7 +88,9 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
         help="Technical: True if move_line_field is many2one or analytic_distribution.",
     )
 
-    @api.depends("move_line_field_id", "move_line_field_id.ttype", "move_line_field_id.name")
+    @api.depends(
+        "move_line_field_id", "move_line_field_id.ttype", "move_line_field_id.name"
+    )
     def _compute_move_line_expects_record(self):
         for rec in self:
             rec.move_line_expects_record = rec._move_line_field_expects_record()
@@ -110,13 +112,12 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
                 ("model", "=", "account.move.line"),
                 ("ttype", "=", "many2one"),
             ]
-            relations = (
-                IrModelFields.search(domain).mapped("relation")
-                + ["account.analytic.account"]
-            )
+            relations = IrModelFields.search(domain).mapped("relation") + [
+                "account.analytic.account"
+            ]
             relations = sorted(set(r for r in relations if r and self.env.get(r)))
-        models = IrModel.search([("model", "in", relations)], order="name")
-        return [(m.model, m.name) for m in models]
+        model_recs = IrModel.search([("model", "in", relations)], order="name")
+        return [(m.model, m.name) for m in model_recs]
 
     def _update_compatible_billable_field_ids(self):
         """Set compatible_billable_field_ids from domain (called by onchange so client receives updated value)."""
@@ -136,7 +137,9 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
-        if any(k in vals for k in ("move_line_field_id", "value_source", "category_id")):
+        if any(
+            k in vals for k in ("move_line_field_id", "value_source", "category_id")
+        ):
             for rec in self:
                 rec._update_compatible_billable_field_ids()
         return res
@@ -145,7 +148,11 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
     def _onchange_category_clear_fields(self):
         """Clear fields when category or its billable model changes."""
         if self.category_id and self.category_id.billable_item_model_id:
-            if self.billable_item_field_id and self.billable_item_field_id.model_id != self.category_id.billable_item_model_id:
+            if (
+                self.billable_item_field_id
+                and self.billable_item_field_id.model_id
+                != self.category_id.billable_item_model_id
+            ):
                 self.billable_item_field_id = False
         else:
             self.move_line_field_id = False
@@ -166,25 +173,26 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
             return None
         raw = raw.strip()
         ttype = ml_field.ttype
+        result = raw
         if ttype in ("char", "text", "selection"):
-            return raw
-        if ttype == "integer":
+            result = raw
+        elif ttype == "integer":
             try:
-                return int(float(raw))
+                result = int(float(raw))
             except (ValueError, TypeError):
-                return None
-        if ttype == "float":
+                result = None
+        elif ttype == "float":
             try:
-                return float(raw)
+                result = float(raw)
             except (ValueError, TypeError):
-                return None
-        if ttype == "boolean":
-            return raw.lower() in ("1", "true", "yes", "t", "y")
-        if ttype == "date":
-            return fields.Date.from_string(raw) if raw else None
-        if ttype == "datetime":
-            return fields.Datetime.from_string(raw) if raw else None
-        return raw
+                result = None
+        elif ttype == "boolean":
+            result = raw.lower() in ("1", "true", "yes", "t", "y")
+        elif ttype == "date":
+            result = fields.Date.from_string(raw) if raw else None
+        elif ttype == "datetime":
+            result = fields.Datetime.from_string(raw) if raw else None
+        return result
 
     @api.onchange("value_source")
     def _onchange_value_source(self):
@@ -201,14 +209,24 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
         if not self.billable_model_id:
             return [("id", "=", 0)]
         base = [("model_id", "=", self.billable_model_id.id)]
-        base.append(("ttype", "not in", ["one2many", "many2many", "binary", "properties"]))
+        base.append(
+            ("ttype", "not in", ["one2many", "many2many", "binary", "properties"])
+        )
         if not self.move_line_field_id:
             return base
         ml = self.move_line_field_id
         ml_ttype = ml.ttype
-        billable_model = self.billable_model_id.model
 
-        if ml_ttype in ("char", "text", "integer", "float", "boolean", "date", "datetime", "selection"):
+        if ml_ttype in (
+            "char",
+            "text",
+            "integer",
+            "float",
+            "boolean",
+            "date",
+            "datetime",
+            "selection",
+        ):
             base.append(("ttype", "=", ml_ttype))
         elif ml.name == "analytic_distribution":
             base.append(("ttype", "=", "many2one"))
@@ -234,7 +252,11 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
             if expected and str(self.default_record_ref._name) != expected:
                 self.default_record_ref = False
         # Clear fixed_value if field now expects a record
-        if self.move_line_field_id and self._move_line_field_expects_record() and self.fixed_value:
+        if (
+            self.move_line_field_id
+            and self._move_line_field_expects_record()
+            and self.fixed_value
+        ):
             self.fixed_value = False
 
         self._update_compatible_billable_field_ids()
@@ -245,8 +267,15 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
             if self.billable_item_field_id.id not in compatible_ids:
                 self.billable_item_field_id = False
 
-    @api.constrains("move_line_field_id", "billable_item_field_id", "category_id", "value_source", "default_record_ref", "fixed_value")
-    def _check_field_compatibility(self):
+    @api.constrains(
+        "move_line_field_id",
+        "billable_item_field_id",
+        "category_id",
+        "value_source",
+        "default_record_ref",
+        "fixed_value",
+    )
+    def _check_field_compatibility(self):  # noqa: C901
         """Ensure field types are compatible for copying."""
         for rec in self:
             if not rec.move_line_field_id or not rec.category_id:
@@ -260,25 +289,37 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
                 if expects_record:
                     if not rec.default_record_ref:
                         raise ValidationError(
-                            _("When value source is 'Fixed' and invoice line field is Many2one, a default record must be set.")
+                            _(
+                                "When value source is 'Fixed' and invoice line field is Many2one, a default record must be set."
+                            )
                         )
                     rec._check_default_record_model(ml_field)
                 else:
                     if not rec.fixed_value or not rec.fixed_value.strip():
                         raise ValidationError(
-                            _("When value source is 'Fixed' and invoice line field is Selection/Char/etc, a fixed value must be set.")
+                            _(
+                                "When value source is 'Fixed' and invoice line field is Selection/Char/etc, a fixed value must be set."
+                            )
                         )
                 continue
             if rec.value_source == "from_billable" and not rec.billable_item_field_id:
                 raise ValidationError(
-                    _("When value source is 'From billable field', a billable item field must be set.")
+                    _(
+                        "When value source is 'From billable field', a billable item field must be set."
+                    )
                 )
             if rec.value_source == "billable_or_fixed":
                 expects_record = rec._move_line_field_expects_record()
-                has_fallback = rec.default_record_ref if expects_record else (rec.fixed_value and rec.fixed_value.strip())
+                has_fallback = (
+                    rec.default_record_ref
+                    if expects_record
+                    else (rec.fixed_value and rec.fixed_value.strip())
+                )
                 if not rec.billable_item_field_id and not has_fallback:
                     raise ValidationError(
-                        _("When value source is 'Billable or fixed', set a billable item field and/or a default record/value.")
+                        _(
+                            "When value source is 'Billable or fixed', set a billable item field and/or a default record/value."
+                        )
                     )
 
             bi_field = rec.billable_item_field_id
@@ -287,7 +328,16 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
             bi_ttype = bi_field.ttype
 
             # Same simple type: direct copy (including selection)
-            if ml_ttype == bi_ttype and ml_ttype in ("char", "text", "integer", "float", "boolean", "date", "datetime", "selection"):
+            if ml_ttype == bi_ttype and ml_ttype in (
+                "char",
+                "text",
+                "integer",
+                "float",
+                "boolean",
+                "date",
+                "datetime",
+                "selection",
+            ):
                 continue
 
             # Many2one cases
@@ -296,7 +346,10 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
                     continue
                 # Billable field points to the billable model itself: use record id
                 billable_model = rec.category_id.billable_item_model_id.model
-                if ml_field.relation == billable_model and bi_field.relation == billable_model:
+                if (
+                    ml_field.relation == billable_model
+                    and bi_field.relation == billable_model
+                ):
                     continue  # Same model, OK
                 raise ValidationError(
                     _(
@@ -312,7 +365,11 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
                 )
 
             # Analytic: billable has analytic_account_id (many2one) → move line has analytic_distribution (json)
-            if ml_field.name == "analytic_distribution" and bi_ttype == "many2one" and bi_field.relation == "account.analytic.account":
+            if (
+                ml_field.name == "analytic_distribution"
+                and bi_ttype == "many2one"
+                and bi_field.relation == "account.analytic.account"
+            ):
                 continue
 
             if ml_ttype != bi_ttype:

@@ -5,11 +5,10 @@
 import logging
 import re
 
-from psycopg2 import ProgrammingError
-
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import sql as odoo_sql
+from psycopg2 import ProgrammingError
 
 _logger = logging.getLogger(__name__)
 
@@ -33,7 +32,9 @@ def _build_suffix(model_name, category_id):
 
 class AccountSelectableItemHybridView(models.Model):
     _name = "account.selectable.item.hybrid.view"
-    _description = "Hybrid SQL view for selectable items (config per billable model + category)"
+    _description = (
+        "Hybrid SQL view for selectable items (config per billable model + category)"
+    )
 
     billable_model_id = fields.Many2one(
         comodel_name="ir.model",
@@ -121,10 +122,12 @@ class AccountSelectableItemHybridView(models.Model):
         ]
         hybrid = self.search(domain, limit=1)
         if not hybrid:
-            hybrid = self.create({
-                "billable_model_id": model_id,
-                "category_id": category.id,
-            })
+            hybrid = self.create(
+                {
+                    "billable_model_id": model_id,
+                    "category_id": category.id,
+                }
+            )
             hybrid._build_hybrid_view(category)
         elif not hybrid.model_id:
             hybrid._build_hybrid_view(category)
@@ -138,98 +141,90 @@ class AccountSelectableItemHybridView(models.Model):
         billable_model = self.billable_model_id
         model_name = billable_model.model
         billable_table = self.env[model_name]._table
-
-        # 1. Build SQL query (uses filtered columns that exist in DB)
-        query, bt_cols_raw = self._build_sql_query(
-            category, model_name, billable_table
-        )
+        query, bt_cols_raw = self._build_sql_query(category, model_name, billable_table)
         view_table = self.view_table
-
-        # 2. Create PostgreSQL view
         self._create_view(view_table, query)
-
-        # 3. Define columns for ir.model.fields (must match SQL columns)
         field_specs = self._get_field_specs(category, model_name, bt_cols_raw)
+        self._create_hybrid_ir_artifacts(field_specs, model_name, billable_model)
+        return self
 
-        # 4. Create ir.model with fields
-        IrModel = self.env["ir.model"].sudo()
-        IrModelFields = self.env["ir.model.fields"].sudo()
-        IrModelAccess = self.env["ir.model.access"].sudo()
-        View = self.env["ir.ui.view"].sudo()
-
-        # Prepare field vals for ir.model.fields (model_id set by inverse)
-        # Note: ir.model.fields has no 'sequence' field, do not pass it
-        field_vals_list = []
-        for fname, desc, ttype, relation in field_specs:
-            field_vals_list.append({
+    def _create_hybrid_ir_artifacts(self, field_specs, model_name, billable_model):
+        """Create ir.model, access, server actions, tree/search/pivot views."""
+        ir_model = self.env["ir.model"].sudo()
+        ir_model_access = self.env["ir.model.access"].sudo()
+        view_env = self.env["ir.ui.view"].sudo()
+        field_vals_list = [
+            {
                 "name": fname,
                 "field_description": desc,
                 "ttype": ttype,
                 "state": "manual",
                 "relation": relation or False,
                 "store": True,
-            })
-
-        # Create ir.model with field_id
+            }
+            for fname, desc, ttype, relation in field_specs
+        ]
         model_vals = {
             "name": f"Selectable items ({billable_model.name})",
             "model": self.model_name,
             "state": "manual",
             "field_id": [(0, 0, fv) for fv in field_vals_list],
         }
-        model_rec = IrModel.create(model_vals)
+        model_rec = ir_model.create(model_vals)
         self.model_id = model_rec.id
-
-        # 5. Create ir.model.access (read only)
-        group_invoice = self.env.ref("account.group_account_invoice", raise_if_not_found=False)
+        group_invoice = self.env.ref(
+            "account.group_account_invoice", raise_if_not_found=False
+        )
         if group_invoice:
-            IrModelAccess.create({
-                "name": f"Read {self.model_name}",
+            ir_model_access.create(
+                {
+                    "name": f"Read {self.model_name}",
+                    "model_id": model_rec.id,
+                    "group_id": group_invoice.id,
+                    "perm_read": True,
+                    "perm_write": False,
+                    "perm_create": False,
+                    "perm_unlink": False,
+                }
+            )
+        action_vals = (
+            {"groups_id": [(6, 0, group_invoice.ids)]} if group_invoice else {}
+        )
+        ir_act_server = self.env["ir.actions.server"].sudo()
+        action_select = ir_act_server.create(
+            {
+                "name": _("Activate"),
                 "model_id": model_rec.id,
-                "group_id": group_invoice.id,
-                "perm_read": True,
-                "perm_write": False,
-                "perm_create": False,
-                "perm_unlink": False,
-            })
-
-        # 6. Create mass Activate/Deactivate server actions (for dropdown + header)
-        # Set groups_id to bypass write check (hybrid model is read-only; we write to account.selectable.item)
-        group_invoice = self.env.ref("account.group_account_invoice", raise_if_not_found=False)
-        action_vals = {"groups_id": [(6, 0, group_invoice.ids)]} if group_invoice else {}
-        IrActServer = self.env["ir.actions.server"].sudo()
-        action_select = IrActServer.create({
-            "name": _("Activate"),
-            "model_id": model_rec.id,
-            "binding_model_id": model_rec.id,
-            "binding_type": "action",
-            "binding_view_types": "list,form",
-            "state": "code",
-            "code": """selectable_ids = records.mapped('x_selectable_item_id')
+                "binding_model_id": model_rec.id,
+                "binding_type": "action",
+                "binding_view_types": "list,form",
+                "state": "code",
+                "code": """selectable_ids = records.mapped('x_selectable_item_id')
 if selectable_ids:
     env['account.selectable.item'].browse(selectable_ids).write({'selected': True})
 """,
-            **action_vals,
-        })
-        action_deselect = IrActServer.create({
-            "name": _("Deactivate"),
-            "model_id": model_rec.id,
-            "binding_model_id": model_rec.id,
-            "binding_type": "action",
-            "binding_view_types": "list,form",
-            "state": "code",
-            "code": """selectable_ids = records.mapped('x_selectable_item_id')
+                **action_vals,
+            }
+        )
+        action_deselect = ir_act_server.create(
+            {
+                "name": _("Deactivate"),
+                "model_id": model_rec.id,
+                "binding_model_id": model_rec.id,
+                "binding_type": "action",
+                "binding_view_types": "list,form",
+                "state": "code",
+                "code": """selectable_ids = records.mapped('x_selectable_item_id')
 if selectable_ids:
     env['account.selectable.item'].browse(selectable_ids).write({'selected': False})
 """,
-            **action_vals,
-        })
+                **action_vals,
+            }
+        )
         self.env.registry.clear_cache()
-
-        # 7. Create tree view with header buttons (editable="bottom" so toggle works)
         tree_fields = self._build_tree_view_fields(field_specs)
         header = (
-            f'<header>'
+            f"<header>"
             f'<button name="{action_select.id}" type="action" string="{_("Activate")}" class="btn-primary" icon="fa-check-square-o"/>'
             f'<button name="{action_deselect.id}" type="action" string="{_("Deactivate")}" class="btn-secondary" icon="fa-square-o"/>'
             f"</header>"
@@ -238,50 +233,50 @@ if selectable_ids:
             f'<?xml version="1.0"?><list create="false" delete="false" editable="bottom">'
             f"{header}{tree_fields}</list>"
         )
-        tree_view = View.create({
-            "name": f"Selectable items hybrid ({model_name})",
-            "type": "list",
-            "model": self.model_name,
-            "arch": tree_arch,
-        })
+        tree_view = view_env.create(
+            {
+                "name": f"Selectable items hybrid ({model_name})",
+                "type": "list",
+                "model": self.model_name,
+                "arch": tree_arch,
+            }
+        )
         self.tree_view_id = tree_view.id
-
-        # 8. Create search view with group by for all fields
         search_fields = "".join(
-            f'<field name="{fname}"/>' for fname, _desc, _t, _r in field_specs
+            f'<field name="{fname}"/>' for fname, _d, _t, _r in field_specs
         )
         group_by_fields = self._build_search_groupby(field_specs)
         search_arch = (
             f'<?xml version="1.0"?><search string="Search">'
-            f'{search_fields}'
+            f"{search_fields}"
             f'<filter name="selected_yes" string="Selected" domain="[(\'x_selected\', \'=\', True)]"/>'
             f'<filter name="selected_no" string="Not selected" domain="[(\'x_selected\', \'=\', False)]"/>'
             f'<group expand="0" string="Group By">{group_by_fields}</group>'
             f"</search>"
         )
-        search_view = View.create({
-            "name": f"Search selectable hybrid ({model_name})",
-            "type": "search",
-            "model": self.model_name,
-            "arch": search_arch,
-        })
+        search_view = view_env.create(
+            {
+                "name": f"Search selectable hybrid ({model_name})",
+                "type": "search",
+                "model": self.model_name,
+                "arch": search_arch,
+            }
+        )
         self.search_view_id = search_view.id
-
-        # 9. Create pivot view (groupable aux columns + x_quantity as measure)
         pivot_fields = self._build_pivot_view_fields(field_specs)
         pivot_arch = (
             f'<?xml version="1.0"?><pivot string="Selectable Items">'
             f"{pivot_fields}</pivot>"
         )
-        pivot_view = View.create({
-            "name": f"Pivot selectable hybrid ({model_name})",
-            "type": "pivot",
-            "model": self.model_name,
-            "arch": pivot_arch,
-        })
+        pivot_view = view_env.create(
+            {
+                "name": f"Pivot selectable hybrid ({model_name})",
+                "type": "pivot",
+                "model": self.model_name,
+                "arch": pivot_arch,
+            }
+        )
         self.pivot_view_id = pivot_view.id
-
-        return self
 
     def _build_pivot_view_fields(self, field_specs):
         """Build pivot: row=groupable fields, measure=x_quantity."""
@@ -333,13 +328,17 @@ if selectable_ids:
         bt_cols = [c[0] for c in bt_cols_raw]
 
         # Build SELECT with row_number for id
-        select_parts = [
-            "CAST(row_number() OVER () AS integer) AS id",
-            "CAST(NULL AS integer) AS create_uid",
-            "CAST(NULL AS timestamp without time zone) AS create_date",
-            "CAST(NULL AS integer) AS write_uid",
-            "CAST(NULL AS timestamp without time zone) AS write_date",
-        ] + si_cols + bt_cols
+        select_parts = (
+            [
+                "CAST(row_number() OVER () AS integer) AS id",
+                "CAST(NULL AS integer) AS create_uid",
+                "CAST(NULL AS timestamp without time zone) AS create_date",
+                "CAST(NULL AS integer) AS write_uid",
+                "CAST(NULL AS timestamp without time zone) AS write_date",
+            ]
+            + si_cols
+            + bt_cols
+        )
 
         query = f"""
         SELECT {", ".join(select_parts)}
@@ -411,7 +410,12 @@ if selectable_ids:
         """
         specs = [
             ("x_selectable_item_id", "Selectable Item ID", "integer", ""),
-            ("x_productlink_id", "Product link", "many2one", "account.invoiceset.productlink"),
+            (
+                "x_productlink_id",
+                "Product link",
+                "many2one",
+                "account.invoiceset.productlink",
+            ),
             ("x_selected", "Selected", "boolean", ""),
             ("x_quantity", "Quantity", "float", ""),
             ("x_partner_id", "Customer", "many2one", "res.partner"),
@@ -439,7 +443,7 @@ if selectable_ids:
     def _build_tree_view_fields(self, field_specs):
         """Build XML field elements for list view."""
         parts = []
-        for fname, desc, ttype, _relation in field_specs:
+        for fname, desc, _ttype, _relation in field_specs:
             extra = ""
             if fname == "x_selected":
                 extra = ' widget="selectable_hybrid_toggle"'
@@ -467,7 +471,9 @@ if selectable_ids:
         """Create or replace PostgreSQL view."""
         if not re.match(r"^[a-z0-9_]+$", view_table):
             raise ValidationError(_("Invalid view table name: %s") % view_table)
-        drop_sql = odoo_sql.SQL("DROP VIEW IF EXISTS %s CASCADE", odoo_sql.SQL.identifier(view_table))
+        drop_sql = odoo_sql.SQL(
+            "DROP VIEW IF EXISTS %s CASCADE", odoo_sql.SQL.identifier(view_table)
+        )
         self.env.cr.execute(drop_sql)
         try:
             model_name = self.billable_model_id.model

@@ -40,11 +40,12 @@ class ProductTemplate(models.Model):
 
     @api.depends("name", "categ_id", "categ_id.name", "categ_id.supports_mass_billing")
     def _compute_display_name(self):
-        super()._compute_display_name()
+        result = super()._compute_display_name()
         for record in self.filtered(
             lambda r: r.categ_id and r.categ_id.supports_mass_billing
         ):
             record.display_name = f"[{record.categ_id.name}] {record.display_name}"
+        return result
 
     @api.constrains("factor_quantity")
     def _check_factor_quantity_non_negative(self):
@@ -148,6 +149,8 @@ class ProductTemplate(models.Model):
             "domain": [("productlink_id.product_id.product_tmpl_id", "=", self.id)],
             "context": {
                 "create": False,
-                "selectable_items_categ_id": self.categ_id.id if self.categ_id else None,
+                "selectable_items_categ_id": (
+                    self.categ_id.id if self.categ_id else None
+                ),
             },
         }

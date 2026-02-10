@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 # pylint: disable=duplicate-code
 
+from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase, tagged
 
 
@@ -91,6 +92,7 @@ class TestAccountSelectableItem(TransactionCase):
         self.assertTrue(self.productlink.populated)
 
     def test_template_error_is_handled(self):
-        self.categ.write({"aux_desc": "{{ billable_item.name "})
-        item = self._create_item()
-        self.assertIn(self.env._("Error in template:"), item.rendered_aux_desc)
+        # Invalid Jinja2 syntax is rejected on save with ValidationError
+        with self.assertRaises(ValidationError) as cm:
+            self.categ.write({"aux_desc": "{{ billable_item.name "})
+        self.assertIn("Template for selection lines", str(cm.exception))

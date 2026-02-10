@@ -6,30 +6,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-07 03:42+0000\n"
-"PO-Revision-Date: 2026-02-07 03:42+0000\n"
+"POT-Creation-Date: 2026-02-10 02:18+0000\n"
+"PO-Revision-Date: 2026-02-10 02:18+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Language: ca_ES\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__meeting_count
-msgid "# Meetings"
-msgstr "# Reunions"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__supplier_invoice_count
 msgid "# Vendor Bills"
 msgstr "# Factures de proveïdor"
-
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__credit_control_count
-msgid "# of Credit Control Lines"
-msgstr "# Línies de control de crèdit"
 
 #. module: base_invoicing
 #. odoo-python
@@ -56,16 +45,9 @@ msgstr "<i class=\"fa fa-calculator\" aria-hidden=\"true\" title=\"Calcular\"/>"
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "<i class=\"fa fa-calendar\" aria-hidden=\"true\" title=\"Invoice and due date\"/>"
-msgstr "<i class=\"fa fa-calendar\" aria-hidden=\"true\" title=\"Data de factura i venciment\"/>"
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
-msgid ""
-"<i class=\"fa fa-calendar-o\" aria-label=\"Invoice Date\" role=\"img\" "
-"title=\"Invoice Date\"/>"
 msgstr ""
-"<i class=\"fa fa-calendar-o\" aria-label=\"Data de factura\" role=\"img\" "
-"title=\"Data de factura\"/>"
+"<i class=\"fa fa-calendar\" aria-hidden=\"true\" title=\"Data de factura i "
+"venciment\"/>"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
@@ -80,6 +62,11 @@ msgid ""
 msgstr ""
 "<i class=\"fa fa-check-circle\" role=\"img\" aria-label=\"Configurat\"/> "
 "Configurat"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
+msgid "<i class=\"fa fa-check-square-o\" aria-hidden=\"true\" title=\"Validated\"/>"
+msgstr "<i class=\"fa fa-check-square-o\" aria-hidden=\"true\" title=\"Validat\"/>"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_kanban
@@ -97,18 +84,19 @@ msgid "<i class=\"fa fa-cog\" role=\"img\" aria-label=\"Pending\"/> Pending"
 msgstr "<i class=\"fa fa-cog\" role=\"img\" aria-label=\"Pendent\"/> Pendent"
 
 #. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
+msgid "<i class=\"fa fa-cube\" aria-hidden=\"true\" title=\"Products\"/>"
+msgstr "<i class=\"fa fa-cube\" aria-hidden=\"true\" title=\"Productes\"/>"
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_kanban_view_invoicing
 msgid "<i class=\"fa fa-database\" role=\"img\" aria-label=\"Model\"/>"
-msgstr "<i class=\"fa fa-database\" role=\"img\" aria-label=\"Model\"/>"
+msgstr ""
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
-msgid ""
-"<i class=\"fa fa-file-text-o\" aria-label=\"Invoices\" role=\"img\" "
-"title=\"Invoices\"/>"
-msgstr ""
-"<i class=\"fa fa-file-text-o\" aria-label=\"Factures\" role=\"img\" "
-"title=\"Factures\"/>"
+msgid "<i class=\"fa fa-files-o\" aria-label=\"Invoices\" role=\"img\" title=\"Invoices\"/>"
+msgstr "<i class=\"fa fa-files-o\" aria-label=\"Factures\" role=\"img\" title=\"Factures\"/>"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_kanban_view_invoicing
@@ -133,21 +121,14 @@ msgstr "<i class=\"fa fa-plug\" aria-hidden=\"true\" title=\"Elements selecciona
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "<i class=\"fa fa-tachometer\" aria-label=\"Speed\" role=\"img\" title=\"Speed\"/>"
-msgstr "<i class=\"fa fa-tachometer\" aria-label=\"Velocitat\" role=\"img\" title=\"Velocitat\"/>"
+msgstr ""
+"<i class=\"fa fa-tachometer\" aria-label=\"Velocitat\" role=\"img\" "
+"title=\"Velocitat\"/>"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "<small class=\"text-muted\">total</small>"
-msgstr "<small class=\"text-muted\">total</small>"
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"<span class=\"o_form_label o_td_label\">Auxiliary columns for selectable "
-"items</span>"
 msgstr ""
-"<span class=\"o_form_label o_td_label\">Columnes auxiliars per a elements "
-"seleccionables</span>"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
@@ -187,7 +168,7 @@ msgstr "<span class=\"text-muted\">. Quantitat:</span>"
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "<span class=\"text-muted\">/</span>"
-msgstr "<span class=\"text-muted\">/</span>"
+msgstr ""
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_kanban
@@ -204,76 +185,6 @@ msgstr ""
 "<span modifiers=\"{'invisible': [['category_code', '!=', 1]]}\">\n"
 "                                <span>(Categoria estàndard)</span>\n"
 "                            </span>"
-"<span modifiers=\"{'invisible': [['category_code', '!=', 1]]}\">\n"
-"                                <span>(Categoria estàndard)</span>\n"
-"                            </span>"
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"<span name=\"aux_desc_label\" class=\"o_form_label o_td_label\">Template for"
-" selection lines</span>"
-msgstr ""
-"<span name=\"aux_desc_label\" class=\"o_form_label o_td_label\">Plantilla per a"
-" línies de selecció</span>"
-"<span name=\"aux_desc_label\" class=\"o_form_label o_td_label\">Plantilla per a"
-" línies de selecció</span>"
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"<span name=\"billable_item_detail_desc_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Template for invoice lines\n"
-"                                </span>"
-msgstr ""
-"<span name=\"billable_item_detail_desc_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Plantilla per a línies de factura\n"
-"                                </span>"
-"<span name=\"billable_item_detail_desc_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Plantilla per a línies de factura\n"
-"                                </span>"
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"<span name=\"billable_item_domain_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Pre-filter Condition\n"
-"                                </span>"
-msgstr ""
-"<span name=\"billable_item_domain_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Condició de pre-filtre\n"
-"                                </span>"
-"<span name=\"billable_item_domain_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Condició de pre-filtre\n"
-"                                </span>"
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"<span name=\"billable_item_group_field_label\" class=\"o_form_label o_td_label\" modifiers=\"{'invisible': [['category_code', '=', 1]]}\">\n"
-"                                    Field for grouping\n"
-"                                </span>"
-msgstr ""
-"<span name=\"billable_item_group_field_label\" class=\"o_form_label o_td_label\" modifiers=\"{'invisible': [['category_code', '=', 1]]}\">\n"
-"                                    Camp d'agrupació\n"
-"                                </span>"
-"<span name=\"billable_item_group_field_label\" class=\"o_form_label o_td_label\" modifiers=\"{'invisible': [['category_code', '=', 1]]}\">\n"
-"                                    Camp d'agrupació\n"
-"                                </span>"
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"<span name=\"billable_item_quantity_group_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Quantity\n"
-"                                </span>"
-msgstr ""
-"<span name=\"billable_item_quantity_group_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Quantitat\n"
-"                                </span>"
-"<span name=\"billable_item_quantity_group_label\" class=\"o_form_label o_td_label\">\n"
-"                                    Quantitat\n"
-"                                </span>"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
@@ -283,28 +194,25 @@ msgstr "<span>(Categoria #</span>"
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid "<span>)</span>"
-msgstr "<span>)</span>"
+msgstr ""
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "<span>invoices</span>"
 msgstr "<span>factures</span>"
 
 #. module: base_invoicing
-#: model:ir.model.constraint,message:base_invoicing.constraint_account_selectable_item_hybrid_view_billable_model_uniq
-msgid "A hybrid view already exists for this billable model."
-msgstr "Ja existeix una vista híbrida per a aquest model facturable."
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid "ADDITIONAL FIELDS"
-msgstr "CAMPS ADDICIONALS"
+#: model:ir.model.constraint,message:base_invoicing.constraint_account_selectable_item_hybrid_view_billable_model_category_uniq
+msgid "A hybrid view already exists for this billable model and category."
+msgstr ""
+"Ja existeix una vista híbrida per a aquest model facturable i categoria."
 
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_account_billable_item
 msgid "Abstract model for billable records"
-msgstr "Model abstracte per a registres facturables"
-"Model abstracte heretat per qualsevol model no obstracte que contingui "
-"registres facturables"
+msgstr ""
+"Model abstracte per a registres facturablesModel abstracte heretat per "
+"qualsevol model no obstracte que contingui registres facturables"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_account_payable_id
@@ -332,38 +240,62 @@ msgstr "Activar"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__active
 msgid "Active"
 msgstr "Actiu"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__active_lang_count
 msgid "Active Lang Count"
 msgstr "Nº de idiomas activos"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__stop_order
 msgid "Active stop order"
 msgstr "Orden de parada activa"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_ids
 msgid "Activities"
 msgstr "Activitats"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "Decoración de excepción de actividad"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_state
 msgid "Activity State"
 msgstr "Estado de actividad"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_type_icon
 msgid "Activity Type Icon"
 msgstr "Icona del tipus d'activitat"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "Add a line"
+msgstr "Afegir una línia"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "Add a note"
+msgstr "Afegir una nota"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "Add a section"
+msgstr "Afegir una secció"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid ""
-"Add fields from the billable items model to show as columns in the "
-"selectable items list. Use sequence to reorder."
+"Add fields from the billable model to display as columns. Fields without a "
+"DB column are skipped when building the view. Drag to reorder. Saved in "
+"database."
 msgstr ""
-"Afegiu camps del model d'elements facturables per mostrar-los com a columnes. "
-"Utilitzeu la seqüència per reordenar."
+"Afegiu camps del model facturable per mostrar com a columnes. Els camps "
+"sense columna a la BD es descarten en construir la vista. Arrossegueu per "
+"reordenar. Es desa a la base de dades."
 
 #. module: base_invoicing
 #. odoo-python
@@ -377,6 +309,7 @@ msgstr "Dades addicionals"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__type
 msgid "Address Type"
 msgstr "Tipus d'adreça"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__all_productlinks_configured
 msgid "All product-links are configured"
@@ -388,7 +321,8 @@ msgid ""
 "All the emails and documents sent to this contact will be translated in this"
 " language."
 msgstr ""
-"Els correus i documents enviats a aquest contacte es traduiran a aquest idioma."
+"Els correus i documents enviats a aquest contacte es traduiran a aquest "
+"idioma."
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_config_billable_item_fields_view_form
@@ -401,10 +335,6 @@ msgstr "Aplicar"
 msgid "Are you sure you want to stop the calculation?"
 msgstr "Esteu segur que voleu interrompre el càlcul?"
 
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__area_unit_name
-msgid "Area unit name"
-msgstr "Nom de la unitat d'àrea"
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__fee_ids
 #: model:ir.model.fields,field_description:base_invoicing.field_res_partner__fee_ids
@@ -427,99 +357,123 @@ msgstr "Nombre d'adjunts"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__autopost_bills
 msgid "Auto-post bills"
 msgstr "Contabilitzar factures automàticament"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__autopost_bills
 msgid "Automatically post bills for this trusted partner"
-msgstr "Contabilitzar automàticament les factures d'aquest partner de confiança"
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__receipt_reminder_email
-msgid ""
-"Automatically send a confirmation email to the vendor X days before the "
-"expected receipt date, asking him to confirm the exact date."
 msgstr ""
-"Enviar automàticament un correu de confirmació al proveïdor X dies abans de la "
-"data de recepció esperada."
+"Contabilitzar automàticament les factures d'aquest partner de confiança"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_01
 msgid "Aux 1"
-msgstr "Aux 1"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_10
 msgid "Aux 10"
-msgstr "Aux 10"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_11
 msgid "Aux 11"
-msgstr "Aux 11"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_12
 msgid "Aux 12"
-msgstr "Aux 12"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_13
 msgid "Aux 13"
-msgstr "Aux 13"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_14
 msgid "Aux 14"
-msgstr "Aux 14"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_15
 msgid "Aux 15"
-msgstr "Aux 15"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_16
 msgid "Aux 16"
-msgstr "Aux 16"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_17
 msgid "Aux 17"
-msgstr "Aux 17"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_18
 msgid "Aux 18"
-msgstr "Aux 18"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_19
 msgid "Aux 19"
-msgstr "Aux 19"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_02
 msgid "Aux 2"
-msgstr "Aux 2"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_20
 msgid "Aux 20"
-msgstr "Aux 20"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_03
 msgid "Aux 3"
-msgstr "Aux 3"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_04
 msgid "Aux 4"
-msgstr "Aux 4"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_05
 msgid "Aux 5"
-msgstr "Aux 5"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_06
 msgid "Aux 6"
-msgstr "Aux 6"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_07
 msgid "Aux 7"
-msgstr "Aux 7"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_08
 msgid "Aux 8"
-msgstr "Aux 8"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__aux_09
 msgid "Aux 9"
-msgstr "Aux 9"
+msgstr ""
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_aux_field_line_view_tree
+msgid "Auxiliary columns"
+msgstr "Columnes auxiliars"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Auxiliary columns for selectable items"
+msgstr "Columnes auxiliars per a elements seleccionables"
+
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_product_category_aux_field_line
 msgid "Auxiliary field definition for selectable items"
@@ -529,30 +483,32 @@ msgstr "Definició de camp auxiliar per a elements seleccionables"
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__aux_field_ids
 msgid "Auxiliary fields"
 msgstr "Camps auxiliars"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__available_peppol_eas
-msgid "Available Peppol Eas"
-msgstr "EAS Peppol disponibles"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__avatar_1920
 msgid "Avatar"
-msgstr "Avatar"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__avatar_1024
 msgid "Avatar 1024"
-msgstr "Avatar 1024"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__avatar_128
 msgid "Avatar 128"
-msgstr "Avatar 128"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__avatar_256
 msgid "Avatar 256"
-msgstr "Avatar 256"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__avatar_512
 msgid "Avatar 512"
-msgstr "Avatar 512"
+msgstr ""
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
 msgid "Background execution"
@@ -562,14 +518,17 @@ msgstr "Execució en segon pla"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__bank_account_count
 msgid "Bank"
 msgstr "Banc"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__bank_ids
 msgid "Banks"
 msgstr "Bancs"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__barcode
 msgid "Barcode"
 msgstr "Codi de barres"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__base_comment_template_ids
 msgid "Base Comment Template"
@@ -579,6 +538,21 @@ msgstr "Plantilla base de comentaris"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
 msgid "Base Invoicing"
 msgstr "Facturació massiva"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__billable_item_field_id
+msgid "Billable Item Field"
+msgstr "Camp de l'element facturable"
+
+#. module: base_invoicing
+#: model:ir.model.fields.selection,name:base_invoicing.selection__product_category_invoice_line_field_map__value_source__billable_or_fixed
+msgid "Billable field, or fixed if empty"
+msgstr "Camp facturable, o fix si està buit"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_invoice_line_field_map_view_tree
+msgid "Billable item field"
+msgstr "Camp de l'element facturable"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_move_line__billable_item_model
@@ -600,11 +574,13 @@ msgstr "Model de prova d'elements facturables"
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__billable_item_model_id
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__billable_model_id
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__billable_model_id
 msgid "Billable items model"
 msgstr "Model d'elements facturables"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__billable_model_id
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid "Billable model"
 msgstr "Model facturable"
 
@@ -643,18 +619,12 @@ msgstr "Nom del camp quantitat"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_blacklisted
 msgid "Blacklist"
 msgstr "Llista negra"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__es_libro
-msgid "Book"
-msgstr "Llibre"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__message_bounce
 msgid "Bounce"
 msgstr "Rebote"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__buyer_id
-msgid "Buyer"
-msgstr "Comprador"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_list
 msgid "Calc. time"
@@ -677,6 +647,11 @@ msgstr "Calculat (s/n)"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
 msgid "Calculating"
 msgstr "Calculant"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Calculation"
+msgstr "Càlcul"
 
 #. module: base_invoicing
 #. odoo-python
@@ -748,8 +723,8 @@ msgstr "Factures cancel·lades"
 msgid ""
 "Categories with a billable model configured will appear in invoice sets."
 msgstr ""
-"Les categories amb model facturable configurat apareixeran als lots."
-"Les categories amb model facturable configurat apareixeran als lots."
+"Les categories amb model facturable configurat apareixeran als lots.Les "
+"categories amb model facturable configurat apareixeran als lots."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__categ_id
@@ -765,6 +740,7 @@ msgstr "Categoria"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_kanban_view_invoicing
 msgid "Category #"
 msgstr "Categoria #"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__category_code
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__category_code
@@ -775,31 +751,24 @@ msgstr "Codi de categoria"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__channel_ids
 msgid "Channels"
 msgstr "Canals"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__is_company
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__partner_is_company
 msgid "Check if the contact is a company, otherwise it is a person"
-msgstr "Marque si el contacto es una empresa; en caso contrario es una persona"
+msgstr ""
+"Marque si el contacto es una empresa; en caso contrario es una persona"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__employee
 msgid "Check this box if this contact is an Employee."
 msgstr "Marqueu si aquest contacte és un empleat."
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__country_enforce_cities
-msgid ""
-"Check this box to ensure every address created in that country has a 'City' "
-"chosen in the list of the country's cities."
-msgstr ""
-"Marqueu per obligar que cada adreça tingui una 'Ciutat' de la llista."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__city
 msgid "City"
 msgstr "Ciutat"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__city_id
-msgid "City ID"
-msgstr "ID de ciudad"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_list
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
@@ -822,18 +791,15 @@ msgid "Code of invoice set"
 msgstr "Codi de lot"
 
 #. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__peppol_eas
-msgid ""
-"Code used to identify the Endpoint for BIS Billing 3.0 and its derivatives.\n"
-"             List available at https://docs.peppol.eu/poacc/billing/3.0/codelist/eas/"
-msgstr ""
-"Codi per identificar l'Endpoint BIS Billing 3.0. Llista a "
-"https://docs.peppol.eu/poacc/billing/3.0/codelist/eas/"
-
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__color
 msgid "Color Index"
 msgstr "Índice de color"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_aux_field_line_view_tree
+msgid "Column label"
+msgstr "Etiqueta de columna"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__comment_template_ids
 msgid "Comment Templates"
@@ -856,10 +822,7 @@ msgstr "Comentaris"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__commercial_partner_id
 msgid "Commercial Entity"
 msgstr "Entidad comercial"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__es_registro_mercantil
-msgid "Commercial Registry"
-msgstr "Registro mercantil"
+
 #. module: base_invoicing
 #: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset__state__committed
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
@@ -875,11 +838,13 @@ msgstr "Empreses"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__ref_company_ids
 msgid "Companies that refers to partner"
 msgstr "Empreses que referencien aquest partner"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__company_id
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__company_id
 msgid "Company"
 msgstr "Empresa"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_is_company
 msgid "Company (y/n)"
@@ -889,39 +854,58 @@ msgstr "És empresa (s/n)"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__company_currency_id
 msgid "Company Currency"
 msgstr "Moneda de l'empresa"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__company_registry
 msgid "Company ID"
 msgstr "CIF/NIF"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__company_registry_label
 msgid "Company ID Label"
 msgstr "Etiqueta CIF/NIF"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__company_name
 msgid "Company Name"
 msgstr "Nom de l'empresa"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__commercial_company_name
 msgid "Company Name Entity"
 msgstr "Nombre fiscal"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__company_type
 msgid "Company Type"
 msgstr "Tipus d'empresa"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__compatible_billable_field_ids
+msgid "Compatible billable fields"
+msgstr "Camps facturables compatibles"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contact_address
 msgid "Complete Address"
 msgstr "Adreça completa"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__complete_name
 msgid "Complete Name"
 msgstr "Nom complet"
+
+#. module: base_invoicing
+#: model:ir.model,name:base_invoicing.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paràmetres de configuració"
+
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_wizard_config_billable_item_fields
 msgid "Configure billable item fields"
-msgstr "Configurar camps d'elements facturables"
-"Diàleg per a la configuració de camps del model d'elements facturables"
+msgstr ""
+"Configurar camps d'elements facturablesDiàleg per a la configuració de camps"
+" del model d'elements facturables"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
@@ -957,21 +941,20 @@ msgid "Contact"
 msgstr "Contacte"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contract_ids
-msgid "Contracts"
-msgstr "Contractes"
-#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__message_bounce
 msgid "Counter of the number of bounced emails for this contact"
 msgstr "Comptador de correus retornats d'aquest contacte"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__country_id
 msgid "Country"
 msgstr "País"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__country_code
 msgid "Country Code"
 msgstr "Código de país"
+
 #. module: base_invoicing
 #: model_terms:ir.actions.act_window,help:base_invoicing.account_invoiceset_action
 msgid "Create a new invoice set"
@@ -985,11 +968,13 @@ msgstr "Crear un nou lot de factures"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__create_uid
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_confirm_productlink_action__create_uid
 msgid "Created by"
 msgstr "Creat per"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__create_date
@@ -998,35 +983,33 @@ msgstr "Creat per"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__create_date
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_confirm_productlink_action__create_date
 msgid "Created on"
 msgstr "Creat el"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__credit_control_analysis_ids
-msgid "Credit Control Levels"
-msgstr "Niveles de control de crédito"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__credit_policy_id
-msgid "Credit Control Policy"
-msgstr "Política de control de crédito"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__credit_limit
 msgid "Credit Limit"
 msgstr "Límit de crèdit"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__credit_to_invoice
 msgid "Credit To Invoice"
 msgstr "Crédito a facturar"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__credit_limit
 msgid "Credit limit specific to this partner."
 msgstr "Límit de crèdit específic per a aquest partner."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__currency_id
 msgid "Currency"
 msgstr "Moneda"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__partner_id
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
@@ -1037,34 +1020,30 @@ msgid "Customer"
 msgstr "Client"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__customer_payment_mode_id
-msgid "Customer Payment Mode"
-msgstr "Mètode de pagament del client"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payment_note
-msgid "Customer Payment Promise"
-msgstr "Promesa de pagament del client"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_payment_term_id
 msgid "Customer Payment Terms"
 msgstr "Condicions de pagament del client"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__customer_rank
 msgid "Customer Rank"
 msgstr "Rango de cliente"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category__tax_ids
+msgid "Customer Taxes (override)"
+msgstr "Impostos de client (substitució)"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 msgid "Date"
 msgstr "Data"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__reminder_date_before_receipt
-msgid "Days Before Receipt"
-msgstr "Dies abans de la recepció"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__days_sales_outstanding
 msgid "Days Sales Outstanding (DSO)"
 msgstr "Dies de vendes pendents (DSO)"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item_hybrid_view.py:0
@@ -1072,9 +1051,26 @@ msgid "Deactivate"
 msgstr "Desactivar"
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__default_record_ref
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_invoice_line_field_map_view_tree
+msgid "Default record"
+msgstr "Registre per defecte"
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category_invoice_line_field_map.py:0
+msgid ""
+"Default record must be of type %(expected)s (matching invoice line field "
+"%(field)s), got %(got)s."
+msgstr ""
+"El registre per defecte ha de ser de tipus %(expected)s (camp de línia "
+"%(field)s), s'ha obtingut %(got)s."
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__trust
 msgid "Degree of trust you have in this debtor"
 msgstr "Grau de confiança en aquest deutor"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Delete selectable items"
@@ -1118,10 +1114,12 @@ msgstr "Descartar"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__display_invoice_edi_format
 msgid "Display Invoice Edi Format"
 msgstr "Formato EDI de factura"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__display_invoice_template_pdf_report_id
 msgid "Display Invoice Template Pdf Report"
 msgstr "Plantilla PDF de factura"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__display_name
@@ -1130,6 +1128,7 @@ msgstr "Plantilla PDF de factura"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__display_name
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_confirm_productlink_action__display_name
@@ -1142,9 +1141,9 @@ msgid ""
 "Do you confirm that you want to cancel the invoice set and discard the "
 "calculation that has been done?"
 msgstr ""
-"Confirmeu que voleu cancel·lar el lot i descartar el càlcul realitzat?"
-"Confirmeu que voleu cancel·lar el lot de facturació i anul·lar el càlcul "
-"realitzat?"
+"Confirmeu que voleu cancel·lar el lot i descartar el càlcul "
+"realitzat?Confirmeu que voleu cancel·lar el lot de facturació i anul·lar el "
+"càlcul realitzat?"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
@@ -1159,9 +1158,8 @@ msgid ""
 "although you could recover them by reconfiguring the line."
 msgstr ""
 "Confirmeu que voleu iniciar el procés de càlcul? Els elements descartats no "
-"estaran disponibles."
-"Confirmeu que voleu iniciar el procés de càlcul? Si continua, els elements "
-"descartats ja no estaran disponibles."
+"estaran disponibles.Confirmeu que voleu iniciar el procés de càlcul? Si "
+"continua, els elements descartats ja no estaran disponibles."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_product_category__billable_item_domain
@@ -1170,23 +1168,9 @@ msgid ""
 "editor."
 msgstr ""
 "Domini aplicat a elements facturables abans de la selecció. Utilitzeu "
-"l'editor de domini estàndard."
-"Domini aplicat a elements facturables abans de la selecció. Utilitzeu l'editor "
-"de domini estàndard."
+"l'editor de domini estàndard.Domini aplicat a elements facturables abans de "
+"la selecció. Utilitzeu l'editor de domini estàndard."
 
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"Domain applied to billable items before selection. You can add conditions\n"
-"                                    on the model fields and see how many records match."
-msgstr ""
-"Domini aplicat a elements facturables. Podeu afegir condicions en els camps "
-"del model i veure quants registres coincideixen."
-
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_number2
-msgid "Door"
-msgstr "Puerta"
 #. module: base_invoicing
 #: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset__state__draft
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
@@ -1206,10 +1190,12 @@ msgstr "Data de venciment"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__duplicate_bank_partner_ids
 msgid "Duplicate Bank Partner"
 msgstr "Partner bancario duplicado"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__duplicated_bank_account_partners_count
 msgid "Duplicated Bank Account Partners Count"
 msgstr "Nº de partners amb compte bancari duplicat"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__editable
 msgid "Editable Wizard (y/n)"
@@ -1222,13 +1208,13 @@ msgid ""
 "Either customer (not a user), either shared user. Indicated the current "
 "partner is a customer without access or with a limited access created for "
 "sharing data."
-msgstr ""
-"Client (no usuari) o usuari compartit amb accés limitat."
+msgstr "Client (no usuari) o usuari compartit amb accés limitat."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__email
 msgid "Email"
 msgstr "Correu electrònic"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_email
 msgid "Email of partner"
@@ -1238,18 +1224,7 @@ msgstr "Email"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__employee
 msgid "Employee"
 msgstr "Empleat"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__employee_ids
-msgid "Employees"
-msgstr "Empleats"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__employees_count
-msgid "Employees Count"
-msgstr "Nº de empleados"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__country_enforce_cities
-msgid "Enforce Cities"
-msgstr "Obligar ciudades"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item_hybrid_view.py:0
@@ -1258,20 +1233,10 @@ msgstr "Error en crear la vista híbrida %(view)s: %(error)s"
 
 #. module: base_invoicing
 #. odoo-python
-#: code:addons/base_invoicing/tests/test_account_selectable_item.py:0
-msgid "Error in template:"
-msgstr "Error a la plantilla:"
-
-#. module: base_invoicing
-#. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item.py:0
 msgid "Error in template: %(error)s"
 msgstr "Error a la plantilla: %(error)s"
 
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__vies_valid
-msgid "European VAT numbers are automatically checked on the VIES database."
-msgstr "Els NIF europeus es verifiquen automàticament a la base VIES."
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item.py:0
@@ -1283,6 +1248,20 @@ msgstr "Exclòs"
 #: model:ir.model.constraint,message:base_invoicing.constraint_account_invoiceset_productlink_name_unique
 msgid "Existing Product."
 msgstr "Producte existent."
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__move_line_expects_record
+msgid "Expects record"
+msgstr "Requereix registre"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid ""
+"Extra grouping criterion when you need one invoice per customer plus another"
+" split."
+msgstr ""
+"Criteri d'agrupació extra quan cal una factura per client i un altre "
+"desglossament."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_product__factor_quantity
@@ -1300,6 +1279,7 @@ msgstr "Factor per a quantitats"
 #: code:addons/base_invoicing/models/product_template.py:0
 msgid "Factor quantity must be >= 0."
 msgstr "El factor de cantidad debe ser >= 0."
+
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_res_fee
 msgid "Fee"
@@ -1307,9 +1287,18 @@ msgstr "Quota"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__field_id
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_aux_field_line_view_tree
 msgid "Field"
 msgstr "Camp"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid ""
+"Field for billable amount. Ratio multiplies quantity (e.g. 1.5 = 50% more)."
+msgstr ""
+"Camp per a import facturable. El ràtio multiplica la quantitat (ex. 1.5 = "
+"50% més)."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__billable_item_group_field
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__billable_item_group_field_id
@@ -1318,25 +1307,52 @@ msgid "Field for grouping"
 msgstr "Camp d'agrupament"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__firstname
-msgid "First name"
-msgstr "Nom"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__firstname_required
-msgid "Firstname Required"
-msgstr "Nombre obligatorio"
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_invoice_line_field_map_view_tree
+msgid "Field mapping"
+msgstr "Mapatge de camps"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__fiscal_country_codes
 msgid "Fiscal Country Codes"
 msgstr "Códigos fiscales de país"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_account_position_id
 msgid "Fiscal Position"
 msgstr "Posició fiscal"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payment_responsible_id
-msgid "Follow-up Responsible"
-msgstr "Responsable de seguimiento"
+#: model:ir.model.fields.selection,name:base_invoicing.selection__product_category_invoice_line_field_map__value_source__fixed
+msgid "Fixed record (default)"
+msgstr "Registre fix (per defecte)"
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__default_record_ref
+msgid ""
+"Fixed record for many2one/analytic fields when value source is 'Fixed'. Must"
+" match the invoice line field's model (e.g. analytic account for "
+"analytic_distribution)."
+msgstr ""
+"Registre fix per a camps many2one/analítics quan la font és 'Fix'. Ha de "
+"coincidir amb el model del camp de línia (ex. compte analític)."
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__fixed_value
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_invoice_line_field_map_view_tree
+msgid "Fixed value"
+msgstr "Valor fix"
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__fixed_value
+msgid ""
+"Fixed value for selection/char/text/integer/etc when value source is "
+"'Fixed'. For selection: enter the key (e.g. 'asset_receivable'). For "
+"char/text: the string."
+msgstr ""
+"Valor fix per a selecció/char/text/integer/etc quan la font és 'Fix'. Per a "
+"selecció: introduïu la clau (ex. 'asset_receivable'). Per a char/text: la "
+"cadena."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__message_follower_ids
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__message_follower_ids
@@ -1353,10 +1369,7 @@ msgstr "Seguidors (Partners)"
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
 msgstr "Icona Font Awesome, p. ex. fa-tasks"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__form_has_lastname_first
-msgid "Form Has Lastname First"
-msgstr "Formulari amb cognom primer"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__email_formatted
 msgid "Format email address \"Name <email@domain>\""
@@ -1366,6 +1379,12 @@ msgstr "Format de correu \"Nom <email@domini>\""
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__email_formatted
 msgid "Formatted Email"
 msgstr "Email formateado"
+
+#. module: base_invoicing
+#: model:ir.model.fields.selection,name:base_invoicing.selection__product_category_invoice_line_field_map__value_source__from_billable
+msgid "From billable field"
+msgstr "Des del camp facturable"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 #: model_terms:ir.ui.view,arch_db:base_invoicing.view_account_move_filter_inherit_base_invoicing
@@ -1387,14 +1406,21 @@ msgstr "Generada per un lot: sí"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_latitude
 msgid "Geo Latitude"
 msgstr "Latitud"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_longitude
 msgid "Geo Longitude"
 msgstr "Longitud"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_pivot
 msgid "Global Invoicing"
 msgstr "Facturación global"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Grouping"
+msgstr "Agrupació"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_billable_item__billing_groupvalue
@@ -1410,17 +1436,12 @@ msgid "Has Message"
 msgstr "Té un missatge"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_number
-msgid "House"
-msgstr "Número"
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__lended_loan_count
-msgid "How many Loans this partner lended to us ?"
-msgstr "Quants préstecs ens ha concedit aquest partner?"
-#. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_account_selectable_item_hybrid_view
-msgid "Hybrid SQL view for selectable items (config per billable model)"
-msgstr "Vista SQL híbrida per a elements seleccionables (config per model facturable)"
+msgid ""
+"Hybrid SQL view for selectable items (config per billable model + category)"
+msgstr ""
+"Vista SQL híbrida per a elements seleccionables (config per model "
+"facturable)"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__model_id
@@ -1440,15 +1461,18 @@ msgstr "Nom del model híbrid"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__id
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__id
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__id
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__id
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__id
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__id
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_confirm_productlink_action__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__im_status
 msgid "IM Status"
 msgstr "Estado IM"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "IN PROGRESS"
@@ -1458,10 +1482,12 @@ msgstr "EN PROCÉS"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_exception_icon
 msgid "Icon"
 msgstr "Icono"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__activity_exception_icon
 msgid "Icon to indicate an exception activity."
 msgstr "Icona per indicar una activitat amb excepció."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__name
 msgid "Identifier of productlink"
@@ -1471,8 +1497,9 @@ msgstr "Identificador de l'enllaç lot-producte"
 #: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__message_needaction
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr "Si està marcat, hi ha missatges nous que requereixen atenció."
-"Si està marcat, hi ha nous missatges que requereixen la vostra atenció."
+msgstr ""
+"Si està marcat, hi ha missatges nous que requereixen atenció.Si està marcat,"
+" hi ha nous missatges que requereixen la vostra atenció."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__message_has_error
@@ -1481,54 +1508,69 @@ msgid "If checked, some messages have a delivery error."
 msgstr "Si està marcat, alguns missatges tenen un error d'entrega."
 
 #. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid ""
+"If set, these taxes replace the product's customer taxes on invoice lines."
+msgstr ""
+"Si es defineix, aquests impostos substitueixen els impostos de client del "
+"producte a les línies de factura."
+
+#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__is_blacklisted
 msgid ""
 "If the email address is on the blacklist, the contact won't receive mass "
 "mailing anymore, from any list"
-msgstr ""
-"Si el correu està a la llista negra, no rebrà més mailing massiu."
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"If you need one invoice per customer and an additional grouping criterion,\n"
-"                                    set the extra grouping field here."
-msgstr ""
-"Si necessiteu una factura per client i un criteri d'agrupació addicional, "
-"definiu el camp extra aquí."
+msgstr "Si el correu està a la llista negra, no rebrà més mailing massiu."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__ignore_abnormal_invoice_amount
 msgid "Ignore Abnormal Invoice Amount"
 msgstr "Ignorar importe anómalo de factura"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__ignore_abnormal_invoice_date
 msgid "Ignore Abnormal Invoice Date"
 msgstr "Ignorar fecha anómala de factura"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__image_1920
 msgid "Image"
 msgstr "Imagen"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__image_1024
 msgid "Image 1024"
 msgstr "Imagen 1024"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__image_128
 msgid "Image 128"
 msgstr "Imagen 128"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__image_256
 msgid "Image 256"
 msgstr "Imagen 256"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__image_512
 msgid "Image 512"
 msgstr "Imagen 512"
+
 #. module: base_invoicing
 #: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset__state__calculating
 msgid "In progress"
 msgstr "En procés"
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category_invoice_line_field_map.py:0
+msgid ""
+"Incompatible field types: invoice line field '%(ml)s' (%(ml_t)s) vs billable"
+" field '%(bi)s' (%(bi_t)s)."
+msgstr ""
+"Tipus de camp incompatibles: camp de línia '%(ml)s' (%(ml_t)s) davant camp "
+"facturable '%(bi)s' (%(bi_t)s)."
 
 #. module: base_invoicing
 #: model:ir.model.constraint,message:base_invoicing.constraint_product_category_category_code_ok
@@ -1539,18 +1581,11 @@ msgstr "Valor incorrecte de \"Codi de categoria\"."
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__industry_id
 msgid "Industry"
 msgstr "Sector"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contact_address_inline
 msgid "Inlined Complete Address"
 msgstr "Dirección completa en línea"
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"Integer or float field containing the billable amount. If not set, the amount is 1.\n"
-"                                    Label can be translated. Ratio multiplies the quantity (e.g. 1.5 = 50% more)."
-msgstr ""
-"Camp enter o float amb l'import facturable. Si no es defineix, és 1. "
-"Ràtio multiplica la quantitat (ex. 1.5 = 50% més)."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__notes
@@ -1558,30 +1593,34 @@ msgid "Internal Notes"
 msgstr "Notes internes"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__vies_valid
-msgid "Intra-Community Valid"
-msgstr "Intracomunitario válido"
-#. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 msgid "Invalid domain for billable items: %s"
 msgstr "Domini invàlid per a elements facturables: %s"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
 msgid "Invalid template"
 msgstr "Plantilla inválida"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item_hybrid_view.py:0
 msgid "Invalid view table name: %s"
 msgstr "Nombre de tabla de vista inválido: %s"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_warn
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 msgid "Invoice"
 msgstr "Factura"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_move_line__categ_id
+msgid "Invoice Category"
+msgstr "Categoria del producte"
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
@@ -1594,6 +1633,22 @@ msgstr "Data factura"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_edi_format_store
 msgid "Invoice Edi Format Store"
 msgstr "Formato EDI de factura"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__move_line_field_id
+msgid "Invoice Line Field"
+msgstr "Camp de línia de factura"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category__move_line_field_map_ids
+msgid "Invoice Line Field Mapping"
+msgstr "Mapatge de camps de línia de factura"
+
+#. module: base_invoicing
+#: model:ir.model,name:base_invoicing.model_product_category_invoice_line_field_map
+msgid "Invoice Line Field Mapping (Billable → account.move.line)"
+msgstr "Mapatge de camps de línia de factura (Facturable → account.move.line)"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
@@ -1616,6 +1671,7 @@ msgstr "Línies de factura"
 #: model:ir.model.fields,field_description:base_invoicing.field_product_template__invoice_line_count
 msgid "Invoice Lines Count"
 msgstr "Nº de línies de factura"
+
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_account_invoiceset
 #: model:ir.model.fields,field_description:base_invoicing.field_account_bank_statement_line__invoiceset_id
@@ -1660,32 +1716,38 @@ msgstr "Lots de factures"
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__invoiceset_count
 msgid "Invoice Sets Count"
 msgstr "Nº de lotes"
+
 #. module: base_invoicing
 #: model:ir.actions.server,name:base_invoicing.account_invoiceset_cron_calculate_all_configured_invoiceset_ir_actions_server
 msgid "Invoice Sets: Calculate all configured invoice sets"
 msgstr "Lots: Calcular tots els lots configurats"
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid "Invoice Sets: Calculation Settings"
-msgstr "Lots: Configuració de càlcul"
-#. module: base_invoicing
 #: model:ir.actions.server,name:base_invoicing.account_invoiceset_cron_reset_stale_calculating_ir_actions_server
 msgid "Invoice Sets: Reset stale calculating"
 msgstr "Lots: Reiniciar càlculs obsolets"
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid "Invoice Sets: Selection Settings"
-msgstr "Lots: Configuració de selecció"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
 msgid "Invoice batch size for progress"
 msgstr "Mida del lot per al progrés"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_company__mass_invoicing_progress_batch_size
 #: model:ir.model.fields,field_description:base_invoicing.field_res_config_settings__mass_invoicing_progress_batch_size
 msgid "Invoice batch size for progress commits"
 msgstr "Mida del lot per commits de progrés"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_invoice_line_field_map_view_tree
+msgid "Invoice line field"
+msgstr "Camp de línia de factura"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Invoice line fields"
+msgstr "Camps de línia de factura"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_billable_item__move_line_ids
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__move_line_ids
@@ -1697,6 +1759,7 @@ msgstr "Línies de factura"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_sending_method
 msgid "Invoice sending"
 msgstr "Enviament de factures"
+
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_account_invoiceset_progress
 msgid "Invoice set calculation progress"
@@ -1712,6 +1775,7 @@ msgstr "Lots en procés de càlcul detinguts (tots)"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_template_pdf_report_id
 msgid "Invoice template"
 msgstr "Plantilla de factura"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__productlink_ids
 msgid "Invoice-Set Lines"
@@ -1733,13 +1797,13 @@ msgstr "Factures"
 #: model:ir.model.fields,field_description:base_invoicing.field_product_template__invoice_count
 msgid "Invoices Count"
 msgstr "Nº de factures"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
 msgid ""
 "Invoices per batch when committing progress in background. Higher = faster "
 "generation, less frequent progress updates."
-msgstr ""
-"Factures per lot en desar progrés en segon pla. Major = més ràpid."
+msgstr "Factures per lot en desar progrés en segon pla. Major = més ràpid."
 
 #. module: base_invoicing
 #. odoo-python
@@ -1747,14 +1811,17 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "Invoices to Validate"
 msgstr "Factures a validar"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__number_of_invoices_draft
 msgid "Invoices to validate"
 msgstr "Factures a validar"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_tree_view_invoicing
 msgid "Invoicing"
 msgstr "Facturació"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__invoice_date
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
@@ -1767,6 +1834,7 @@ msgstr "Data de facturació"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_coa_installed
 msgid "Is Coa Installed"
 msgstr "Pla comptable instal·lat"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__message_is_follower
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__message_is_follower
@@ -1774,21 +1842,15 @@ msgid "Is Follower"
 msgstr "És seguidor"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_peppol_edi_format
-msgid "Is Peppol Edi Format"
-msgstr "Es formato EDI Peppol"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_public
 msgid "Is Public"
 msgstr "Es público"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_ubl_format
-msgid "Is Ubl Format"
-msgstr "Es formato UBL"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_company
 msgid "Is a Company"
 msgstr "Es empresa"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
@@ -1796,8 +1858,8 @@ msgid ""
 "It is not possible to delete a calculated invoice set, you must cancel it "
 "first."
 msgstr ""
-"No es pot eliminar un lot calculat; primer cal cancel·lar-lo."
-"No és possible eliminar un lot ja calculat, abans heu de cancel·lar-lo."
+"No es pot eliminar un lot calculat; primer cal cancel·lar-lo.No és possible "
+"eliminar un lot ja calculat, abans heu de cancel·lar-lo."
 
 #. module: base_invoicing
 #. odoo-python
@@ -1813,37 +1875,49 @@ msgid ""
 "invoice set is currently being processed. You must wait until it finishes or"
 " interrupt it."
 msgstr ""
-"No es pot iniciar: un altre lot està en procés. Espereu o interrompeu-lo."
-"No és possible iniciar el càlcul daquest lot, ja que en aquests moments un "
+"No es pot iniciar: un altre lot està en procés. Espereu o interrompeu-lo.No "
+"és possible iniciar el càlcul daquest lot, ja que en aquests moments un "
 "altre lot està en procés de càlcul. Heu d'esperar que acabi o interrompre'l."
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid ""
-"Jinja2 template for an auxiliary description in the selectable items list.\n"
-"                                    Use \"billable_item\" as the variable. The '|' character will be replaced by a new line."
+"Jinja2 template for auxiliary description. Same variables as invoice line "
+"template."
 msgstr ""
-"Plantilla Jinja2 per a descripció auxiliar. Utilitzeu \"billable_item\". "
-"El caràcter '|' es substitueix per salt de línia."
-"Plantilla Jinja2 per a una descripció auxiliar a la llista d'elements "
-"seleccionables. Utilitzeu \"billable_item\" com a variable. El caràcter '|' es "
-"substituirà per salt de línia."
+"Plantilla Jinja2 per a la descripció auxiliar. Les mateixes variables que la"
+" plantilla de línia de factura."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Jinja2 template variables"
+msgstr "Variables de plantilla Jinja2"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_config_billable_item_fields_view_form
+msgid "Jinja2 template. Use 'billable_item' as variable."
+msgstr "Plantilla Jinja2. Useu 'billable_item' com a variable."
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid ""
-"Jinja2 template for the invoice line description. Use \"billable_item\" as the variable.\n"
-"                                    The '|' character will be replaced by a new line."
+"Jinja2 templates use 'billable_item' as variable. Domain filters records "
+"before selection."
 msgstr ""
-"Plantilla Jinja2 per a línies de factura. Utilitzeu \"billable_item\". "
-"El caràcter '|' es substitueix per salt de línia."
-"Plantilla Jinja2 per a la descripció de línies de factura. Utilitzeu "
-"\"billable_item\" com a variable. El caràcter '|' es substituirà per salt de línia."
+"Les plantilles Jinja2 fan servir 'billable_item' com a variable. El domini "
+"filtra registres abans de la selecció."
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__info_jinja2_shortcuts_help
+msgid "Jinja2 variables"
+msgstr "Variables Jinja2"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__function
 msgid "Job Position"
 msgstr "Puesto de trabajo"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__journal_id
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
@@ -1856,30 +1930,37 @@ msgstr "Diari"
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_account_move
 msgid "Journal Entry"
-msgstr "Entrada de diari"
+msgstr "Assentament comptable"
 
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_account_move_line
 msgid "Journal Item"
-msgstr "Apunt"
+msgstr "Apunt comptable"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__journal_item_count
 msgid "Journal Items"
 msgstr "Apuntes contables"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__custom_label
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid "Label"
 msgstr "Etiqueta"
+
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_aux_field_line_view_tree
-msgid "Label (optional)"
-msgstr "Etiqueta (opcional)"
+#: model:ir.model.fields,help:base_invoicing.field_account_invoiceset_productlink__line_name
+msgid ""
+"Label for section or note. Shown in invoice lines when type is Section or "
+"Note."
+msgstr ""
+"Etiqueta per a secció o nota. Es mostra a les línies de factura quan el "
+"tipus és Secció o Nota."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__billable_item_group_label
 msgid "Label of the grouping field"
 msgstr "Etiqueta del camp d'agrupació"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__billable_item_quantity_label
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__billable_item_quantity_label
@@ -1890,6 +1971,7 @@ msgstr "Etiqueta del camp quantitat"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__lang
 msgid "Language"
 msgstr "Idioma"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__write_uid
@@ -1898,11 +1980,13 @@ msgstr "Idioma"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__write_uid
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_confirm_productlink_action__write_uid
 msgid "Last Updated by"
 msgstr "Actualitzat per"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__write_date
@@ -1911,35 +1995,28 @@ msgstr "Actualitzat per"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__write_date
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_confirm_productlink_action__write_date
 msgid "Last Updated on"
 msgstr "Actualitzat el"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Last calculation"
 msgstr "Último cálculo"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__lastname
-msgid "Last name"
-msgstr "Cognom"
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_aux_field_line_view_tree
+msgid "Leave empty to use field name"
+msgstr "Deixar buit per usar el nom del camp"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__calendar_last_notif_ack
-msgid "Last notification marked as read from base Calendar"
-msgstr "Última notificació marcada com a llegida"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__lastname_required
-msgid "Lastname Required"
-msgstr "Apellido obligatorio"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__lended_loan_ids
-msgid "Lended Loan"
-msgstr "Préstamo concedido"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__lended_loan_count
-msgid "Lended Loan Count"
-msgstr "Nº de préstamos concedidos"
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__display_type
+msgid "Line type"
+msgstr "Tipus de línia"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_product__link_with_billable_items
 #: model:ir.model.fields,field_description:base_invoicing.field_product_template__link_with_billable_items
@@ -1951,24 +2028,39 @@ msgstr "Vincular producte amb els elements facturables (s/n)"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__tree_view_id
 msgid "List view"
 msgstr "Vista de lista"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "Lot lines"
+msgstr "Línies del lot"
+
 #. module: base_invoicing
 #. odoo-javascript
 #: code:addons/base_invoicing/static/src/xml/button_back.xml:0
 msgid "Main actions"
 msgstr "Acciones principales"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__manual_followup
-msgid "Manual Followup"
-msgstr "Seguimiento manual"
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category_invoice_line_field_map.py:0
+msgid ""
+"Many2one fields must have the same relation (invoice line: %(ml)s → "
+"%(ml_rel)s, billable: %(bi)s → %(bi_rel)s)."
+msgstr ""
+"Els camps Many2one han de tenir la mateixa relació (línia: %(ml)s → "
+"%(ml_rel)s, facturable: %(bi)s → %(bi_rel)s)."
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Map billable fields or default records to invoice line fields"
+msgstr ""
+"Mapar camps facturables o registres per defecte a camps de línia de factura"
+
 #. module: base_invoicing
 #: model:ir.ui.menu,name:base_invoicing.menu_finance_receivables_massive_invoicing
 msgid "Massive Invoicing"
 msgstr "Facturació per lots"
 
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__meeting_ids
-msgid "Meetings"
-msgstr "Reuniones"
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__message_has_error
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__message_has_error
@@ -1979,10 +2071,7 @@ msgstr "Error d'entrega del missatge"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_warn_msg
 msgid "Message for Invoice"
 msgstr "Mensaje para factura"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__purchase_warn_msg
-msgid "Message for Purchase Order"
-msgstr "Mensaje para orden de compra"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__message_ids
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__message_ids
@@ -1993,6 +2082,7 @@ msgstr "Missatges"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__mobile
 msgid "Mobile"
 msgstr "Móvil"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_mobile
 msgid "Mobile of partner"
@@ -2001,28 +2091,37 @@ msgstr "Mòbil"
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_tree_view_invoicing
 msgid "Model"
-msgstr "Model"
+msgstr ""
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid ""
-"Model whose records are billable. Must have a Many2one\n"
-"                                    to res.partner. For res.partner, the record id is used."
+msgid "Model whose records are billable. Must have a Many2one to res.partner."
 msgstr ""
-"Model els registres del qual són facturables. Ha de tenir Many2one a res.partner."
+"Model els registres del qual són facturables. Ha de tenir un Many2one a "
+"res.partner."
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__move_line_field_ttype
+msgid "Move line field type"
+msgstr "Tipus de camp de línia de moviment"
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_account_invoiceset_productlink__billable_item_quantity_ratio
 #: model:ir.model.fields,help:base_invoicing.field_product_category__billable_item_quantity_ratio
 msgid "Multiplier applied to the quantity when creating selectable items."
-msgstr "Multiplicador aplicado a la cantidad al crear elementos seleccionables."
+msgstr ""
+"Multiplicador aplicado a la cantidad al crear elementos seleccionables."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__my_activity_date_deadline
 msgid "My Activity Deadline"
 msgstr "Fecha límite de mi actividad"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
 msgid "My Invoice Sets"
 msgstr "Els meus lots"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 msgid "My invoice lines"
@@ -2034,33 +2133,20 @@ msgid "Name"
 msgstr "Nom"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payment_next_action
-msgid "Next Action"
-msgstr "Següent acció"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payment_next_action_date
-msgid "Next Action Date"
-msgstr "Data de la següent acció"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payment_next_action_type
-msgid "Next Action Type"
-msgstr "Tipus de següent acció"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_calendar_event_id
-msgid "Next Activity Calendar Event"
-msgstr "Próximo evento de calendario"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_date_deadline
 msgid "Next Activity Deadline"
 msgstr "Fecha límite de próxima actividad"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_summary
 msgid "Next Activity Summary"
 msgstr "Resumen de próxima actividad"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_type_id
 msgid "Next Activity Type"
 msgstr "Tipo de próxima actividad"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_billable_item__number_of_invoices
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__number_of_invoices
@@ -2084,6 +2170,7 @@ msgstr "Nº línies"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__email_normalized
 msgid "Normalized Email"
 msgstr "Email normalizado"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 #: model_terms:ir.ui.view,arch_db:base_invoicing.view_account_move_filter_inherit_base_invoicing
@@ -2092,20 +2179,22 @@ msgid "Not from invoice set"
 msgstr "Aliena a qualsevol lot"
 
 #. module: base_invoicing
+#: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset_productlink__display_type__line_note
+msgid "Note"
+msgstr "Nota"
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__comment
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Notes"
-msgstr "Notes"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__message_needaction_counter
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__message_needaction_counter
 msgid "Number of Actions"
 msgstr "Nombre d'accions"
 
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__reminder_date_before_receipt
-msgid "Number of days to send reminder email before the promised receipt date"
-msgstr "Dies abans de la recepció per enviar el recordatori"
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__message_has_error_counter
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__message_has_error_counter
@@ -2116,6 +2205,7 @@ msgstr "Nombre d'errors"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__number_of_invoice_lines
 msgid "Number of invoice lines"
 msgstr "Nombre de línies de factura"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__number_of_invoices
 msgid "Number of invoices"
@@ -2127,8 +2217,7 @@ msgstr "Nombre de factures"
 msgid ""
 "Number of invoices per batch when committing progress in background mode. "
 "Higher = faster but less responsive progress bar."
-msgstr ""
-"Nº de factures per lot. Major = més ràpid però barra menys fluida."
+msgstr "Nº de factures per lot. Major = més ràpid però barra menys fluida."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__message_needaction_counter
@@ -2142,14 +2231,6 @@ msgstr "Nombre de missatges que requereixen una acció"
 msgid "Number of messages with delivery error"
 msgstr "Nombre de missatges amb error d'entrega"
 
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__number_of_parcels
-msgid "Number of parcels"
-msgstr "Nombre de parcel·les"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__number_of_properties
-msgid "Number of properties"
-msgstr "Nombre de propietats"
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__number_of_selectable_items
 msgid "Number of selectable records"
@@ -2165,8 +2246,16 @@ msgstr "Nombre de registres seleccionats"
 msgid ""
 "Only categories with a billable model configured are shown when selecting a "
 "category."
+msgstr "Només es mostren categories amb model facturable configurat."
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__billable_item_field_id
+msgid ""
+"Only fields compatible with the invoice line field are shown (e.g. "
+"Many2one→Many2one same relation)."
 msgstr ""
-"Només es mostren categories amb model facturable configurat."
+"Només es mostren camps compatibles amb el camp de línia (ex. "
+"Many2one→Many2one mateixa relació)."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_confirm_productlink_action__operation
@@ -2174,86 +2263,70 @@ msgid "Operation"
 msgstr "Tipus d'operació"
 
 #. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__payment_responsible_id
+#: model:ir.model.fields,help:base_invoicing.field_product_category__tax_ids
 msgid ""
-"Optionally you can assign a user to this field, which will make him "
-"responsible for the action."
+"Optional. If set, these taxes are applied to invoice lines instead of the "
+"product's taxes."
 msgstr ""
-"Opcionalment podeu assignar un usuari responsable de l'acció."
+"Opcional. Si es defineix, aquests impostos s'apliquen a les línies en lloc "
+"dels del producte."
 
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__es_folio
-msgid "Page"
-msgstr "Pàgina"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__area_official_parcels
-msgid "Parcel Area"
-msgstr "Àrea de parcel·la"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__area_official_parcels_m2
-msgid "Parcel Area (m²)"
-msgstr "Àrea de parcel·la (m²)"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_holder
-msgid "Parcel Holder"
-msgstr "Titular de parcel·la"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__parcel_ids
-msgid "Parcels"
-msgstr "Parcel·les"
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_search_view_invoicing
 msgid "Parent"
 msgstr "Pare"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__parent_name
 msgid "Parent name"
 msgstr "Nom del pare"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__partner_id
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__partner_id
 msgid "Partner"
-msgstr "Partner"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_code
-msgid "Partner Code"
-msgstr "Código de partner"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_code_asstr
-msgid "Partner Code (as string)"
-msgstr "Código de partner (texto)"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_company_registry_placeholder
 msgid "Partner Company Registry Placeholder"
 msgstr "Marcador registre mercantil"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contract_ids
+msgid "Partner Contracts"
+msgstr "Contractes"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__use_partner_credit_limit
 msgid "Partner Limit"
 msgstr "Límite del partner"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_vat_placeholder
 msgid "Partner Vat Placeholder"
 msgstr "Marcador IVA del partner"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__same_company_registry_partner_id
 msgid "Partner with same Company Registry"
 msgstr "Partner amb mateix registre mercantil"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__same_vat_partner_id
 msgid "Partner with same Tax ID"
 msgstr "Partner con mismo NIF"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__base_comment_template_ids
 msgid "Partner-specific comment templates that can be included in reports."
 msgstr "Plantillas de comentarios por partner para informes."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__debit_limit
 msgid "Payable Limit"
 msgstr "Límite a pagar"
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__payment_note
-msgid "Payment Note"
-msgstr "Nota de pago"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__payment_term_id
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
@@ -2266,22 +2339,17 @@ msgstr "Condicions de pagament"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payment_token_count
 msgid "Payment Token Count"
 msgstr "Nº de tokens de pago"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payment_token_ids
 msgid "Payment Tokens"
 msgstr "Tokens de pago"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_search_view_invoicing
 msgid "Pending"
 msgstr "Pendent"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__peppol_endpoint
-msgid "Peppol Endpoint"
-msgstr "Endpoint Peppol"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__peppol_eas
-msgid "Peppol e-address (EAS)"
-msgstr "Dirección e Peppol (EAS)"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__invoice_generation_progress
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__invoice_generation_progress
@@ -2289,17 +2357,19 @@ msgid "Percentage of progress during invoice generation"
 msgstr "Percentatge d'avenç durant el procés de generació de factures"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__perform_vies_validation
-msgid "Perform Vies Validation"
-msgstr "Executar validació VIES"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__phone
 msgid "Phone"
 msgstr "Telèfon"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_phone
 msgid "Phone of partner"
 msgstr "Telèfon"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__pivot_view_id
+msgid "Pivot view"
+msgstr "Vista de pivot"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__populated
@@ -2323,16 +2393,14 @@ msgstr "Filtre previ sobre els elements facturables"
 msgid ""
 "Preferred payment method when buying from this vendor. This will be set by "
 "default on all outgoing payments created for this vendor"
-msgstr ""
-"Mètode de pagament preferit en comprar a aquest proveïdor."
+msgstr "Mètode de pagament preferit en comprar a aquest proveïdor."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__property_inbound_payment_method_line_id
 msgid ""
 "Preferred payment method when selling to this customer. This will be set by "
 "default on all incoming payments created for this customer"
-msgstr ""
-"Mètode de pagament preferit en vendre a aquest client."
+msgstr "Mètode de pagament preferit en vendre a aquest client."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__lst_price
@@ -2343,6 +2411,7 @@ msgstr "Preu"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_product_pricelist
 msgid "Pricelist"
 msgstr "Llista de preus"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_confirm_productlink_action_view_form
 msgid "Proceed with the operation?"
@@ -2356,6 +2425,7 @@ msgstr "Procedir amb l'operació?"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__product_id
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__product_id
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__product_id
+#: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset_productlink__display_type__product
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
@@ -2373,10 +2443,11 @@ msgstr "Categories de producte"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_search_view_invoicing
 msgid "Product Categories (Invoicing)"
 msgstr "Categories de producte (Facturació)"
+
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_product_category
-#: model:ir.model.fields,field_description:base_invoicing.field_account_move_line__categ_id
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__category_id
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__category_id
 msgid "Product Category"
 msgstr "Categoria del producte"
 
@@ -2384,30 +2455,31 @@ msgstr "Categoria del producte"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid "Product Category Invoicing"
 msgstr "Facturació per categoria"
-#. module: base_invoicing
-#: code:addons/base_invoicing/models/product_category.py:0
-msgid "Q1/%s"
-msgstr "T1/%s"
-
-#. module: base_invoicing
-#: code:addons/base_invoicing/models/product_category.py:0
-msgid "Q2/%s"
-msgstr "T2/%s"
-
-#. module: base_invoicing
-#: code:addons/base_invoicing/models/product_category.py:0
-msgid "Q3/%s"
-msgstr "T3/%s"
-
-#. module: base_invoicing
-#: code:addons/base_invoicing/models/product_category.py:0
-msgid "Q4/%s"
-msgstr "T4/%s"
 
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_product_product
 msgid "Product Variant"
-msgstr "Variants de producte"
+msgstr "Variant de producte"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__category_id
+msgid "Product category"
+msgstr "Categoria de producte"
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_account_move_line__categ_id
+msgid ""
+"Product category for invoicing (from product template). Avoids label clash "
+"with account.product_category_id."
+msgstr ""
+"Categoria de producte per a facturació (des de plantilla). Evita conflicte "
+"d'etiquetes amb account.product_category_id."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+msgid "Product is required for product lines."
+msgstr "El producte és obligatori en línies de producte."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__productlink_id
@@ -2428,47 +2500,55 @@ msgid "Products (Invoicing Lots)"
 msgstr "Productes (Lots de facturació)"
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__productlink_summary
+msgid "Products (selected)"
+msgstr "Productes (seleccionats)"
+
+#. module: base_invoicing
 #: model_terms:ir.actions.act_window,help:base_invoicing.product_product_action_invoicing
 msgid "Products in categories that support massive invoicing."
 msgstr "Productes en categories que suporten facturació massiva."
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_ids
-msgid "Properties"
-msgstr "Propietats"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__area_official_properties
-msgid "Property Area"
-msgstr "Àrea de propietat"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__area_official_properties_m2
-msgid "Property Area (m²)"
-msgstr "Àrea de propietat (m²)"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_inbound_payment_method_line_id
 msgid "Property Inbound Payment Method Line"
 msgstr "Mètode de pagament d'entrada"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_outbound_payment_method_line_id
 msgid "Property Outbound Payment Method Line"
 msgstr "Mètode de pagament de sortida"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__purchase_contract_count
-msgid "Purchase Contracts"
-msgstr "Contractes de compra"
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Q1/%s"
+msgstr "T1/%s"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__purchase_order_count
-msgid "Purchase Order Count"
-msgstr "Nº de órdenes de compra"
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Q2/%s"
+msgstr "T2/%s"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__purchase_warn
-msgid "Purchase Order Warning"
-msgstr "Aviso en orden de compra"
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Q3/%s"
+msgstr "T3/%s"
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category.py:0
+msgid "Q4/%s"
+msgstr "T4/%s"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__quantity
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__quantity
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_selectable_item_view_tree
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid "Quantity"
 msgstr "Quantitat"
 
@@ -2486,26 +2566,15 @@ msgid "Quantity ratio"
 msgstr "Ràtio de quantitat"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__rating_ids
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__rating_ids
-msgid "Ratings"
-msgstr "Valoraciones"
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
-msgid "Ratio"
-msgstr "Ratio"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__receipt_reminder_email
-msgid "Receipt Reminder"
-msgstr "Recordatorio de recepción"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__ref
 msgid "Reference"
 msgstr "Referència"
+
 #. module: base_invoicing
 #: model:ir.ui.menu,name:base_invoicing.menu_technicalactions_refresh
 msgid "Refresh"
 msgstr "Actualitzar"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Refresh selectable items"
@@ -2515,15 +2584,12 @@ msgstr "Refrescar els elements seleccionables"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__parent_id
 msgid "Related Company"
 msgstr "Empresa relacionada"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_parent_id
 msgid "Related company of partner"
 msgstr "Companyia"
 
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__employee_ids
-msgid "Related employees based on their private address"
-msgstr "Empleados relacionados por dirección"
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
@@ -2534,6 +2600,7 @@ msgstr "Codi de categoria repetit."
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_user_id
 msgid "Responsible User"
 msgstr "Usuario responsable"
+
 #. module: base_invoicing
 #. odoo-javascript
 #: code:addons/base_invoicing/static/src/xml/button_back.xml:0
@@ -2551,13 +2618,8 @@ msgstr "Calculeu els lots en segon pla"
 msgid ""
 "Run the generation of the invoice set in the background, allowing "
 "interruption."
-msgstr ""
-"Executar la generació del lot en segon pla, permetent interrupció."
+msgstr "Executar la generació del lot en segon pla, permetent interrupció."
 
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__sale_contract_count
-msgid "Sale Contracts"
-msgstr "Contratos de venta"
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__invoice_user_id
 #: model:ir.model.fields,field_description:base_invoicing.field_account_move_line__invoice_user_id
@@ -2577,6 +2639,7 @@ msgstr "Comercial"
 #: code:addons/base_invoicing/static/src/xml/button_back.xml:0
 msgid "Save"
 msgstr "Desar"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 msgid "Search invoice lines"
@@ -2596,27 +2659,23 @@ msgstr "Buscar elements"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__search_view_id
 msgid "Search view"
 msgstr "Vista de búsqueda"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__lastname2
-msgid "Second last name"
-msgstr "Segundo apellido"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__es_seccion
+#: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset_productlink__display_type__line_section
 msgid "Section"
-msgstr "Sección"
+msgstr "Secció"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__line_name
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "Section / Note"
+msgstr "Secció / Nota"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_selectable_item_view_tree
 msgid "Select"
 msgstr "Seleccionar"
 
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__customer_payment_mode_id
-msgid "Select the default payment mode for this customer."
-msgstr "Seleccione el modo de pago por defecto del cliente."
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__supplier_payment_mode_id
-msgid "Select the default payment mode for this supplier."
-msgstr "Seleccione el modo de pago por defecto del proveedor."
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
@@ -2627,12 +2686,14 @@ msgstr "Seleccione el modo de pago por defecto del proveedor."
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_template_form_view
 msgid "Selectable Items"
 msgstr "Elements seleccionables"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__selectable_item_count
 #: model:ir.model.fields,field_description:base_invoicing.field_product_product__selectable_item_count
 #: model:ir.model.fields,field_description:base_invoicing.field_product_template__selectable_item_count
 msgid "Selectable Items Count"
 msgstr "Nº de elementos seleccionables"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
@@ -2653,6 +2714,7 @@ msgstr "Element seleccionable per a facturació"
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__selectable_item_count
 msgid "Selectable items count"
 msgstr "Nº de elementos seleccionables"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item.py:0
@@ -2689,56 +2751,71 @@ msgstr "Seleccionat: Sí"
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__invoice_warn
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__purchase_warn
 msgid ""
 "Selecting the \"Warning\" option will notify user with the message, "
 "Selecting \"Blocking Message\" will throw an exception with the message and "
 "block the flow. The Message has to be written in the next field."
-msgstr ""
-"\"Avís\" notificarà l'usuari. \"Missatge bloquejant\" llançarà excepció."
+msgstr "\"Avís\" notificarà l'usuari. \"Missatge bloquejant\" llançarà excepció."
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Selection columns"
+msgstr "Columnes de selecció"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Selection line template"
+msgstr "Plantilla de línia de selecció"
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__self
 msgid "Self"
 msgstr "Sí mismo"
+
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__sequence
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category_aux_field_line__sequence
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__sequence
 #: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
 msgid "Sequence"
 msgstr "Seqüència"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
 msgid "Sequence for invoice sets"
 msgstr "Secuencia para lotes"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
 msgid "Sequence used to assign a default code for each new invoice set."
 msgstr "Seqüència per assignar codi per defecte a cada nou lot."
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__use_partner_credit_limit
 msgid "Set a value greater than 0.0 to activate a credit limit check"
 msgstr "Valor > 0 para activar comprobación de límite de crédito"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__calculation_started_at
 msgid "Set when state enters 'calculating'; used to detect stale processes."
-msgstr "Se establece al entrar en 'calculating' para detectar procesos obsoletos."
+msgstr ""
+"Se establece al entrar en 'calculating' para detectar procesos obsoletos."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_share
 msgid "Share Partner"
 msgstr "Compartir partner"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_partner_share
 msgid "Share partner of partner"
 msgstr "Soci compartit"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__es_hoja
-msgid "Sheet"
-msgstr "Hoja"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__show_credit_limit
 msgid "Show Credit Limit"
 msgstr "Mostrar límite de crédito"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Show selectable items"
@@ -2748,6 +2825,7 @@ msgstr "Carregar i mostrar els registres del lot associats a aquest producte"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__signup_type
 msgid "Signup Token Type"
 msgstr "Tipo de token de registro"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__some_posted_invoice
 msgid "Some posted invoice"
@@ -2757,14 +2835,17 @@ msgstr "Alguna factura publicada (s/n)"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__specific_property_product_pricelist
 msgid "Specific Property Product Pricelist"
 msgstr "Lista de precios específica"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__starred_message_ids
 msgid "Starred Message"
 msgstr "Mensaje destacado"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "Start calculation"
 msgstr "Iniciar càlcul"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__state
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__state
@@ -2802,43 +2883,23 @@ msgstr "Aturar càlcul"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street
 msgid "Street"
 msgstr "Carrer"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_name
-msgid "Street Name"
-msgstr "Nombre de calle"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_num
-msgid "Street number"
-msgstr "Número"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_type_id
-msgid "Street type"
-msgstr "Tipo de vía"
-#. module: base_invoicing
-#: model:ir.model,name:base_invoicing.model_res_config_settings
-msgid "Street type settings"
-msgstr "Ajustos de configuració"
 
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_type_shown
-msgid "Street type shown"
-msgstr "Tipo de vía mostrado"
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street2
 msgid "Street2"
 msgstr "Calle 2"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_purchase_currency_id
-msgid "Supplier Currency"
-msgstr "Moneda del proveedor"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__supplier_payment_mode_id
-msgid "Supplier Payment Mode"
-msgstr "Modo de pago del proveedor"
+#: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__productlink_summary
+msgid "Summary of products with selected quantities for kanban display."
+msgstr ""
+"Resum de productes amb quantitats seleccionades per a la vista kanban."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__supplier_rank
 msgid "Supplier Rank"
 msgstr "Rango de proveedor"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_list_view
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_template_view_tree
@@ -2868,6 +2929,7 @@ msgstr "Admet facturació per lots (s/n)"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__category_id
 msgid "Tags"
 msgstr "Etiquetes"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_move_line__price_taxes
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
@@ -2878,23 +2940,48 @@ msgstr "Impostos"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__vat
 msgid "Tax ID"
 msgstr "NIF/CIF"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__vat_label
 msgid "Tax ID Label"
 msgstr "Etiqueta NIF/CIF"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Taxes (optional override)"
+msgstr "Impostos (substitució opcional)"
+
 #. module: base_invoicing
 #: model:ir.ui.menu,name:base_invoicing.menu_technicalactions
 msgid "Technical Actions"
 msgstr "Accions tècniques"
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__move_line_expects_record
+msgid ""
+"Technical: True if move_line_field is many2one or analytic_distribution."
+msgstr "Tècnic: True si move_line_field és many2one o analytic_distribution."
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__compatible_billable_field_ids
+msgid ""
+"Technical: updated by onchange when move_line_field_id changes. Used for "
+"domain."
+msgstr ""
+"Tècnic: actualitzat per onchange en canviar move_line_field_id. S'usa per al"
+" domini."
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
 msgid "Template error: %s"
 msgstr "Error a la plantilla: %s"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__billable_item_detail_desc
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__billable_item_detail_desc
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__billable_item_detail_desc
+#: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_config_billable_item_fields_view_form
 msgid "Template for invoice lines"
 msgstr "Plantilla per a les línies de factura"
 
@@ -2903,23 +2990,22 @@ msgstr "Plantilla per a les línies de factura"
 #: code:addons/base_invoicing/models/product_category.py:0
 msgid "Template for invoice lines [%(lang)s]: %(err)s"
 msgstr "Plantilla per a línies de factura [%(lang)s]: %(err)s"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
 msgid "Template for selection lines [%(lang)s]: %(err)s"
 msgstr "Plantilla per a línies de selecció [%(lang)s]: %(err)s"
+
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__unit_use_ids
-msgid "Territorial Units"
-msgstr "Unitats territorials"
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category__jinja2_shortcuts_help
+msgid "Template variables"
+msgstr "Variables de plantilla"
+
 #. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__credit_policy_id
-msgid ""
-"The Credit Control Policy used for this partner. This setting can be forced "
-"on the invoice. If nothing is defined, it will use the company setting."
-msgstr ""
-"Política de cobrament per aquest partner. Si no hi ha res definit, s'utilitza "
-"la de l'empresa."
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "Templates and filters"
+msgstr "Plantilles i filtres"
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__country_code
@@ -2927,7 +3013,8 @@ msgid ""
 "The ISO country code in two chars. \n"
 "You can use this field for quick search."
 msgstr ""
-"Codi ISO del país en dos caràcters. Podeu usar aquest camp per buscar ràpidament."
+"Codi ISO del país en dos caràcters. Podeu usar aquest camp per buscar "
+"ràpidament."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__partner_vat
@@ -2937,8 +3024,8 @@ msgid ""
 "country format. You can use '/' to indicate that the partner is not subject "
 "to tax."
 msgstr ""
-"NIF/NIE. Els valors es validen segons el format del país. Utilitzeu '/' si el "
-"partner no està subjecte a impostos."
+"NIF/NIE. Els valors es validen segons el format del país. Utilitzeu '/' si "
+"el partner no està subjecte a impostos."
 
 #. module: base_invoicing
 #. odoo-python
@@ -2960,42 +3047,41 @@ msgstr ""
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__user_id
 msgid "The internal user in charge of this contact."
 msgstr "Usuari intern responsable d'aquest contacte."
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__company_registry
 msgid ""
 "The registry number of the company. Use it if it is different from the Tax "
 "ID. It must be unique across all partners of a same country"
 msgstr ""
-"Número de registre mercantil. Cal que sigui únic entre tots els partners del mateix país."
+"Número de registre mercantil. Cal que sigui únic entre tots els partners del"
+" mateix país."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+msgid "The same product cannot appear more than once in an invoice set."
+msgstr "El mateix producte no pot aparèixer més d'una vegada en un lot."
 
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
 msgid "The variable or attribute '%s' is not defined."
 msgstr "La variable o atribut '%s' no està definit."
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__property_account_payable_id
 msgid ""
 "This account will be used instead of the default one as the payable account "
 "for the current partner"
-msgstr ""
-"Compte a pagar del partner en lloc del per defecte."
+msgstr "Compte a pagar del partner en lloc del per defecte."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__property_account_receivable_id
 msgid ""
 "This account will be used instead of the default one as the receivable "
 "account for the current partner"
-msgstr ""
-"Compte a cobrar del partner en lloc del per defecte."
-
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__property_purchase_currency_id
-msgid ""
-"This currency will be used, instead of the default one, for purchases from "
-"the current partner"
-msgstr ""
-"Moneda per compres a aquest partner en lloc de la per defecte."
+msgstr "Compte a cobrar del partner en lloc del per defecte."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__email_normalized
@@ -3003,16 +3089,9 @@ msgid ""
 "This field is used to search on email address as the primary email field can"
 " contain more than strictly an email address."
 msgstr ""
-"S'utilitza per buscar per correu, ja que el camp principal pot contenir més text."
+"S'utilitza per buscar per correu, ja que el camp principal pot contenir més "
+"text."
 
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__payment_next_action
-msgid "This is the next action to be taken."
-msgstr "Següent acció a realitzar."
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__payment_next_action_date
-msgid "This is when the manual follow-up is needed."
-msgstr "Data en què cal el seguiment manual."
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
@@ -3029,7 +3108,8 @@ msgid ""
 "This payment term will be used instead of the default one for purchase "
 "orders and vendor bills"
 msgstr ""
-"Termini de pagament per comandes i factures de proveïdor en lloc del per defecte."
+"Termini de pagament per comandes i factures de proveïdor en lloc del per "
+"defecte."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__property_payment_term_id
@@ -3037,77 +3117,82 @@ msgid ""
 "This payment term will be used instead of the default one for sales orders "
 "and customer invoices"
 msgstr ""
-"Termini de pagament per comandes i factures de client en lloc del per defecte."
+"Termini de pagament per comandes i factures de client en lloc del per "
+"defecte."
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__property_product_pricelist
 msgid ""
 "This pricelist will be used, instead of the default one, for sales to the "
 "current partner"
-msgstr ""
-"Tarifa per vendes a aquest partner en lloc de la per defecte."
+msgstr "Tarifa per vendes a aquest partner en lloc de la per defecte."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__tz
 msgid "Timezone"
 msgstr "Zona horària"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__tz_offset
 msgid "Timezone offset"
 msgstr "Desplaçament horari"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__title
 msgid "Title"
 msgstr "Título"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "To Validate"
 msgstr "A validar"
+
 #. module: base_invoicing
 #. odoo-javascript
 #: code:addons/base_invoicing/static/src/js/selectable_item_hybrid_list.esm.js:0
 msgid "Toggle"
 msgstr "Alternar"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_selectable_item_view_tree
 msgid "Total"
-msgstr "Total"
+msgstr ""
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__amount_total_invoices
 msgid "Total Amount (draft + validated)"
 msgstr "Import total (esborrany + validat)"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__total_invoiced
 msgid "Total Invoiced"
 msgstr "Total facturat"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__debit
 msgid "Total Payable"
 msgstr "Total a pagar"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__credit
 msgid "Total Receivable"
 msgstr "Total a cobrar"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__credit
 msgid "Total amount this customer owes you."
 msgstr "Import total que aquest client us deu."
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__debit
 msgid "Total amount you have to pay to this vendor."
 msgstr "Import total a pagar a aquest proveïdor."
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "Tipus d'activitat amb excepció."
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_fee__peppol_endpoint
-msgid ""
-"Unique identifier used by the BIS Billing 3.0 and its derivatives, also "
-"known as 'Endpoint ID'."
-msgstr ""
-"Identificador únic BIS Billing 3.0, també conegut com a 'Endpoint ID'."
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
@@ -3116,21 +3201,20 @@ msgid "Unit Price"
 msgstr "Preu"
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__unit_use_count
-msgid "Units"
-msgstr "Unitats"
-#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
 msgid "Untaxed"
 msgstr "Base imponible"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__barcode
 msgid "Use a barcode to identify this contact."
 msgstr "Utilitzar codi de barres per identificar aquest contacte."
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__user_ids
 msgid "Users"
 msgstr "Usuaris"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_vat
 msgid "VAT of partner"
@@ -3140,40 +3224,44 @@ msgstr "NIF del partner"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Validated"
 msgstr "Validat"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__amount_total_posted
 msgid "Validated Amount"
 msgstr "Import validat"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "Validated Invoices"
 msgstr "Factures validades"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__number_of_invoices_posted
 msgid "Validated invoices"
 msgstr "Factures validades"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "Validation progress"
 msgstr "Progrés de validació"
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_product_category_invoice_line_field_map__value_source
+msgid "Value source"
+msgstr "Font de valor"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_supplier_payment_term_id
 msgid "Vendor Payment Terms"
 msgstr "Condicions de pagament del proveïdor"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__vies_vat_to_check
-msgid "Vies Vat To Check"
-msgstr "IVA VIES a verificar"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__view_table
 msgid "View table name"
 msgstr "Nom de la taula de vista"
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__es_tomo
-msgid "Volume"
-msgstr "Volumen"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
@@ -3184,6 +3272,7 @@ msgstr "Avís"
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__website
 msgid "Website Link"
 msgstr "Enlace web"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__website_message_ids
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__website_message_ids
@@ -3197,13 +3286,84 @@ msgid "Website communication history"
 msgstr "Historial de comunicacions del lloc web"
 
 #. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid ""
+"When creating invoice lines, values are copied to account.move.line fields. "
+"You can use: (1) a field from the billable record, (2) a fixed record as "
+"default, or (3) billable field with fallback to a fixed record if empty."
+msgstr ""
+"En crear línies de factura, els valors es copien a account.move.line. Podeu "
+"usar: (1) un camp del registre facturable, (2) un registre fix per defecte, "
+"o (3) camp facturable amb reserva a registre fix si està buit."
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_product_category__move_line_field_map_ids
+msgid ""
+"When creating invoice lines, values from the billable record are copied to "
+"these account.move.line fields (e.g. analytic account, parcel reference)."
+msgstr ""
+"En crear línies de factura, els valors del registre facturable es copien a "
+"aquests camps account.move.line (ex. compte analític, referència de "
+"parcel·la)."
+
+#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__tz
 msgid ""
 "When printing documents and exporting/importing data, time values are computed according to this timezone.\n"
 "If the timezone is not set, UTC (Coordinated Universal Time) is used.\n"
 "Anywhere else, time values are computed according to the time offset of your web client."
 msgstr ""
-"En imprimir i exportar/importar, s'usa aquesta zona horària. Si no està definida, s'usa UTC. Altrament, s'usa l'offset del client web."
+"En imprimir i exportar/importar, s'usa aquesta zona horària. Si no està "
+"definida, s'usa UTC. Altrament, s'usa l'offset del client web."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category_invoice_line_field_map.py:0
+msgid ""
+"When value source is 'Billable or fixed', set a billable item field and/or a"
+" default record/value."
+msgstr ""
+"Quan la font és 'Facturable o fix', definiu un camp de l'element facturable "
+"i/o un registre/valor per defecte."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category_invoice_line_field_map.py:0
+msgid ""
+"When value source is 'Fixed' and invoice line field is Many2one, a default "
+"record must be set."
+msgstr ""
+"Quan la font és 'Fix' i el camp de línia és Many2one, s'ha de definir un "
+"registre per defecte."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category_invoice_line_field_map.py:0
+msgid ""
+"When value source is 'Fixed' and invoice line field is Selection/Char/etc, a"
+" fixed value must be set."
+msgstr ""
+"Quan la font és 'Fix' i el camp de línia és Selecció/Char/etc, s'ha de "
+"definir un valor fix."
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/product_category_invoice_line_field_map.py:0
+msgid ""
+"When value source is 'From billable field', a billable item field must be "
+"set."
+msgstr ""
+"Quan la font és 'Des del camp facturable', s'ha de definir un camp de "
+"l'element facturable."
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__value_source
+msgid ""
+"Where to get the value: from the billable record's field, from a fixed "
+"record (default), or billable with fallback to fixed."
+msgstr ""
+"D'on prendre el valor: del camp del registre facturable, d'un registre fix "
+"(per defecte), o facturable amb reserva a fix."
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_product_category__aux_desc
@@ -3214,7 +3374,8 @@ msgstr "Plantilla comodí"
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 msgid "You are about to delete all lines associated with this product."
-msgstr "Esteu a punt d'eliminar totes les línies associades a aquest producte."
+msgstr ""
+"Esteu a punt d'eliminar totes les línies associades a aquest producte."
 
 #. module: base_invoicing
 #. odoo-python
@@ -3237,25 +3398,24 @@ msgstr ""
 "línies associades seran eliminades."
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__zip_id
-msgid "ZIP Location"
-msgstr "Ubicació del codi postal"
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__zip
 msgid "Zip"
 msgstr "Código postal"
+
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__days_sales_outstanding
 msgid ""
 "[(Total Receivable/Total Revenue) * number of days since the first invoice] "
 "for this customer"
 msgstr ""
-"[(Total a cobrar/Ingressos totals) * dies des de la primera factura] per aquest client."
+"[(Total a cobrar/Ingressos totals) * dies des de la primera factura] per "
+"aquest client."
 
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "cancelled"
 msgstr "cancel·lat"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
@@ -3266,14 +3426,28 @@ msgstr "cat. nº "
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "draft"
 msgstr "esborrany"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid "e.g. Lamps"
 msgstr "p. ex. Llums"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+msgid "e.g. {{ billable_item.display_name }} - {{ n_invoiced }}"
+msgstr "ex. {{ billable_item.display_name }} - {{ n_invoiced }}"
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_config_billable_item_fields_view_form
+msgid "e.g. {{ billable_item.name }} - {{ first_q }} ({{ n_invoiced }})"
+msgstr "ex. {{ billable_item.name }} - {{ first_q }} ({{ n_invoiced }})"
+
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_edi_format
 msgid "eInvoice format"
 msgstr "Format de factura electrònica"
+
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
@@ -3284,6 +3458,7 @@ msgstr "cat. estàndard"
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "validated"
 msgstr "validat"
+
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "· Due:"

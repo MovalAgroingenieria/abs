@@ -19,9 +19,7 @@ class TestWizardConfigBillableItemFields(TransactionCase):
 
         cls.IrModel = cls.env["ir.model"]
         cls.IrModelFields = cls.env["ir.model.fields"]
-        res_partner_model = cls.IrModel.search(
-            [("model", "=", "res.partner")], limit=1
-        )
+        res_partner_model = cls.IrModel.search([("model", "=", "res.partner")], limit=1)
         name_field = cls.IrModelFields.search(
             [
                 ("model_id", "=", res_partner_model.id),
@@ -109,9 +107,7 @@ class TestWizardConfigBillableItemFields(TransactionCase):
             ]
         )
         self.productlink.invalidate_recordset(["billable_item_group_field"])
-        self.assertEqual(
-            self.productlink.billable_item_group_field, "id"
-        )
+        self.assertEqual(self.productlink.billable_item_group_field, "id")
 
     def test_set_config_fields_no_active_id_closes(self):
         wizard = self.Wizard.create(

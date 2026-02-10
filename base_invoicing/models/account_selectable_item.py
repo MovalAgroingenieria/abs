@@ -5,11 +5,10 @@
 import html
 
 from jinja2 import Template, TemplateError
+from lxml import etree
+from odoo import api, fields, models
 
 from .product_category import get_jinja2_template_context
-from lxml import etree
-
-from odoo import api, fields, models
 
 
 class AccountSelectableItem(models.Model):
@@ -112,7 +111,7 @@ class AccountSelectableItem(models.Model):
             invoiceset = productlink.invoiceset_id if productlink else None
             ctx = get_jinja2_template_context(
                 record.env,
-                billable_item=billable_item,
+                billable_item,
                 invoiceset=invoiceset,
                 productlink=productlink,
                 product=productlink.product_id if productlink else None,
@@ -258,7 +257,9 @@ class AccountSelectableItem(models.Model):
 
         group_node = arch.find(".//group[@expand='0']")
         if group_node is not None:
-            for idx, line in enumerate(category.aux_field_ids.sorted("sequence")[:20], 1):
+            for idx, line in enumerate(
+                category.aux_field_ids.sorted("sequence")[:20], 1
+            ):
                 slot = f"aux_{idx:02d}"
                 label = (
                     line.custom_label

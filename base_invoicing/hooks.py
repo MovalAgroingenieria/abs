@@ -21,21 +21,21 @@ def post_init_hook(env):
     params = env["ir.config_parameter"].sudo()
     seq = env.ref("base_invoicing.seq_invoiceset_code", raise_if_not_found=False)
     if seq:
-        params.set_param(
-            "base_invoicing.mass_invoicing_seq_invoiceset_code_id", seq.id
-        )
+        params.set_param("base_invoicing.mass_invoicing_seq_invoiceset_code_id", seq.id)
     params.set_param("base_invoicing.mass_invoicing_run_background", True)
 
     if seq:
-        companies = env["res.company"].sudo().search(
-            [("mass_invoicing_seq_invoiceset_code_id", "=", False)]
+        companies = (
+            env["res.company"]
+            .sudo()
+            .search([("mass_invoicing_seq_invoiceset_code_id", "=", False)])
         )
         companies.write({"mass_invoicing_seq_invoiceset_code_id": seq.id})
 
     # Backfill compatible_billable_field_ids for existing field maps (new Many2many)
-    Map = env["product.category.invoice.line.field.map"].sudo()
-    for rec in Map.search([]):
-        rec._update_compatible_billable_field_ids()
+    field_map_model = env["product.category.invoice.line.field.map"].sudo()
+    for rec in field_map_model.search([]):
+        rec._update_compatible_billable_field_ids()  # pylint: disable=protected-access
 
     # Legacy behavior: ensure at least one fee per partner.
     # Create fee records only for partners that do not have any.
