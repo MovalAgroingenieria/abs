@@ -66,6 +66,12 @@ class AccountInvoiceset(models.Model):
         comodel_name="account.journal",
         tracking=True,
     )
+    journal_type = fields.Selection(
+        string="Journal type",
+        selection=[("sale", "Sale"), ("purchase", "Purchase")],
+        compute="_compute_journal_type",
+        help="Used to filter journals by invoice type (sale for customer, purchase for vendor).",
+    )
     payment_term_id = fields.Many2one(
         string="Payment Term",
         comodel_name="account.payment.term",
@@ -77,6 +83,20 @@ class AccountInvoiceset(models.Model):
         default=lambda self: self.env.user,
         required=True,
         tracking=True,
+    )
+    invoice_type = fields.Selection(
+        string="Invoice Type",
+        selection=[
+            ("customer", "Customer"),
+            ("supplier", "Vendor"),
+        ],
+        default="customer",
+        required=True,
+        tracking=True,
+        help="Customer: sales invoices (and customer refunds if total is negative). "
+        "Vendor: vendor bills (and vendor refunds if total is negative). "
+        "Alternative: a separate model or type on productlink could allow mixing "
+        "customer and vendor lines in one set; the current design keeps one type per set.",
     )
 
     state = fields.Selection(
@@ -370,6 +390,20 @@ class AccountInvoiceset(models.Model):
             else:
                 record.calculation_duration_display = ""
 
+    @api.depends("invoice_type")
+    def _compute_journal_type(self):
+        for record in self:
+            record.journal_type = (
+                "sale" if record.invoice_type == "customer" else "purchase"
+            )
+
+    @api.onchange("invoice_type")
+    def _onchange_invoice_type_clear_journal(self):
+        """Clear journal if it no longer matches (sale vs purchase)."""
+        if self.journal_id and self.journal_type:
+            if self.journal_id.type != self.journal_type:
+                self.journal_id = False
+
     # -------------------------------------------------------------------------
     # CRUD
     # -------------------------------------------------------------------------
@@ -446,11 +480,24 @@ class AccountInvoiceset(models.Model):
     # Actions
     # -------------------------------------------------------------------------
 
-    def action_show_invoices(self):
+    def _get_invoice_action_views_and_context(self):
+        """Return (tree_view, form_view, search_view, default_move_type) for invoice actions."""
         self.ensure_one()
-        tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
+        if self.invoice_type == "supplier":
+            tree_view = self.env.ref("base_invoicing.view_in_invoice_tree")
+            default_move_type = "in_invoice"
+        else:
+            tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
+            default_move_type = "out_invoice"
         form_view = self.env.ref("base_invoicing.view_move_form")
         search_view = self.env.ref("base_invoicing.view_account_invoice_filter")
+        return tree_view, form_view, search_view, default_move_type
+
+    def action_show_invoices(self):
+        self.ensure_one()
+        tree_view, form_view, search_view, default_move_type = (
+            self._get_invoice_action_views_and_context()
+        )
         return {
             "type": "ir.actions.act_window",
             "name": self.env._("Invoices"),
@@ -460,7 +507,7 @@ class AccountInvoiceset(models.Model):
             "search_view_id": (search_view.id, search_view.name),
             "target": "current",
             "domain": [("invoiceset_id", "=", self.id)],
-            "context": {"default_move_type": "out_invoice"},
+            "context": {"default_move_type": default_move_type},
         }
 
     def action_show_invoice_lines(self):
@@ -546,9 +593,9 @@ class AccountInvoiceset(models.Model):
 
     def action_show_invoices_pending_validation(self):
         self.ensure_one()
-        tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
-        form_view = self.env.ref("base_invoicing.view_move_form")
-        search_view = self.env.ref("base_invoicing.view_account_invoice_filter")
+        tree_view, form_view, search_view, default_move_type = (
+            self._get_invoice_action_views_and_context()
+        )
         return {
             "type": "ir.actions.act_window",
             "name": self.env._("Invoices to Validate"),
@@ -561,14 +608,14 @@ class AccountInvoiceset(models.Model):
                 ("invoiceset_id", "=", self.id),
                 ("state", "=", "draft"),
             ],
-            "context": {"default_move_type": "out_invoice"},
+            "context": {"default_move_type": default_move_type},
         }
 
     def action_show_invoices_posted(self):
         self.ensure_one()
-        tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
-        form_view = self.env.ref("base_invoicing.view_move_form")
-        search_view = self.env.ref("base_invoicing.view_account_invoice_filter")
+        tree_view, form_view, search_view, default_move_type = (
+            self._get_invoice_action_views_and_context()
+        )
         return {
             "type": "ir.actions.act_window",
             "name": self.env._("Validated Invoices"),
@@ -581,14 +628,14 @@ class AccountInvoiceset(models.Model):
                 ("invoiceset_id", "=", self.id),
                 ("state", "=", "posted"),
             ],
-            "context": {"default_move_type": "out_invoice"},
+            "context": {"default_move_type": default_move_type},
         }
 
     def action_show_invoices_cancelled(self):
         self.ensure_one()
-        tree_view = self.env.ref("base_invoicing.view_out_invoice_tree")
-        form_view = self.env.ref("base_invoicing.view_move_form")
-        search_view = self.env.ref("base_invoicing.view_account_invoice_filter")
+        tree_view, form_view, search_view, default_move_type = (
+            self._get_invoice_action_views_and_context()
+        )
         return {
             "type": "ir.actions.act_window",
             "name": self.env._("Cancelled Invoices"),
@@ -601,7 +648,7 @@ class AccountInvoiceset(models.Model):
                 ("invoiceset_id", "=", self.id),
                 ("state", "=", "cancel"),
             ],
-            "context": {"default_move_type": "out_invoice"},
+            "context": {"default_move_type": default_move_type},
         }
 
     # -------------------------------------------------------------------------
@@ -895,7 +942,7 @@ class AccountInvoiceset(models.Model):
                     str(getattr(billable_item, group_field, "")) if group_field else ""
                 )
 
-                if not partner_id or quantity <= 0:
+                if not partner_id or quantity == 0:
                     continue
 
                 invoice_key = str(partner_id)
@@ -1035,12 +1082,37 @@ class AccountInvoiceset(models.Model):
         return invoice
 
     @api.model
+    def _compute_invoice_total_from_data(self, invoice_data):
+        """Approximate total from lines (quantity * list price) to decide invoice vs refund."""
+        total = 0.0
+        ProductProduct = self.env["product.product"]
+        for line in invoice_data.get("lines", []):
+            if line.get("display_type") in ("line_section", "line_note"):
+                continue
+            product_id = line.get("product_id")
+            if not product_id:
+                continue
+            product = ProductProduct.browse(product_id)
+            qty = float(line.get("quantity", 0))
+            total += qty * (product.lst_price or 0.0)
+        return total
+
+    @api.model
+    def _get_move_type_for_invoice(self, invoiceset, invoice_data):
+        """Return move_type: out_invoice, out_refund, in_invoice, or in_refund."""
+        total = self._compute_invoice_total_from_data(invoice_data)
+        if invoiceset.invoice_type == "customer":
+            return "out_refund" if total < 0 else "out_invoice"
+        return "in_refund" if total < 0 else "in_invoice"
+
+    @api.model
     def _create_invoice(self, invoiceset, invoice_data):
+        move_type = self._get_move_type_for_invoice(invoiceset, invoice_data)
         vals = {
             "invoiceset_id": invoiceset.id,
             "partner_id": invoice_data["partner_id"],
             "invoice_date": invoiceset.invoice_date,
-            "move_type": "out_invoice",
+            "move_type": move_type,
             "state": "draft",
             "name": "/",
             "company_id": self.env.user.company_id.id,

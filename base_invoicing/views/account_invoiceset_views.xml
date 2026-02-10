@@ -97,6 +97,12 @@
                                 modifiers="{'readonly': [['state', 'not in', ['draft', 'configured']]]}"
                             />
                             <field
+                                name="invoice_type"
+                                widget="radio"
+                                options="{'horizontal': true}"
+                                modifiers="{'readonly': [['state', 'not in', ['draft', 'configured']]]}"
+                            />
+                            <field
                                 name="invoice_date"
                                 string="Invoicing Date"
                                 modifiers="{'readonly': [['state', 'not in', ['draft', 'configured']]]}"
@@ -121,12 +127,13 @@
                                 modifiers="{'readonly': [['state', 'not in', ['draft', 'configured']]]}"
                                 options="{'no_quick_create': True, 'no_create_edit': True}"
                             />
+                            <field name="journal_type" column_invisible="1" />
                             <field
                                 name="journal_id"
                                 string="Journal"
                                 modifiers="{'readonly': [['state', 'not in', ['draft', 'configured']]]}"
                                 options="{'no_quick_create': True, 'no_create_edit': True}"
-                                domain="[('type', '=', 'sale')]"
+                                domain="[('type', '=', journal_type)]"
                             />
 
                             <div

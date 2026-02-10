@@ -8,6 +8,7 @@ from . import (
     test_account_move_line_billable_counter,
     test_account_selectable_item,
     test_invoice_sequence,
+    test_invoiceset_invoice_type,
     test_mass_invoicing_settings,
     test_product_category,
     test_product_template,
