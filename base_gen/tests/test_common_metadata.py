@@ -12,6 +12,14 @@ class TestCommonMetadata(TransactionCase):
         super().setUpClass()
         cls.Meta = cls.env["common.metadata"]
 
+    def test_get_description_returns_model_name(self):
+        desc = self.Meta.get_description("res.partner")
+        self.assertTrue(desc)
+        self.assertIsInstance(desc, str)
+
+    def test_get_description_unknown_returns_none(self):
+        self.assertIsNone(self.Meta.get_description("x.model.does.not.exist"))
+
     def test_get_field_returns_metadata(self):
         meta = self.Meta.get_field("res.lang", "code", exclude_nonpersistent=True)
         self.assertTrue(meta)

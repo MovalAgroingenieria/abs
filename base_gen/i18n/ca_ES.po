@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 14:11+0000\n"
-"PO-Revision-Date: 2025-11-10 14:11+0000\n"
+"POT-Creation-Date: 2026-02-10 02:08+0000\n"
+"PO-Revision-Date: 2026-02-10 02:08+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -22,7 +22,7 @@ msgstr "Cal assignar un codi vàlid."
 
 #. module: base_gen
 #: model:ir.model.fields,field_description:base_gen.field_simple_model__alphanum_code
-msgid "Code (alphanumeric value)"
+msgid "Code (alphanumeric)"
 msgstr "Codi (com a valor alfanumèric)"
 
 #. module: base_gen
@@ -32,7 +32,7 @@ msgstr "Codi (com a cadena normalitzada)"
 
 #. module: base_gen
 #: model:ir.model.fields,field_description:base_gen.field_simple_model__num_code
-msgid "Code (numeric value)"
+msgid "Code (numeric)"
 msgstr "Codi (com a valor numèric)"
 
 #. module: base_gen
@@ -70,14 +70,14 @@ msgstr "Notes internes"
 #. module: base_gen
 #. odoo-python
 #: code:addons/base_gen/models/simple_model.py:0
-msgid "It is not possible insert blank spaces in the code."
-msgstr "El codi no pot contenir espais en blanc."
+msgid "It is not possible to insert blank spaces in the code."
+msgstr ""
 
 #. module: base_gen
 #. odoo-python
 #: code:addons/base_gen/models/simple_model.py:0
-msgid "Maximum number of characters allowed for te code: "
-msgstr "Nombre màxim de caràcters per a un codi: "
+msgid "Maximum number of characters allowed for the code: %s."
+msgstr ""
 
 #. module: base_gen
 #: model:ir.model,name:base_gen.model_common_metadata
@@ -87,8 +87,8 @@ msgstr ""
 #. module: base_gen
 #. odoo-python
 #: code:addons/base_gen/models/simple_model.py:0
-msgid "Minimum number of characters allowed for te code: "
-msgstr "Nombre mínim de caràcters per a un codi: "
+msgid "Minimum number of characters allowed for the code: %s."
+msgstr ""
 
 #. module: base_gen
 #: model:ir.model,name:base_gen.model_simple_model

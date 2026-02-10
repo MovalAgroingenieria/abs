@@ -1,8 +1,5 @@
 # 2025 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-positional-arguments
-
 from typing import Any, Dict, List, Optional
 
 from odoo import models
@@ -11,6 +8,21 @@ from odoo import models
 class CommonMetadata(models.AbstractModel):
     _name = "common.metadata"
     _description = "Metadata extraction utilities for Odoo models"
+
+    # ------------------------------ Model description --------------------------
+
+    def get_description(self, model_name: str) -> Optional[str]:
+        """Return the description (name) of the model from ir.model.
+
+        Used e.g. when configuring a category to show the billable item model
+        description (e.g. \"Partner of parcel\" for ter.parcel.partnerlink).
+        """
+        if not model_name:
+            return None
+        model = (
+            self.env["ir.model"].sudo().search([("model", "=", model_name)], limit=1)
+        )
+        return model.name if model else None
 
     # ------------------------------ Single field ------------------------------
 
@@ -101,17 +113,18 @@ class CommonMetadata(models.AbstractModel):
     # ----------------------------- Multiple fields -----------------------------
 
     def get_fields(
-        self,
-        model_name: str,
-        field_types: str,
-        exclude_id: bool = True,
-        exclude_nonpersistent: bool = True,
-        exclude_related: bool = False,
+        self, model_name: str, field_types: str, **kwargs
     ) -> List[Dict[str, Any]]:
-        """Return (name, field_description) for fields of given types."""
+        """Return (name, field_description) for fields of given types.
+
+        Kwargs: exclude_id (default True), exclude_nonpersistent (default True),
+        exclude_related (default False).
+        """
         if not model_name:
             return []
-
+        exclude_id = kwargs.get("exclude_id", True)
+        exclude_nonpersistent = kwargs.get("exclude_nonpersistent", True)
+        exclude_related = kwargs.get("exclude_related", False)
         types_list = [
             t.strip().lower() for t in (field_types or "").split(",") if t.strip()
         ]
