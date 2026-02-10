@@ -10,19 +10,134 @@ from typing import List, Tuple
 
 import psycopg2
 import requests
+from odoo import api, fields, models
+from odoo.tools.lru import LRU
 from PIL import Image, UnidentifiedImageError
 from psycopg2 import sql
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
-from odoo import api, fields, models
-from odoo.tools.lru import LRU
 
 BBox = List[float]
 BBoxResult = Tuple[str, BBox]
 BBoxFinalResult = Tuple[BBox, int, int]
 
 _WMS_LRU = LRU(512)
+
+
+def _parse_polygon_points(coords_str):
+    """Parse WKT coordinates string into list of (x, y) float pairs."""
+    if not coords_str:
+        return []
+    coords = coords_str.lower()
+    points_str = ""
+    if "multipolygon" in coords:
+        match = re.search(r"\(\(\((.*?)\)\)\)", coords)
+        points_str = match.group(1) if match else ""
+    elif "polygon" in coords:
+        match = re.search(r"\(\((.*?)\)\)", coords)
+        points_str = match.group(1) if match else ""
+    if not points_str:
+        return []
+    points_str = (
+        points_str.replace("),(", ", ").replace("), (", ", ").replace(", ", ",")
+    )
+    pairs = []
+    for part in points_str.split(","):
+        xy = part.split(" ")
+        if len(xy) == 2:
+            try:
+                pairs.append((float(xy[0]), float(xy[1])))
+            except (ValueError, TypeError):
+                pass
+    return pairs
+
+
+def _bounds_from_points(points):
+    """Return (minx, miny, maxx, maxy) from list of (x, y) pairs, or None if empty."""
+    if not points:
+        return None
+    minx = maxx = points[0][0]
+    miny = maxy = points[0][1]
+    for x, y in points[1:]:
+        minx = min(minx, x)
+        maxx = max(maxx, x)
+        miny = min(miny, y)
+        maxy = max(maxy, y)
+    return minx, miny, maxx, maxy
+
+
+def _force_square_bounds(minx, miny, maxx, maxy):
+    """Expand bbox to square (in place style), return (minx, miny, maxx, maxy)."""
+    width = maxx - minx
+    height = maxy - miny
+    if width == height:
+        return minx, miny, maxx, maxy
+    if height > width:
+        inc = round((height - width) / 2)
+        return minx - inc, miny, maxx + inc, maxy
+    inc = round((width - height) / 2)
+    return minx, miny - inc, maxx, maxy + inc
+
+
+def _apply_zoom_to_bbox(bbox_initial, zoom):
+    """Return expanded bbox (minx, miny, maxx, maxy) and new meter dimensions."""
+    minx, miny, maxx, maxy = bbox_initial
+    width_m = maxx - minx
+    height_m = maxy - miny
+    new_width_m = width_m * zoom
+    new_height_m = height_m * zoom
+    offset_w = (new_width_m - width_m) / 2
+    offset_h = (new_height_m - height_m) / 2
+    new_minx = int(round(minx - offset_w))
+    new_miny = int(round(miny - offset_h))
+    new_maxx = int(round(maxx + offset_w))
+    new_maxy = int(round(maxy + offset_h))
+    return (
+        (new_minx, new_miny, new_maxx, new_maxy),
+        new_maxx - new_minx,
+        new_maxy - new_miny,
+    )
+
+
+def _compute_pixel_dimensions(
+    width_m, height_m, width_px_initial, height_px_initial, normal_size
+):
+    """Return (width_pixels, height_pixels) from meter dimensions and initial px."""
+    w_px = width_px_initial
+    h_px = height_px_initial
+    if width_px_initial == 0 and height_px_initial == 0:
+        h_px = normal_size
+    if w_px == 0 or h_px == 0:
+        if w_px == 0:
+            w_px = int(round((width_m * h_px) / height_m))
+        else:
+            h_px = int(round((height_m * w_px) / width_m))
+    return w_px, h_px
+
+
+def _build_wms_url(rec, srid, bbox_final, w_px, h_px, opts):
+    """Build WMS GetMap URL for one record."""
+    minx, miny, maxx, maxy = bbox_final
+    cql_filter = ""
+    if opts.get("apply_filter"):
+        n_layers = max(0, len(opts.get("layers", "").split(",")) - 1)
+        cql_filter = (
+            "&FILTER="
+            + "()" * n_layers
+            + '(<Filter><PropertyIsLike wildCard="*" singleChar="." escape="!">'
+            + f"<PropertyName>{rec._link_field}</PropertyName>"
+            + f"<Literal>{rec.name}</Literal>"
+            + "</PropertyIsLike></Filter>)"
+        )
+    return (
+        f"{opts.get('wms', '')}?service=wms"
+        f"&version=1.3.0&request=getmap&crs=epsg:{srid}"
+        f"&bbox={minx},{miny},{maxx},{maxy}"
+        f"&width={w_px}&height={h_px}"
+        f"&layers={opts.get('layers', '')}&styles={opts.get('styles', 'default')}"
+        f"&transparent=true{cql_filter}"
+        f"&format=image/{opts.get('image_format', 'png')}"
+    )
 
 
 class PolygonModel(models.AbstractModel):
@@ -363,60 +478,14 @@ class PolygonModel(models.AbstractModel):
         srid, coordinates = self.extract_coordinates(geom_ewkt)
         if not coordinates:
             return srid, bounding_box
-
-        coords = coordinates.lower()
-        points = ""
-        if "multipolygon" in coords:
-            match = re.search(r"\(\(\((.*?)\)\)\)", coords)
-            points = match.group(1) if match else ""
-        elif "polygon" in coords:
-            match = re.search(r"\(\((.*?)\)\)", coords)
-            points = match.group(1) if match else ""
-
-        if not points:
+        points = _parse_polygon_points(coordinates)
+        bounds = _bounds_from_points(points)
+        if not bounds:
             return srid, bounding_box
-
-        points = points.replace("),(", ", ").replace("), (", ", ")
-        points = points.replace(", ", ",")
-        list_of_points = points.split(",")
-
-        first_point = True
-        minx = maxx = miny = maxy = 0.0
-
-        for point in list_of_points:
-            xy = point.split(" ")
-            if len(xy) != 2:
-                continue
-            x = float(xy[0])
-            y = float(xy[1])
-            if first_point:
-                first_point = False
-                minx = maxx = x
-                miny = maxy = y
-                continue
-            minx = min(minx, x)
-            maxx = max(maxx, x)
-            miny = min(miny, y)
-            maxy = max(maxy, y)
-
-        if first_point:
-            return srid, bounding_box
-
+        minx, miny, maxx, maxy = bounds
         if force_square_shape:
-            w = maxx - minx
-            h = maxy - miny
-            if w != h:
-                if h > w:
-                    inc = round((h - w) / 2)
-                    minx -= inc
-                    maxx += inc
-                else:
-                    inc = round((w - h) / 2)
-                    miny -= inc
-                    maxy += inc
-
-        bounding_box = [minx, miny, maxx, maxy]
-        return srid, bounding_box
+            minx, miny, maxx, maxy = _force_square_bounds(minx, miny, maxx, maxy)
+        return srid, [minx, miny, maxx, maxy]
 
     @api.model
     def get_bbox_final(
@@ -435,142 +504,96 @@ class PolygonModel(models.AbstractModel):
             return bbox_final, image_width_final, image_height_final
 
         minx, miny, maxx, maxy = bbox_initial
-        image_width_meters = maxx - minx
-        image_height_meters = maxy - miny
-        if not (image_width_meters > 0 and image_height_meters > 0 and zoom >= 1):
+        width_m = maxx - minx
+        height_m = maxy - miny
+        if not (width_m > 0 and height_m > 0 and zoom >= 1):
             return bbox_final, image_width_final, image_height_final
 
-        new_image_width_meters = image_width_meters * zoom
-        new_image_height_meters = image_height_meters * zoom
-        dif_width_meters = new_image_width_meters - image_width_meters
-        dif_height_meters = new_image_height_meters - image_height_meters
+        (minx, miny, maxx, maxy), width_m, height_m = _apply_zoom_to_bbox(
+            bbox_initial, zoom
+        )
+        w_px, h_px = _compute_pixel_dimensions(
+            width_m,
+            height_m,
+            image_width_initial,
+            image_height_initial,
+            self.NORMAL_SIZE,
+        )
+        return [minx, miny, maxx, maxy], w_px, h_px
 
-        offset_width_meters = dif_width_meters / 2
-        offset_height_meters = dif_height_meters / 2
-
-        minx = int(round(minx - offset_width_meters))
-        miny = int(round(miny - offset_height_meters))
-        maxx = int(round(maxx + offset_width_meters))
-        maxy = int(round(maxy + offset_height_meters))
-
-        if image_width_initial == 0 and image_height_initial == 0:
-            image_height_initial = self.NORMAL_SIZE
-
-        image_width_meters = maxx - minx
-        image_height_meters = maxy - miny
-
-        image_height_pixels = image_height_initial
-        image_width_pixels = image_width_initial
-        if image_width_pixels == 0 or image_height_pixels == 0:
-            if image_width_pixels == 0:
-                image_width_pixels = int(
-                    round(
-                        (image_width_meters * image_height_pixels) / image_height_meters
-                    )
-                )
-            else:
-                image_height_pixels = int(
-                    round(
-                        (image_height_meters * image_width_pixels) / image_width_meters
-                    )
-                )
-
-        bbox_final = [minx, miny, maxx, maxy]
-        return bbox_final, image_width_pixels, image_height_pixels
-
-    def get_aerial_image(
-        self,
-        wms="https://www.ign.es/wms-inspire/pnoa-ma",
-        layers="OI.OrthoimageCoverage",
-        styles="default",
-        image_width=0,
-        image_height=512,
-        image_format="png",
-        zoom=1.2,
-        get_raw=False,
-        apply_filter=False,
-        force_square_shape=True,
-        verify_ssl=True,
-        parallel_workers=6,
-    ):
-        number_of_layers = max(0, len(layers.split(",")) - 1)
+    def get_aerial_image(self, **kwargs):
+        """Fetch WMS aerial image(s). Kwargs: wms, layers, styles, image_width,
+        image_height, image_format, zoom, get_raw, apply_filter, force_square_shape,
+        verify_ssl, parallel_workers.
+        """
+        defaults = {
+            "wms": "https://www.ign.es/wms-inspire/pnoa-ma",
+            "layers": "OI.OrthoimageCoverage",
+            "styles": "default",
+            "image_width": 0,
+            "image_height": 512,
+            "image_format": "png",
+            "zoom": 1.2,
+            "get_raw": False,
+            "apply_filter": False,
+            "force_square_shape": True,
+            "verify_ssl": True,
+            "parallel_workers": 6,
+        }
+        opts = {k: kwargs.get(k, v) for k, v in defaults.items()}
 
         def _task(rec):
             srid, bbox = rec.extract_bounding_box(
-                rec.geom_ewkt, force_square_shape=force_square_shape
+                rec.geom_ewkt, force_square_shape=opts["force_square_shape"]
             )
             if not (srid and bbox):
                 return rec.id, None
-
             bbox_final, w_px, h_px = rec.get_bbox_final(
-                zoom, bbox, image_width, image_height
+                opts["zoom"], bbox, opts["image_width"], opts["image_height"]
             )
             if not (w_px > 0 and h_px > 0):
                 return rec.id, None
-
-            minx, miny, maxx, maxy = bbox_final
-
-            cql_filter = ""
-            if apply_filter:
-                cql_filter = (
-                    "&FILTER="
-                    + "()" * number_of_layers
-                    + '(<Filter><PropertyIsLike wildCard="*" singleChar="." escape="!">'
-                    + f"<PropertyName>{rec._link_field}</PropertyName>"
-                    + f"<Literal>{rec.name}</Literal>"
-                    + "</PropertyIsLike></Filter>)"
-                )
-
-            url = (
-                f"{wms}?service=wms"
-                f"&version=1.3.0&request=getmap&crs=epsg:{srid}"
-                f"&bbox={minx},{miny},{maxx},{maxy}"
-                f"&width={w_px}&height={h_px}"
-                f"&layers={layers}&styles={styles}"
-                f"&transparent=true{cql_filter}"
-                f"&format=image/{image_format}"
-            )
-
+            url = _build_wms_url(rec, srid, bbox_final, w_px, h_px, opts)
             key = self._sha1(url)
             cached = _WMS_LRU.get(key)
             if cached:
                 return rec.id, cached
-
             session = self._build_session()
             try:
                 payload = self._fetch_wms_bytes(
                     session,
                     url,
                     timeout=(2, getattr(rec, "OGC_TIMEOUT", 10)),
-                    verify_ssl=verify_ssl,
+                    verify_ssl=opts["verify_ssl"],
                 )
             finally:
                 session.close()
-
             if payload:
                 _WMS_LRU[key] = payload
             return rec.id, payload
 
         results = {rec.id: None for rec in self}
-
         if len(self) == 1:
-            rec = self[0]
-            rid, payload = _task(rec)
+            rid, payload = _task(self[0])
             if payload:
-                results[rid] = io.BytesIO(payload) if get_raw else base64.b64encode(payload)
+                results[rid] = (
+                    io.BytesIO(payload)
+                    if opts["get_raw"]
+                    else base64.b64encode(payload)
+                )
         else:
-            workers = min(max(1, parallel_workers), len(self))
+            workers = min(max(1, opts["parallel_workers"]), len(self))
             with ThreadPoolExecutor(max_workers=workers) as ex:
                 futures = [ex.submit(_task, rec) for rec in self]
                 for fut in as_completed(futures):
                     rid, payload = fut.result()
                     if payload:
                         results[rid] = (
-                            io.BytesIO(payload) if get_raw else base64.b64encode(payload)
+                            io.BytesIO(payload)
+                            if opts["get_raw"]
+                            else base64.b64encode(payload)
                         )
-
         aerial_images = [results[rec.id] for rec in self]
-
         if all(i is None for i in aerial_images):
             return None
         if len(aerial_images) == 1:
