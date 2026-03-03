@@ -1,3 +1,4 @@
+# 2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 # pylint: disable=protected-access
 
@@ -10,7 +11,6 @@ from requests.exceptions import RequestException
 class TestPolygonModel(TransactionCase):
     @classmethod
     def setUpClass(cls):  # pylint: disable=invalid-name
-
         super().setUpClass()
         cls.Poly = cls.env["base_gis.polygon_test"]
 
@@ -33,7 +33,8 @@ class TestPolygonModel(TransactionCase):
 
     def test_extract_bounding_box_polygon(self):
         srid, bbox = self.Poly.extract_bounding_box(
-            "SRID=25830;POLYGON((0 0,10 0,10 5,0 0))", force_square_shape=False
+            "SRID=25830;POLYGON((0 0,10 0,10 5,0 0))",
+            force_square_shape=False,
         )
         self.assertEqual(srid, "25830")
         self.assertEqual(bbox, [0.0, 0.0, 10.0, 5.0])
@@ -53,14 +54,9 @@ class TestPolygonModel(TransactionCase):
         dom = self.Poly._search_mapped_to_polygon("=", True)
         self.assertEqual(dom, [("id", "in", [])])
 
-    @patch("odoo.addons.base_gis.models.polygon_model.requests.get")
-    def test_get_aerial_image_request_exception(self, mocked_get):
-        mocked_get.side_effect = Exception(
-            "boom"
-        )  # will be treated as RequestException? not, but we don't want broad
-        # Patch to raise a RequestException instead to follow contract
-
-        mocked_get.side_effect = RequestException("boom")
+    @patch("odoo.addons.base_gis.models.gis_base_model.GisBaseModel._fetch_wms_bytes")
+    def test_get_aerial_image_request_exception(self, mocked_fetch):
+        mocked_fetch.side_effect = RequestException("boom")
         rec = self.Poly.create({"name": "X"})
         out = rec.get_aerial_image()
         self.assertIsNone(out)
