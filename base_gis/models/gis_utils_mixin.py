@@ -80,13 +80,23 @@ class GisUtilsMixin(models.AbstractModel):
         )
 
     @staticmethod
-    def compute_pixel_dimensions(
-        width_m, height_m, width_px_initial, height_px_initial, normal_size
-    ):
-        """Return (width_pixels, height_pixels) from meter dimensions."""
-        w_px = width_px_initial
-        h_px = height_px_initial
-        if width_px_initial == 0 and height_px_initial == 0:
+    def compute_pixel_dimensions(params):
+        """Return (width_pixels, height_pixels) from meter dimensions.
+
+        Args:
+            params (dict): Dictionary with keys:
+                - width_m: width in meters
+                - height_m: height in meters
+                - width_px_initial: initial pixel width (0 = auto)
+                - height_px_initial: initial pixel height (0 = auto)
+                - normal_size: default pixel size
+        """
+        width_m = params["width_m"]
+        height_m = params["height_m"]
+        w_px = params.get("width_px_initial", 0)
+        h_px = params.get("height_px_initial", 0)
+        normal_size = params.get("normal_size", 512)
+        if w_px == 0 and h_px == 0:
             h_px = normal_size
         if w_px == 0 or h_px == 0:
             if w_px == 0:

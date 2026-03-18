@@ -99,44 +99,52 @@ class TestGisUtils(unittest.TestCase):
 
     def test_pixel_dimensions_both_zero(self):
         w_px, h_px = GisUtilsMixin.compute_pixel_dimensions(
-            100,
-            200,
-            0,
-            0,
-            512,
+            {
+                "width_m": 100,
+                "height_m": 200,
+                "width_px_initial": 0,
+                "height_px_initial": 0,
+                "normal_size": 512,
+            }
         )
         self.assertEqual(h_px, 512)
         self.assertEqual(w_px, 256)
 
     def test_pixel_dimensions_width_zero(self):
         w_px, h_px = GisUtilsMixin.compute_pixel_dimensions(
-            100,
-            200,
-            0,
-            512,
-            512,
+            {
+                "width_m": 100,
+                "height_m": 200,
+                "width_px_initial": 0,
+                "height_px_initial": 512,
+                "normal_size": 512,
+            }
         )
         self.assertEqual(h_px, 512)
         self.assertEqual(w_px, 256)
 
     def test_pixel_dimensions_height_zero(self):
         w_px, h_px = GisUtilsMixin.compute_pixel_dimensions(
-            200,
-            100,
-            512,
-            0,
-            512,
+            {
+                "width_m": 200,
+                "height_m": 100,
+                "width_px_initial": 512,
+                "height_px_initial": 0,
+                "normal_size": 512,
+            }
         )
         self.assertEqual(w_px, 512)
         self.assertEqual(h_px, 256)
 
     def test_pixel_dimensions_both_set(self):
         w_px, h_px = GisUtilsMixin.compute_pixel_dimensions(
-            100,
-            200,
-            300,
-            400,
-            512,
+            {
+                "width_m": 100,
+                "height_m": 200,
+                "width_px_initial": 300,
+                "height_px_initial": 400,
+                "normal_size": 512,
+            }
         )
         self.assertEqual(w_px, 300)
         self.assertEqual(h_px, 400)

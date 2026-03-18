@@ -42,17 +42,14 @@ class DummyPolygonModel:
             image_height_initial=image_height_initial,
         )
 
-    def compute_pixel_dimensions(
-        self,
-        width_m,
-        height_m,
-        image_width_initial=0,
-        image_height_initial=0,
-        normal_size=512,
-    ):
-        if image_width_initial and image_height_initial:
-            return image_width_initial, image_height_initial
-
+    def compute_pixel_dimensions(self, params):
+        width_m = params.get("width_m", 0)
+        height_m = params.get("height_m", 0)
+        width_px_initial = params.get("width_px_initial", 0)
+        height_px_initial = params.get("height_px_initial", 0)
+        normal_size = params.get("normal_size", 512)
+        if width_px_initial and height_px_initial:
+            return width_px_initial, height_px_initial
         width_m = max(float(width_m), 1.0)
         height_m = max(float(height_m), 1.0)
 

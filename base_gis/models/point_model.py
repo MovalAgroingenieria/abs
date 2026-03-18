@@ -117,8 +117,7 @@ class PointModel(models.AbstractModel):
         if not names:
             return
 
-        qry = sql.SQL(
-            """
+        qry = sql.SQL("""
             SELECT g.{link},
                 postgis.st_x(g.{geom}),
                 postgis.st_y(g.{geom}),
@@ -126,18 +125,14 @@ class PointModel(models.AbstractModel):
             FROM {table} g
             JOIN unnest(%s) AS t(name)
                 ON g.{link} = t.name
-            """
-        ).format(
+            """).format(
             link=sql.Identifier(self._link_field),
             geom=sql.Identifier(self._geom_field),
             table=self._sql_ident(self._gis_table),
         )
         self.env.cr.execute(qry, (names,))
 
-        point_data = {
-            name: (x, y, srid)
-            for name, x, y, srid in self.env.cr.fetchall()
-        }
+        point_data = {name: (x, y, srid) for name, x, y, srid in self.env.cr.fetchall()}
 
         for record in self:
             data = point_data.get(record.name)

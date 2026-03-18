@@ -244,7 +244,7 @@ class GisBaseModel(models.AbstractModel):
         """Extract SRID and WKT body from EWKT string.
 
         Returns:
-            (srid, coordinates) – e.g. ("25830", "POLYGON((...))").
+            (srid, coordinates) - e.g. ("25830", "POLYGON((...))").
         """
         srid = ""
         coordinates = ""
@@ -302,11 +302,13 @@ class GisBaseModel(models.AbstractModel):
             zoom,
         )
         w_px, h_px = self.compute_pixel_dimensions(
-            width_m,
-            height_m,
-            image_width_initial,
-            image_height_initial,
-            self.NORMAL_SIZE,
+            {
+                "width_m": width_m,
+                "height_m": height_m,
+                "width_px_initial": image_width_initial,
+                "height_px_initial": image_height_initial,
+                "normal_size": self.NORMAL_SIZE,
+            }
         )
         return list(zoomed_bbox), w_px, h_px
 
