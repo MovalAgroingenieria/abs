@@ -15,7 +15,7 @@ from collections import defaultdict
 from datetime import timedelta
 
 from jinja2 import Template, TemplateError
-from odoo import _, api, fields, models
+from odoo import SUPERUSER_ID, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.safe_eval import safe_eval
 from odoo.tools.sql import SQL
@@ -724,13 +724,16 @@ class AccountInvoiceset(models.Model):
 
         if background:
             registry = self.env.registry
-            uid = self.env.uid
-            ctx = dict(self.env.context)
+            # Use SUPERUSER_ID in the background thread so that multi-company
+            # access restrictions from the calling session (allowed_company_ids)
+            # don't block creation/validation of invoice lines.
+            ctx = {k: v for k, v in self.env.context.items()
+                   if k != "allowed_company_ids"}
 
             def _run():
                 # New cursor per thread (Odoo 18: Environment.manage was removed)
                 with registry.cursor() as cr:
-                    env = api.Environment(cr, uid, ctx)
+                    env = api.Environment(cr, SUPERUSER_ID, ctx)
                     env["account.invoiceset"]._invoice_generation_thread(invoiceset_id)
 
             threading.Thread(target=_run, daemon=True).start()
@@ -1108,6 +1111,7 @@ class AccountInvoiceset(models.Model):
     @api.model
     def _create_invoice(self, invoiceset, invoice_data):
         move_type = self._get_move_type_for_invoice(invoiceset, invoice_data)
+        company = invoiceset.company_id or self.env.company
         vals = {
             "invoiceset_id": invoiceset.id,
             "partner_id": invoice_data["partner_id"],
@@ -1115,7 +1119,7 @@ class AccountInvoiceset(models.Model):
             "move_type": move_type,
             "state": "draft",
             "name": "/",
-            "company_id": self.env.user.company_id.id,
+            "company_id": company.id,
         }
         if invoiceset.payment_term_id:
             vals["invoice_payment_term_id"] = invoiceset.payment_term_id.id
@@ -1174,7 +1178,7 @@ class AccountInvoiceset(models.Model):
         if invoiceset.comment_template_ids:
             vals["comment_template_ids"] = [(6, 0, invoiceset.comment_template_ids.ids)]
 
-        return self.env["account.move"].create(vals)
+        return self.env["account.move"].with_company(company).create(vals)
 
     @api.model
     def _get_move_line_m2o_to_model(self, model_name):
@@ -1337,10 +1341,10 @@ class AccountInvoicesetProductlink(models.Model):
     )
     line_name = fields.Char(
         string="Section / Note",
-        help="Label for section or note. Shown in invoice lines when type is Section or Note.",
+        help="Label for section or note. Shown in invoice lines when type is Section or"
+        " Note.",
     )
     product_id = fields.Many2one(
-        string="Product",
         comodel_name="product.product",
         required=False,
         index=True,
