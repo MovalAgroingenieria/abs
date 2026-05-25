@@ -64,7 +64,7 @@ Contributors
 Maintainer
 ----------
 
-.. image:: https://services.moval.es/static/images/logo_moval_small.png
+.. image:: https://raw.githubusercontent.com/MovalAgroingenieria/public-assets/master/logos/logo_moval_small.png
    :target: https://moval.es
    :alt: Moval Agroingeniería
 
