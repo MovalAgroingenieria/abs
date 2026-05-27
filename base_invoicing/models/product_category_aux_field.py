@@ -32,7 +32,6 @@ class ProductCategoryAuxFieldLine(models.Model):
     sequence = fields.Integer(default=10)
     field_id = fields.Many2one(
         comodel_name="ir.model.fields",
-        string="Field",
         required=True,
         ondelete="cascade",
         domain="[('model_id', '=', billable_model_id), "

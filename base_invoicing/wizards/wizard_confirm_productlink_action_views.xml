@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
 
     <record id="wizard_confirm_productlink_action_view_form" model="ir.ui.view">
@@ -19,8 +19,6 @@
                 <footer>
                     <button name="execute_operation" type="object" class="btn-primary" string="Apply" />
                     <button special="cancel" class="btn-secondary"  string="Cancel" />
-
-
                 </footer>
             </form>
         </field>

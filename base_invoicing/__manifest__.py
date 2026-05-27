@@ -4,7 +4,7 @@
 {
     "name": "Massive Invoicing",
     "summary": "Massive invoicing based on invoice sets",
-    "version": "18.0.1.0.1",
+    "version": "18.0.2.0.1",
     "category": "Accounting/Accounting",
     "website": "https://www.moval.es",
     "author": "Moval Agroingeniería",
@@ -16,6 +16,7 @@
         "portal",
         "product",
         "base_gen",
+        "queue_job",
     ],
     "data": [
         "security/security.xml",
@@ -23,6 +24,7 @@
         "data/ir_sequence_data.xml",
         "data/product_category_data.xml",
         "data/base_invoicing_cron.xml",
+        "data/queue_job_function_data.xml",
         "wizards/wizard_config_billable_item_fields_views.xml",
         "wizards/wizard_confirm_productlink_action_views.xml",
         "views/base_invoicing_menus.xml",
@@ -46,7 +48,6 @@
             "base_invoicing/static/src/js/massive_invoicing_list_renderer.js",
             "base_invoicing/static/src/js/selectable_item_hybrid_list.esm.js",
             "base_invoicing/static/src/js/massive_invoicing_search_model.js",
-            "base_invoicing/static/src/js/massive_invoicing_form_controller.js",
             "base_invoicing/static/lib/base_invoicing_iconset/iconset.css",
         ],
         "web.assets_frontend": [

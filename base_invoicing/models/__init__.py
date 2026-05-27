@@ -14,6 +14,7 @@ from . import (
     product_category_invoice_line_field_map,
     product_product,
     product_template,
+    queue_job,
     res_company_ext,
     res_config_settings,
     res_fee,

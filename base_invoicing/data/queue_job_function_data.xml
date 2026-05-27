@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="0">
+
+    <record id="job_function_invoice_generation" model="queue.job.function">
+        <field name="name">&lt;account.invoiceset&gt;.invoice_generation</field>
+        <field name="allow_commit" eval="True" />
+    </record>
+
+</odoo>

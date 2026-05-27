@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
 
     <!-- List for invoice line field mapping (inline in product.category form). -->
@@ -134,7 +134,7 @@
     <record id="product_category_form_view_invoicing" model="ir.ui.view">
         <field name="name">Product Category Invoicing</field>
         <field name="model">product.category</field>
-        <field name="priority">99</field>
+        <field name="priority" eval="99" />
         <field name="arch" type="xml">
             <form class="oe_form_configuration" string="Product Category Invoicing">
                 <sheet>

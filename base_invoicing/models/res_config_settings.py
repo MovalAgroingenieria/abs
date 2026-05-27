@@ -11,13 +11,3 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.mass_invoicing_seq_invoiceset_code_id",
         readonly=False,
     )
-
-    mass_invoicing_run_background = fields.Boolean(
-        related="company_id.mass_invoicing_run_background",
-        readonly=False,
-    )
-
-    mass_invoicing_progress_batch_size = fields.Integer(
-        related="company_id.mass_invoicing_progress_batch_size",
-        readonly=False,
-    )

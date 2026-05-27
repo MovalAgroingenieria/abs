@@ -31,11 +31,11 @@ class TestProductCategory(TransactionCase):
             c1.unlink()
 
     def test_sanitize_vals_when_model_unset(self):
-        IrModelFields = self.env["ir.model.fields"]
+        ir_model_fields = self.env["ir.model.fields"]
         billable_model = self.IrModel.search(
             [("model", "=", "base_invoicing.billable_item_test")], limit=1
         )
-        qty_field = IrModelFields.search(
+        qty_field = ir_model_fields.search(
             [
                 ("model_id", "=", billable_model.id),
                 ("name", "=", "quantity"),
@@ -43,7 +43,7 @@ class TestProductCategory(TransactionCase):
             ],
             limit=1,
         )
-        group_field = IrModelFields.search(
+        group_field = ir_model_fields.search(
             [
                 ("model_id", "=", billable_model.id),
                 ("name", "=", "id"),

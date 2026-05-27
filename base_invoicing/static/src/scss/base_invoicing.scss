@@ -196,23 +196,18 @@
   }
 }
 
-.o_base_invoicing_account_invoiceset_productlink {
-  [data-name="categ_id"] {
-    width: 250px;
-    min-width: 250px;
-  }
+// .o_base_invoicing_account_invoiceset_productlink {
+//   [data-name="categ_id"] {
+//     width: 250px;
+//     min-width: 250px;
+//   }
 
-  [data-name="lst_price"],
-  [data-name="number_of_selected_items"] {
-    width: 110px;
-    min-width: 110px;
-  }
-}
-
-.o_list_button {
-  text-align: center;
-  width: 30px;
-}
+//   [data-name="lst_price"],
+//   [data-name="number_of_selected_items"] {
+//     width: 110px;
+//     min-width: 110px;
+//   }
+// }
 
 .o_base_invoicing_account_move_line {
   [data-name="invoiceset_id"] {

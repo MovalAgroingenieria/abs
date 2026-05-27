@@ -22,7 +22,6 @@ def post_init_hook(env):
     seq = env.ref("base_invoicing.seq_invoiceset_code", raise_if_not_found=False)
     if seq:
         params.set_param("base_invoicing.mass_invoicing_seq_invoiceset_code_id", seq.id)
-    params.set_param("base_invoicing.mass_invoicing_run_background", True)
 
     if seq:
         companies = (

@@ -8,8 +8,6 @@ from jinja2 import Template, TemplateError
 from lxml import etree
 from odoo import api, fields, models
 
-from .product_category import get_jinja2_template_context
-
 
 class AccountSelectableItem(models.Model):
     _name = "account.selectable.item"
@@ -59,17 +57,17 @@ class AccountSelectableItem(models.Model):
     aux_07 = fields.Char(string="Aux 7")
     aux_08 = fields.Char(string="Aux 8")
     aux_09 = fields.Char(string="Aux 9")
-    aux_10 = fields.Char(string="Aux 10")
-    aux_11 = fields.Char(string="Aux 11")
-    aux_12 = fields.Char(string="Aux 12")
-    aux_13 = fields.Char(string="Aux 13")
-    aux_14 = fields.Char(string="Aux 14")
-    aux_15 = fields.Char(string="Aux 15")
-    aux_16 = fields.Char(string="Aux 16")
-    aux_17 = fields.Char(string="Aux 17")
-    aux_18 = fields.Char(string="Aux 18")
-    aux_19 = fields.Char(string="Aux 19")
-    aux_20 = fields.Char(string="Aux 20")
+    aux_10 = fields.Char()
+    aux_11 = fields.Char()
+    aux_12 = fields.Char()
+    aux_13 = fields.Char()
+    aux_14 = fields.Char()
+    aux_15 = fields.Char()
+    aux_16 = fields.Char()
+    aux_17 = fields.Char()
+    aux_18 = fields.Char()
+    aux_19 = fields.Char()
+    aux_20 = fields.Char()
 
     # -------------------------------------------------------------------------
     # Computes
@@ -109,8 +107,7 @@ class AccountSelectableItem(models.Model):
 
             productlink = record.productlink_id
             invoiceset = productlink.invoiceset_id if productlink else None
-            ctx = get_jinja2_template_context(
-                record.env,
+            ctx = record.env["product.category"].get_jinja2_template_context(
                 billable_item,
                 invoiceset=invoiceset,
                 productlink=productlink,

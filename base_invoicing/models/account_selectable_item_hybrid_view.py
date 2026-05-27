@@ -1,11 +1,14 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 # pylint: disable=protected-access
+# pylint: disable=line-too-long
+# pylint: disable=too-many-locals
+# pylint: disable=unused-argument
 
 import logging
 import re
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import sql as odoo_sql
 from psycopg2 import ProgrammingError
@@ -77,12 +80,6 @@ class AccountSelectableItemHybridView(models.Model):
         readonly=True,
         ondelete="set null",
     )
-    pivot_view_id = fields.Many2one(
-        comodel_name="ir.ui.view",
-        string="Pivot view",
-        readonly=True,
-        ondelete="set null",
-    )
 
     _sql_constraints = [
         (
@@ -137,7 +134,7 @@ class AccountSelectableItemHybridView(models.Model):
         """Create PostgreSQL view + ir.model + ir.model.fields + ir.ui.view + access."""
         self.ensure_one()
         if self.model_id:
-            return
+            return None
         billable_model = self.billable_model_id
         model_name = billable_model.model
         billable_table = self.env[model_name]._table
@@ -149,7 +146,7 @@ class AccountSelectableItemHybridView(models.Model):
         return self
 
     def _create_hybrid_ir_artifacts(self, field_specs, model_name, billable_model):
-        """Create ir.model, access, server actions, tree/search/pivot views."""
+        """Create ir.model, access, server actions, tree/search views."""
         ir_model = self.env["ir.model"].sudo()
         ir_model_access = self.env["ir.model.access"].sudo()
         view_env = self.env["ir.ui.view"].sudo()
@@ -193,7 +190,7 @@ class AccountSelectableItemHybridView(models.Model):
         ir_act_server = self.env["ir.actions.server"].sudo()
         action_select = ir_act_server.create(
             {
-                "name": _("Activate"),
+                "name": self.env._("Activate"),
                 "model_id": model_rec.id,
                 "binding_model_id": model_rec.id,
                 "binding_type": "action",
@@ -208,7 +205,7 @@ if selectable_ids:
         )
         action_deselect = ir_act_server.create(
             {
-                "name": _("Deactivate"),
+                "name": self.env._("Deactivate"),
                 "model_id": model_rec.id,
                 "binding_model_id": model_rec.id,
                 "binding_type": "action",
@@ -223,10 +220,12 @@ if selectable_ids:
         )
         self.env.registry.clear_cache()
         tree_fields = self._build_tree_view_fields(field_specs)
+        activate_label = self.env._("Activate")
+        deactivate_label = self.env._("Deactivate")
         header = (
             f"<header>"
-            f'<button name="{action_select.id}" type="action" string="{_("Activate")}" class="btn-primary" icon="fa-check-square-o"/>'
-            f'<button name="{action_deselect.id}" type="action" string="{_("Deactivate")}" class="btn-secondary" icon="fa-square-o"/>'
+            f'<button name="{action_select.id}" type="action" string="{activate_label}" class="btn-primary" icon="fa-check-square-o"/>'
+            f'<button name="{action_deselect.id}" type="action" string="{deactivate_label}" class="btn-secondary" icon="fa-square-o"/>'
             f"</header>"
         )
         tree_arch = (
@@ -263,33 +262,6 @@ if selectable_ids:
             }
         )
         self.search_view_id = search_view.id
-        pivot_fields = self._build_pivot_view_fields(field_specs)
-        pivot_arch = (
-            f'<?xml version="1.0"?><pivot string="Selectable Items">'
-            f"{pivot_fields}</pivot>"
-        )
-        pivot_view = view_env.create(
-            {
-                "name": f"Pivot selectable hybrid ({model_name})",
-                "type": "pivot",
-                "model": self.model_name,
-                "arch": pivot_arch,
-            }
-        )
-        self.pivot_view_id = pivot_view.id
-
-    def _build_pivot_view_fields(self, field_specs):
-        """Build pivot: row=groupable fields, measure=x_quantity."""
-        groupable_types = {"many2one", "char", "selection", "boolean"}
-        row_parts = []
-        for fname, _desc, ttype, _relation in field_specs:
-            if fname in ("x_selectable_item_id", "x_productlink_id"):
-                continue
-            if ttype in groupable_types:
-                row_parts.append(f'<field name="{fname}" type="row"/>')
-        # Measure: quantity
-        measure = '<field name="x_quantity" type="measure"/>'
-        return "".join(row_parts) + measure
 
     def _build_search_groupby(self, field_specs):
         """Build group by filters for many2one and char fields."""
@@ -464,13 +436,18 @@ if selectable_ids:
                     )
                     self.env.cr.execute(drop_sql)
                 except ProgrammingError:
-                    pass
+                    _logger.debug("View %s already dropped", rec.view_table)
         return super().unlink()
 
     def _create_view(self, view_table, query):
         """Create or replace PostgreSQL view."""
         if not re.match(r"^[a-z0-9_]+$", view_table):
-            raise ValidationError(_("Invalid view table name: %s") % view_table)
+            raise ValidationError(
+                self.env._(
+                    "Invalid view table name: %(name)s",
+                    name=view_table,
+                )
+            )
         drop_sql = odoo_sql.SQL(
             "DROP VIEW IF EXISTS %s CASCADE", odoo_sql.SQL.identifier(view_table)
         )
@@ -483,6 +460,9 @@ if selectable_ids:
             self.env.cr.execute(create_stmt, (model_name,))
         except ProgrammingError as e:
             raise UserError(
-                _("Error creating hybrid view %(view)s: %(error)s")
-                % {"view": view_table, "error": str(e)}
+                self.env._(
+                    "Error creating hybrid view %(view)s: %(error)s",
+                    view=view_table,
+                    error=str(e),
+                )
             ) from e

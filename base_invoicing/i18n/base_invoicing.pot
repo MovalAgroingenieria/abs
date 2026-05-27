@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-10 02:40+0000\n"
-"PO-Revision-Date: 2026-02-10 02:40+0000\n"
+"POT-Creation-Date: 2026-05-27 08:58+0000\n"
+"PO-Revision-Date: 2026-05-27 08:58+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,20 +16,13 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__meeting_count
+msgid "# Meetings"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__supplier_invoice_count
 msgid "# Vendor Bills"
-msgstr ""
-
-#. module: base_invoicing
-#. odoo-python
-#: code:addons/base_invoicing/models/account_invoiceset.py:0
-msgid "(background)"
-msgstr ""
-
-#. module: base_invoicing
-#. odoo-python
-#: code:addons/base_invoicing/models/account_invoiceset.py:0
-msgid "(foreground)"
 msgstr ""
 
 #. module: base_invoicing
@@ -115,6 +108,13 @@ msgid "<i class=\"fa fa-plug\" aria-hidden=\"true\" title=\"Selectable Items\"/>
 msgstr ""
 
 #. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid ""
+"<i class=\"fa fa-spinner fa-spin me-2\"/>\n"
+"                    Calculation in progress. Please wait until it finishes."
+msgstr ""
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "<i class=\"fa fa-tachometer\" aria-label=\"Speed\" role=\"img\" title=\"Speed\"/>"
 msgstr ""
@@ -147,6 +147,11 @@ msgstr ""
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid "<span class=\"o_stat_text\"> Selectable Items</span>"
+msgstr ""
+
+#. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "<span class=\"o_stat_text\">Job</span>"
 msgstr ""
 
 #. module: base_invoicing
@@ -203,6 +208,11 @@ msgid "Abstract model for billable records"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__bank_holder_name
+msgid "Account Holder"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_account_payable_id
 msgid "Account Payable"
 msgstr ""
@@ -232,11 +242,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__active_lang_count
 msgid "Active Lang Count"
-msgstr ""
-
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__stop_order
-msgid "Active stop order"
 msgstr ""
 
 #. module: base_invoicing
@@ -291,6 +296,11 @@ msgid "Additional Information"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__additional_movement_count
+msgid "Additional Movement Count"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__type
 msgid "Address Type"
 msgstr ""
@@ -308,14 +318,17 @@ msgid ""
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_config_billable_item_fields_view_form
-#: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_confirm_productlink_action_view_form
-msgid "Apply"
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+msgid ""
+"Another user is already calculating this invoice set, or it is not in a "
+"state that allows calculation. Please refresh the page and try again."
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
-msgid "Are you sure you want to stop the calculation?"
+#: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_config_billable_item_fields_view_form
+#: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_confirm_productlink_action_view_form
+msgid "Apply"
 msgstr ""
 
 #. module: base_invoicing
@@ -344,6 +357,13 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__autopost_bills
 msgid "Automatically post bills for this trusted partner"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__receipt_reminder_email
+msgid ""
+"Automatically send a confirmation email to the vendor X days before the "
+"expected receipt date, asking him to confirm the exact date."
 msgstr ""
 
 #. module: base_invoicing
@@ -467,6 +487,21 @@ msgid "Auxiliary fields"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__available_peppol_eas
+msgid "Available Peppol Eas"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__available_peppol_edi_formats
+msgid "Available Peppol Edi Formats"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__available_peppol_sending_methods
+msgid "Available Peppol Sending Methods"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__avatar_1920
 msgid "Avatar"
 msgstr ""
@@ -492,8 +527,8 @@ msgid "Avatar 512"
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
-msgid "Background execution"
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__queue_job_id
+msgid "Background calculation job"
 msgstr ""
 
 #. module: base_invoicing
@@ -608,8 +643,8 @@ msgid "Bounce"
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_list
-msgid "Calc. time"
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__buyer_id
+msgid "Buyer"
 msgstr ""
 
 #. module: base_invoicing
@@ -619,7 +654,12 @@ msgid "Calculate"
 msgstr ""
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__calculated
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+msgid "Calculate invoiceset %(code)s"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset__state__calculated
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
 msgid "Calculated"
@@ -631,6 +671,7 @@ msgid "Calculating"
 msgstr ""
 
 #. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid "Calculation"
 msgstr ""
@@ -638,13 +679,27 @@ msgstr ""
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
-msgid "Calculation Process: ERROR..."
+msgid "Calculation Job"
+msgstr ""
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/queue_job.py:0
+msgid ""
+"Calculation Process: ERROR (background job failed after retries). See the "
+"'Calculation' tab for the traceback."
 msgstr ""
 
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
-msgid "Calculation Process: end."
+msgid "Calculation Process: end. No. of invoices: %(n)s"
+msgstr ""
+
+#. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+msgid "Calculation Process: resuming from %(n)s/%(t)s"
 msgstr ""
 
 #. module: base_invoicing
@@ -674,6 +729,16 @@ msgid "Calculation started at"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__calculation_user_id
+msgid "Calculation triggered by"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__can_publish
+msgid "Can Publish"
+msgstr ""
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 #: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_config_billable_item_fields_view_form
 #: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_confirm_productlink_action_view_form
@@ -681,9 +746,6 @@ msgid "Cancel"
 msgstr ""
 
 #. module: base_invoicing
-#. odoo-python
-#: code:addons/base_invoicing/models/account_invoiceset.py:0
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 msgid "Cancelled"
 msgstr ""
@@ -728,6 +790,26 @@ msgid "Category Code"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__census_ids
+msgid "Census"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__census_count
+msgid "Census Count"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__census_line_ids
+msgid "Census Line"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__census_line_count
+msgid "Census Line Count"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__channel_ids
 msgid "Channels"
 msgstr ""
@@ -739,13 +821,40 @@ msgid "Check if the contact is a company, otherwise it is a person"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__is_primary_entity
+msgid "Check if this contact is a primary entity"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__is_secondary_entity
+msgid "Check if this contact is a secondary member"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__employee
 msgid "Check this box if this contact is an Employee."
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__country_enforce_cities
+msgid ""
+"Check this box to ensure every address created in that country has a 'City' "
+"chosen in the list of the country's cities."
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__city
 msgid "City"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__city_id
+msgid "City ID"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__member_type_id
+msgid "Classification type for secondary members"
 msgstr ""
 
 #. module: base_invoicing
@@ -767,6 +876,13 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__alphanum_code
 msgid "Code of invoice set"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__peppol_eas
+msgid ""
+"Code used to identify the Endpoint for BIS Billing 3.0 and its derivatives.\n"
+"             List available at https://docs.peppol.eu/poacc/billing/3.0/codelist/eas/"
 msgstr ""
 
 #. module: base_invoicing
@@ -874,11 +990,6 @@ msgid "Complete Name"
 msgstr ""
 
 #. module: base_invoicing
-#: model:ir.model,name:base_invoicing.model_res_config_settings
-msgid "Config Settings"
-msgstr ""
-
-#. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_wizard_config_billable_item_fields
 msgid "Configure billable item fields"
 msgstr ""
@@ -917,6 +1028,16 @@ msgid "Contact"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contract_signed
+msgid "Contract Signed"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contract_ids
+msgid "Contracts"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__message_bounce
 msgid "Counter of the number of bounced emails for this contact"
 msgstr ""
@@ -939,7 +1060,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__create_uid
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__create_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__create_uid
@@ -954,7 +1074,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__create_date
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__create_date
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__create_date
@@ -987,6 +1106,11 @@ msgid "Currency"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__invoice_due_date
+msgid "Custom invoice due date management"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__partner_id
 #: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset__invoice_type__customer
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
@@ -994,6 +1118,11 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_selectable_item_view_search
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_selectable_item_view_tree
 msgid "Customer"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__customer_payment_mode_id
+msgid "Customer Payment Mode"
 msgstr ""
 
 #. module: base_invoicing
@@ -1026,6 +1155,11 @@ msgid "Date"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__reminder_date_before_receipt
+msgid "Days Before Receipt"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__days_sales_outstanding
 msgid "Days Sales Outstanding (DSO)"
 msgstr ""
@@ -1034,6 +1168,24 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item_hybrid_view.py:0
 msgid "Deactivate"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__irpf_tax_id
+msgid "Default IRPF retention tax applied on census line purchases."
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__default_price_type
+msgid "Default Price Type"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__default_price_type
+msgid ""
+"Default price tier used when creating new census lines. Determines which "
+"purchase/sale price from the census header is applied to this client's "
+"lines."
 msgstr ""
 
 #. module: base_invoicing
@@ -1051,6 +1203,11 @@ msgid ""
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__sale_tax_id
+msgid "Default sale tax applied on census line sales."
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__trust
 msgid "Degree of trust you have in this debtor"
 msgstr ""
@@ -1058,11 +1215,6 @@ msgstr ""
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Delete selectable items"
-msgstr ""
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
-msgid "Delete this line"
 msgstr ""
 
 #. module: base_invoicing
@@ -1089,6 +1241,11 @@ msgid "Detail"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__detailed_invoice
+msgid "Detailed Invoice"
+msgstr ""
+
+#. module: base_invoicing
 #. odoo-javascript
 #: code:addons/base_invoicing/static/src/xml/button_back.xml:0
 msgid "Discard"
@@ -1107,7 +1264,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__display_name
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__display_name
@@ -1117,6 +1273,21 @@ msgstr ""
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_config_billable_item_fields__display_name
 #: model:ir.model.fields,field_description:base_invoicing.field_wizard_confirm_productlink_action__display_name
 msgid "Display Name"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__division_number
+msgid "Division Number"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__exclude_share_yield
+msgid "Do not include this community in share yield calculations."
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__no_paper_invoice
+msgid "Do not send paper invoices"
 msgstr ""
 
 #. module: base_invoicing
@@ -1144,6 +1315,11 @@ msgstr ""
 msgid ""
 "Domain applied to billable items before selection. Use the standard domain "
 "editor."
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_number2
+msgid "Door"
 msgstr ""
 
 #. module: base_invoicing
@@ -1186,6 +1362,11 @@ msgid ""
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__electricity
+msgid "Electricity"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__email
 msgid "Email"
 msgstr ""
@@ -1201,15 +1382,51 @@ msgid "Employee"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__country_enforce_cities
+msgid "Enforce Cities"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__entity_global_code
+msgid "Entity Global Code"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset__state__error
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
+msgid "Error"
+msgstr ""
+
+#. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item_hybrid_view.py:0
 msgid "Error creating hybrid view %(view)s: %(error)s"
 msgstr ""
 
 #. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "Error details"
+msgstr ""
+
+#. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item.py:0
 msgid "Error in template: %(error)s"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__vies_valid
+msgid "European VAT numbers are automatically checked on the VIES database."
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__exclude_from_invoicing
+msgid "Exclude from Invoicing"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__exclude_share_yield
+msgid "Exclude from Share Yield"
 msgstr ""
 
 #. module: base_invoicing
@@ -1301,8 +1518,7 @@ msgstr ""
 #: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__default_record_ref
 msgid ""
 "Fixed record for many2one/analytic fields when value source is 'Fixed'. Must"
-" match the invoice line field's model (e.g. analytic account for "
-"analytic_distribution)."
+" match the invoice line field's model."
 msgstr ""
 
 #. module: base_invoicing
@@ -1315,8 +1531,7 @@ msgstr ""
 #: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__fixed_value
 msgid ""
 "Fixed value for selection/char/text/integer/etc when value source is "
-"'Fixed'. For selection: enter the key (e.g. 'asset_receivable'). For "
-"char/text: the string."
+"'Fixed'. For selection: enter the key."
 msgstr ""
 
 #. module: base_invoicing
@@ -1369,6 +1584,21 @@ msgid "From invoice set: yes"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__global_location_number
+msgid "GLN"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__detailed_invoice
+msgid "Generate detailed invoices for this client"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__invoice_zero_census
+msgid "Generate invoices for this community even when census is zero."
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_latitude
 msgid "Geo Latitude"
 msgstr ""
@@ -1379,8 +1609,23 @@ msgid "Geo Longitude"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__date_localization
+msgid "Geolocation Date"
+msgstr ""
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_pivot
 msgid "Global Invoicing"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__global_location_number
+msgid "Global Location Number"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__entity_global_code
+msgid "Global shared code (applies to primary and secondary entities)"
 msgstr ""
 
 #. module: base_invoicing
@@ -1402,6 +1647,11 @@ msgid "Has Message"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_number
+msgid "House"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_account_selectable_item_hybrid_view
 msgid ""
 "Hybrid SQL view for selectable items (config per billable model + category)"
@@ -1420,7 +1670,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__id
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__id
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__id
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__id
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__id
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__id
@@ -1438,8 +1687,8 @@ msgid "IM Status"
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
-msgid "IN PROGRESS"
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__irpf_tax_id
+msgid "IRPF Retention"
 msgstr ""
 
 #. module: base_invoicing
@@ -1536,11 +1785,6 @@ msgid "Incorrect value for \"Category Code\"."
 msgstr ""
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__industry_id
-msgid "Industry"
-msgstr ""
-
-#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contact_address_inline
 msgid "Inlined Complete Address"
 msgstr ""
@@ -1548,6 +1792,18 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__notes
 msgid "Internal Notes"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__queue_job_id
+msgid ""
+"Internal reference to the background job currently calculating (or that last"
+" calculated) this invoice set."
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__vies_valid
+msgid "Intra-Community Valid"
 msgstr ""
 
 #. module: base_invoicing
@@ -1565,7 +1821,7 @@ msgstr ""
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_selectable_item_hybrid_view.py:0
-msgid "Invalid view table name: %s"
+msgid "Invalid view table name: %(name)s"
 msgstr ""
 
 #. module: base_invoicing
@@ -1581,10 +1837,25 @@ msgid "Invoice Category"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_clause
+msgid "Invoice Clause"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_zero_census
+msgid "Invoice Community with Zero Census"
+msgstr ""
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_search
 msgid "Invoice Date"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_due_date
+msgid "Invoice Due Date"
 msgstr ""
 
 #. module: base_invoicing
@@ -1616,7 +1887,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__move_line_ids
 #: model:ir.ui.menu,name:base_invoicing.account_move_line_menu
 #: model_terms:ir.actions.act_window,help:base_invoicing.account_move_line_action
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_graph
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_template_form_view
@@ -1634,7 +1904,6 @@ msgstr ""
 #: model:ir.model,name:base_invoicing.model_account_invoiceset
 #: model:ir.model.fields,field_description:base_invoicing.field_account_bank_statement_line__invoiceset_id
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__invoiceset_id
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__invoiceset_id
 #: model:ir.model.fields,field_description:base_invoicing.field_account_move__invoiceset_id
 #: model:ir.model.fields,field_description:base_invoicing.field_account_move_line__invoiceset_id
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
@@ -1692,14 +1961,8 @@ msgid "Invoice Type"
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
-msgid "Invoice batch size for progress"
-msgstr ""
-
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_company__mass_invoicing_progress_batch_size
-#: model:ir.model.fields,field_description:base_invoicing.field_res_config_settings__mass_invoicing_progress_batch_size
-msgid "Invoice batch size for progress commits"
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_by_email
+msgid "Invoice by Email"
 msgstr ""
 
 #. module: base_invoicing
@@ -1722,17 +1985,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_sending_method
 msgid "Invoice sending"
-msgstr ""
-
-#. module: base_invoicing
-#: model:ir.model,name:base_invoicing.model_account_invoiceset_progress
-msgid "Invoice set calculation progress"
-msgstr ""
-
-#. module: base_invoicing
-#: model:ir.actions.server,name:base_invoicing.account_invoiceset_refresh_all_invoicesets_in_calculation_process_serveraction
-#: model:ir.ui.menu,name:base_invoicing.menu_technicalactions_refresh_invoicesets_in_calculation_process
-msgid "Invoice sets in calculation process stopped (global)"
 msgstr ""
 
 #. module: base_invoicing
@@ -1763,13 +2015,6 @@ msgid "Invoices Count"
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
-msgid ""
-"Invoices per batch when committing progress in background. Higher = faster "
-"generation, less frequent progress updates."
-msgstr ""
-
-#. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
@@ -1795,6 +2040,11 @@ msgid "Invoicing Date"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoicing_frequency
+msgid "Invoicing Frequency"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_coa_installed
 msgid "Is Coa Installed"
 msgstr ""
@@ -1806,13 +2056,48 @@ msgid "Is Follower"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_peppol_edi_format
+msgid "Is Peppol Edi Format"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_primary_entity
+msgid "Is Primary Entity"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_public
 msgid "Is Public"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_published
+msgid "Is Published"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_secondary_entity
+msgid "Is Secondary Entity"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_ubl_format
+msgid "Is Ubl Format"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_well_community
+msgid "Is Well Community"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__is_company
 msgid "Is a Company"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__calculated
+msgid "Is calculated"
 msgstr ""
 
 #. module: base_invoicing
@@ -1830,25 +2115,10 @@ msgid "It is not possible to delete a coded category."
 msgstr ""
 
 #. module: base_invoicing
-#. odoo-python
-#: code:addons/base_invoicing/models/account_invoiceset.py:0
-msgid ""
-"It is not possible to start the calculation of this invoice set, as another "
-"invoice set is currently being processed. You must wait until it finishes or"
-" interrupt it."
-msgstr ""
-
-#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_form_view_invoicing
 msgid ""
 "Jinja2 template for auxiliary description. Same variables as invoice line "
 "template."
-msgstr ""
-
-#. module: base_invoicing
-#. odoo-python
-#: code:addons/base_invoicing/models/product_category.py:0
-msgid "Jinja2 template variables"
 msgstr ""
 
 #. module: base_invoicing
@@ -1933,7 +2203,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__write_uid
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__write_uid
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__write_uid
@@ -1948,7 +2217,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__write_date
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__write_date
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__write_date
@@ -1963,6 +2231,16 @@ msgstr ""
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Last calculation"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__last_calculation_error
+msgid "Last calculation error"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__calendar_last_notif_ack
+msgid "Last notification marked as read from base Calendar"
 msgstr ""
 
 #. module: base_invoicing
@@ -1993,6 +2271,11 @@ msgid "Lot lines"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__industry_id
+msgid "Main Industry"
+msgstr ""
+
+#. module: base_invoicing
 #. odoo-javascript
 #: code:addons/base_invoicing/static/src/xml/button_back.xml:0
 msgid "Main actions"
@@ -2002,8 +2285,8 @@ msgstr ""
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category_invoice_line_field_map.py:0
 msgid ""
-"Many2one fields must have the same relation (invoice line: %(ml)s → "
-"%(ml_rel)s, billable: %(bi)s → %(bi_rel)s)."
+"Many2one fields must have the same relation (invoice line: %(ml)s -> "
+"%(ml_rel)s, billable: %(bi)s -> %(bi_rel)s)."
 msgstr ""
 
 #. module: base_invoicing
@@ -2012,8 +2295,33 @@ msgid "Map billable fields or default records to invoice line fields"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__is_well_community
+msgid "Marks this community as a well community."
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.ui.menu,name:base_invoicing.menu_finance_receivables_massive_invoicing
 msgid "Massive Invoicing"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__meeting_ids
+msgid "Meetings"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__member_ids
+msgid "Member"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__member_count
+msgid "Member Count"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__member_type_id
+msgid "Member Type"
 msgstr ""
 
 #. module: base_invoicing
@@ -2025,6 +2333,11 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__invoice_warn_msg
 msgid "Message for Invoice"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__purchase_warn_msg
+msgid "Message for Purchase Order"
 msgstr ""
 
 #. module: base_invoicing
@@ -2085,6 +2398,11 @@ msgid "Name"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__activity_date_deadline
 msgid "Next Activity Deadline"
 msgstr ""
@@ -2100,22 +2418,16 @@ msgid "Next Activity Type"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__no_paper_invoice
+msgid "No Paper Invoice"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_billable_item__number_of_invoices
 #: model:ir.model.fields,field_description:base_invoicing.field_base_invoicing_billable_item_test__number_of_invoices
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__number_of_invoices
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_list
 msgid "No. of invoices"
-msgstr ""
-
-#. module: base_invoicing
-#. odoo-python
-#: code:addons/base_invoicing/models/account_invoiceset.py:0
-msgid "No. of invoices:"
-msgstr ""
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
-msgid "No. of lines"
 msgstr ""
 
 #. module: base_invoicing
@@ -2148,6 +2460,11 @@ msgid "Number of Actions"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__reminder_date_before_receipt
+msgid "Number of days to send reminder email before the promised receipt date"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__message_has_error_counter
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__message_has_error_counter
 msgid "Number of errors"
@@ -2161,14 +2478,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__number_of_invoices
 msgid "Number of invoices"
-msgstr ""
-
-#. module: base_invoicing
-#: model:ir.model.fields,help:base_invoicing.field_res_company__mass_invoicing_progress_batch_size
-#: model:ir.model.fields,help:base_invoicing.field_res_config_settings__mass_invoicing_progress_batch_size
-msgid ""
-"Number of invoices per batch when committing progress in background mode. "
-"Higher = faster but less responsive progress bar."
 msgstr ""
 
 #. module: base_invoicing
@@ -2194,6 +2503,11 @@ msgid "Number of selected records"
 msgstr ""
 
 #. module: base_invoicing
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+msgid "Nº lines"
+msgstr ""
+
+#. module: base_invoicing
 #: model_terms:ir.actions.act_window,help:base_invoicing.product_product_action_invoicing
 msgid ""
 "Only categories with a billable model configured are shown when selecting a "
@@ -2202,9 +2516,7 @@ msgstr ""
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_product_category_invoice_line_field_map__billable_item_field_id
-msgid ""
-"Only fields compatible with the invoice line field are shown (e.g. "
-"Many2one→Many2one same relation)."
+msgid "Only compatible fields are shown (e.g. Many2one with same relation)."
 msgstr ""
 
 #. module: base_invoicing
@@ -2217,6 +2529,11 @@ msgstr ""
 msgid ""
 "Optional. If set, these taxes are applied to invoice lines instead of the "
 "product's taxes."
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__order_number
+msgid "Order Number"
 msgstr ""
 
 #. module: base_invoicing
@@ -2238,11 +2555,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_company_registry_placeholder
 msgid "Partner Company Registry Placeholder"
-msgstr ""
-
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__contract_ids
-msgid "Partner Contracts"
 msgstr ""
 
 #. module: base_invoicing
@@ -2294,14 +2606,48 @@ msgid "Payment Tokens"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payment_by_transfer
+msgid "Payment by Transfer"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__payment_by_transfer
+msgid "Payment by bank transfer"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__payments_blocked
+msgid "Payments Blocked"
+msgstr ""
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_category_search_view_invoicing
 msgid "Pending"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__peppol_endpoint
+msgid "Peppol Endpoint"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__peppol_eas
+msgid "Peppol e-address (EAS)"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__peppol_verification_state
+msgid "Peppol status"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset__invoice_generation_progress
-#: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_progress__invoice_generation_progress
 msgid "Percentage of progress during invoice generation"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__perform_vies_validation
+msgid "Perform Vies Validation"
 msgstr ""
 
 #. module: base_invoicing
@@ -2312,11 +2658,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_phone
 msgid "Phone of partner"
-msgstr ""
-
-#. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__pivot_view_id
-msgid "Pivot view"
 msgstr ""
 
 #. module: base_invoicing
@@ -2352,6 +2693,7 @@ msgstr ""
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__lst_price
+#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Price"
 msgstr ""
 
@@ -2361,13 +2703,36 @@ msgid "Pricelist"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__primary_census_line_ids
+msgid "Primary Census Line"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__primary_census_line_count
+msgid "Primary Census Line Count"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__primary_entity_ids
+msgid "Primary Entity"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__print_label
+msgid "Print Label"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__print_label
+msgid "Print labels for this client"
+msgstr ""
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.wizard_confirm_productlink_action_view_form
 msgid "Proceed with the operation?"
 msgstr ""
 
 #. module: base_invoicing
-#. odoo-python
-#: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: model:ir.model,name:base_invoicing.model_product_template
 #: model:ir.model.fields,field_description:base_invoicing.field_account_billable_item__product_id
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__product_id
@@ -2471,6 +2836,21 @@ msgid "Purchase"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__purchase_contract_count
+msgid "Purchase Contracts"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__purchase_order_count
+msgid "Purchase Order Count"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__purchase_warn
+msgid "Purchase Order Warning"
+msgstr ""
+
+#. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/product_category.py:0
 msgid "Q1/%s"
@@ -2517,6 +2897,16 @@ msgid "Quantity ratio"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model,name:base_invoicing.model_queue_job
+msgid "Queue Job"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__receipt_reminder_email
+msgid "Receipt Reminder"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__ref
 msgid "Reference"
 msgstr ""
@@ -2553,27 +2943,29 @@ msgid "Responsible User"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__website_id
+msgid "Restrict to a specific website."
+msgstr ""
+
+#. module: base_invoicing
 #. odoo-javascript
 #: code:addons/base_invoicing/static/src/xml/button_back.xml:0
 msgid "Return"
 msgstr ""
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_company__mass_invoicing_run_background
-#: model:ir.model.fields,field_description:base_invoicing.field_res_config_settings__mass_invoicing_run_background
-msgid "Run invoice set calculation in background"
-msgstr ""
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.res_config_settings_view_form_inherit_base_invoicing
-msgid ""
-"Run the generation of the invoice set in the background, allowing "
-"interruption."
-msgstr ""
-
-#. module: base_invoicing
 #: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset__journal_type__sale
 msgid "Sale"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__sale_contract_count
+msgid "Sale Contracts"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__sale_tax_id
+msgid "Sale Tax"
 msgstr ""
 
 #. module: base_invoicing
@@ -2617,13 +3009,17 @@ msgid "Search view"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__secondary_industry_ids
+msgid "Secondary Industries"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset_productlink__display_type__line_section
 msgid "Section"
 msgstr ""
 
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_invoiceset_productlink__line_name
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 msgid "Section / Note"
 msgstr ""
 
@@ -2633,11 +3029,20 @@ msgid "Select"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__customer_payment_mode_id
+msgid "Select the default payment mode for this customer."
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__supplier_payment_mode_id
+msgid "Select the default payment mode for this supplier."
+msgstr ""
+
+#. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 #: code:addons/base_invoicing/models/product_category.py:0
 #: code:addons/base_invoicing/models/product_template.py:0
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 #: model_terms:ir.ui.view,arch_db:base_invoicing.product_template_form_view
 msgid "Selectable Items"
@@ -2707,6 +3112,7 @@ msgstr ""
 
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__invoice_warn
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__purchase_warn
 msgid ""
 "Selecting the \"Warning\" option will notify user with the message, "
 "Selecting \"Blocking Message\" will throw an exception with the message and "
@@ -2726,6 +3132,11 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__self
 msgid "Self"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__invoice_by_email
+msgid "Send invoices by email"
 msgstr ""
 
 #. module: base_invoicing
@@ -2769,6 +3180,11 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__show_credit_limit
 msgid "Show Credit Limit"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__show_partner_industry_for_person
+msgid "Show Partner Industry For Person"
 msgstr ""
 
 #. module: base_invoicing
@@ -2826,13 +3242,28 @@ msgid ""
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
-msgid "Stop Calculation"
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street
+msgid "Street"
 msgstr ""
 
 #. module: base_invoicing
-#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street
-msgid "Street"
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_name
+msgid "Street Name"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_type_id
+msgid "Street type"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model,name:base_invoicing.model_res_config_settings
+msgid "Street type settings"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__street_type_shown
+msgid "Street type shown"
 msgstr ""
 
 #. module: base_invoicing
@@ -2843,6 +3274,16 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__productlink_summary
 msgid "Summary of products with selected quantities for kanban display."
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__property_purchase_currency_id
+msgid "Supplier Currency"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__supplier_payment_mode_id
+msgid "Supplier Payment Mode"
 msgstr ""
 
 #. module: base_invoicing
@@ -2986,6 +3427,11 @@ msgid ""
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__website_url
+msgid "The full URL to access the document through the website."
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__user_id
 msgid "The internal user in charge of this contact."
 msgstr ""
@@ -3010,6 +3456,12 @@ msgid "The variable or attribute '%s' is not defined."
 msgstr ""
 
 #. module: base_invoicing
+#. odoo-python
+#: code:addons/base_invoicing/models/account_invoiceset.py:0
+msgid "There is no background job linked to this invoice set."
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__property_account_payable_id
 msgid ""
 "This account will be used instead of the default one as the payable account "
@@ -3021,6 +3473,13 @@ msgstr ""
 msgid ""
 "This account will be used instead of the default one as the receivable "
 "account for the current partner"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__property_purchase_currency_id
+msgid ""
+"This currency will be used, instead of the default one, for purchases from "
+"the current partner"
 msgstr ""
 
 #. module: base_invoicing
@@ -3075,11 +3534,6 @@ msgid "Title"
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
-msgid "To Validate"
-msgstr ""
-
-#. module: base_invoicing
 #. odoo-javascript
 #: code:addons/base_invoicing/static/src/js/selectable_item_hybrid_list.esm.js:0
 msgid "Toggle"
@@ -3122,12 +3576,25 @@ msgid "Total amount you have to pay to this vendor."
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__last_calculation_error
+msgid ""
+"Traceback or message of the last error raised during the invoice generation "
+"process. Cleared when a new calculation starts."
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr ""
 
 #. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__peppol_endpoint
+msgid ""
+"Unique identifier used by the BIS Billing 3.0 and its derivatives, also "
+"known as 'Endpoint ID'."
+msgstr ""
+
+#. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_move_line_view_list
 msgid "Unit Price"
 msgstr ""
@@ -3157,11 +3624,6 @@ msgstr ""
 #. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__partner_vat
 msgid "VAT of partner"
-msgstr ""
-
-#. module: base_invoicing
-#: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_form
-msgid "Validated"
 msgstr ""
 
 #. module: base_invoicing
@@ -3202,14 +3664,34 @@ msgid "Vendor Payment Terms"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__vies_vat_to_check
+msgid "Vies Vat To Check"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_account_selectable_item_hybrid_view__view_table
 msgid "View table name"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__website_published
+msgid "Visible on current website"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__visitor_ids
+msgid "Visitors"
 msgstr ""
 
 #. module: base_invoicing
 #. odoo-python
 #: code:addons/base_invoicing/models/account_invoiceset.py:0
 msgid "Warning"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__website_id
+msgid "Website"
 msgstr ""
 
 #. module: base_invoicing
@@ -3224,9 +3706,21 @@ msgid "Website Messages"
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__website_url
+msgid "Website URL"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,help:base_invoicing.field_account_invoiceset__website_message_ids
 #: model:ir.model.fields,help:base_invoicing.field_res_fee__website_message_ids
 msgid "Website communication history"
+msgstr ""
+
+#. module: base_invoicing
+#: model:ir.model.fields,help:base_invoicing.field_res_fee__exclude_from_invoicing
+msgid ""
+"When checked, this participant will be skipped during the batch invoicing "
+"process."
 msgstr ""
 
 #. module: base_invoicing
@@ -3319,6 +3813,11 @@ msgid ""
 msgstr ""
 
 #. module: base_invoicing
+#: model:ir.model.fields,field_description:base_invoicing.field_res_fee__zip_id
+msgid "ZIP Location"
+msgstr ""
+
+#. module: base_invoicing
 #: model:ir.model.fields,field_description:base_invoicing.field_res_fee__zip
 msgid "Zip"
 msgstr ""
@@ -3333,12 +3832,6 @@ msgstr ""
 #. module: base_invoicing
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_kanban
 msgid "cancelled"
-msgstr ""
-
-#. module: base_invoicing
-#. odoo-python
-#: code:addons/base_invoicing/models/product_category.py:0
-msgid "cat. #"
 msgstr ""
 
 #. module: base_invoicing

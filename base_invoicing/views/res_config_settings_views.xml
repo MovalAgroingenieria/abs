@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
 
     <record id="res_config_settings_view_form_inherit_base_invoicing" model="ir.ui.view">
@@ -22,23 +22,6 @@
                         </div>
                     </setting>
 
-                    <setting
-                        id="mass_invoicing_run_background"
-                        string="Background execution"
-                        company_dependent="1"
-                        help="Run the generation of the invoice set in the background, allowing interruption."
-                    >
-                        <field name="mass_invoicing_run_background" />
-                    </setting>
-
-                    <setting
-                        id="mass_invoicing_progress_batch_size"
-                        string="Invoice batch size for progress"
-                        company_dependent="1"
-                        help="Invoices per batch when committing progress in background. Higher = faster generation, less frequent progress updates."
-                    >
-                        <field name="mass_invoicing_progress_batch_size" />
-                    </setting>
                 </block>
             </xpath>
         </field>

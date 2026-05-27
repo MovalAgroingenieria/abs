@@ -39,7 +39,6 @@ class AccountBillableItem(models.AbstractModel):
         comodel_name="product.product",
         index=True,
         ondelete="restrict",
-        string="Product",
     )
     move_line_ids = fields.One2many(
         comodel_name="account.move.line",

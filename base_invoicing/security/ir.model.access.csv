@@ -10,5 +10,4 @@ access_wizard_confirm_productlink_action_rule_group_account_invoice,access.wizar
 res_fee_rule_group_user,res.fee.rule.group.user,base_invoicing.model_res_fee,base.group_user,1,1,1,1
 account_selectable_item_rule_group_account_invoice,account.selectable.item.rule.group.account.invoice,base_invoicing.model_account_selectable_item,account.group_account_invoice,1,1,1,1
 access_account_selectable_item_hybrid_view_group_config,access.account.selectable.item.hybrid.view.group.config,base_invoicing.model_account_selectable_item_hybrid_view,base_invoicing.group_account_invoiceset_config,1,1,1,1
-account_invoiceset_progress_rule_group_account_invoice,account.invoiceset.progress.rule.group.account.invoice,base_invoicing.model_account_invoiceset_progress,account.group_account_invoice,1,1,1,1
 access_billable_item_test_rule_group_user,access.billable.item.test.rule.group.user,base_invoicing.model_base_invoicing_billable_item_test,base.group_user,1,0,0,0

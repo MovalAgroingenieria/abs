@@ -11,7 +11,6 @@ class TestAccountInvoiceset(TransactionCase):
     def setUpClass(cls):  # pylint: disable=invalid-name
         super().setUpClass()
         cls.Invoiceset = cls.env["account.invoiceset"]
-        cls.Progress = cls.env["account.invoiceset.progress"]
 
     def _create_invoiceset(self, **vals):
         base = {
@@ -22,11 +21,6 @@ class TestAccountInvoiceset(TransactionCase):
         }
         base.update(vals)
         return self.Invoiceset.create(base)
-
-    def test_create_creates_progress_row(self):
-        invset = self._create_invoiceset(alphanum_code="SET-0002")
-        progress = self.Progress.search([("invoiceset_id", "=", invset.id)], limit=1)
-        self.assertTrue(progress, "Progress record must be created along invoiceset")
 
     def test_compute_display_name(self):
         invset = self._create_invoiceset(alphanum_code="SET-0003", description="My set")

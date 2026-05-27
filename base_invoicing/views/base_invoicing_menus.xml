@@ -1,12 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
 
     <menuitem
         id="menu_finance_receivables_massive_invoicing"
         name="Massive Invoicing"
-        parent="account.menu_finance_receivables"
-        sequence="120"
+        parent="account.menu_finance"
+        sequence="4"
     />
+
+    <!-- Push Accounting menu after our menu -->
+    <record id="account.menu_finance_entries" model="ir.ui.menu">
+        <field name="sequence" eval="5" />
+    </record>
 
     <menuitem
         id="menu_technicalactions"

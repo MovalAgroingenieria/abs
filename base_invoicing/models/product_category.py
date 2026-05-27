@@ -8,6 +8,7 @@
 
 import logging
 import re
+from datetime import date
 
 from jinja2 import Environment, StrictUndefined, TemplateError
 from odoo import api, fields, models
@@ -52,10 +53,8 @@ def _quarter_labels_from_date(env, dt, lang=None):
                 limit=1,
             )
             return trans.value if trans and trans.value else src
-        except Exception:
+        except (ValueError, KeyError, AttributeError):
             return src
-
-    from datetime import date
 
     if not dt:
         today = date.today()
@@ -72,42 +71,6 @@ def _quarter_labels_from_date(env, dt, lang=None):
         "third_q": fmts[2] % year,
         "fourth_q": fmts[3] % year,
     }
-
-
-def get_jinja2_template_context(env, billable_item, **kwargs):
-    """Build context dict for Jinja2 templates (billable_item_detail_desc, aux_desc).
-
-    Optional kwargs: invoiceset, productlink, product, partner, quantity,
-    invoice_index, groupvalue.
-    """
-    invoiceset = kwargs.get("invoiceset")
-    partner = kwargs.get("partner")
-    ctx = {"billable_item": billable_item}
-    dt = invoiceset.invoice_date if invoiceset else None
-    lang = partner.lang if partner else None
-    ctx.update(_quarter_labels_from_date(env, dt, lang=lang))
-    ctx["invoice_date"] = dt
-    ctx["groupvalue"] = kwargs.get("groupvalue") or ""
-    if kwargs.get("product"):
-        ctx["product"] = kwargs["product"]
-    if partner:
-        ctx["partner"] = partner
-    if kwargs.get("quantity") is not None:
-        ctx["quantity"] = kwargs["quantity"]
-    if invoiceset:
-        ctx["invoiceset_code"] = invoiceset.alphanum_code or ""
-    if kwargs.get("invoice_index") is not None:
-        ctx["invoice_index"] = kwargs["invoice_index"]
-    # n_invoiced: count of invoice lines for this billable item
-    if billable_item and env:
-        count = env["account.move.line"].search_count(
-            [
-                ("billable_item_model", "=", billable_item._name),
-                ("billable_item_res_id", "=", billable_item.id),
-            ]
-        )
-        ctx["n_invoiced"] = count
-    return ctx
 
 
 class ProductCategory(models.Model):
@@ -135,7 +98,8 @@ class ProductCategory(models.Model):
     billable_item_quantity_field_id = fields.Many2one(
         comodel_name="ir.model.fields",
         string="Quantity Field",
-        domain="[('model_id', '=', billable_item_model_id), ('ttype', 'in', ('integer', 'float'))]",
+        domain="[('model_id', '=', billable_item_model_id),"
+        " ('ttype', 'in', ('integer', 'float'))]",
         ondelete="set null",
         tracking=True,
     )
@@ -154,7 +118,9 @@ class ProductCategory(models.Model):
     billable_item_group_field_id = fields.Many2one(
         comodel_name="ir.model.fields",
         string="Field for grouping",
-        domain="[('model_id', '=', billable_item_model_id), ('ttype', 'in', ('boolean', 'char', 'date', 'selection', 'many2one'))]",
+        domain="[('model_id', '=', billable_item_model_id),"
+        " ('ttype', 'in', ('boolean', 'char', 'date',"
+        " 'selection', 'many2one'))]",
         ondelete="set null",
         tracking=True,
     )
@@ -170,7 +136,8 @@ class ProductCategory(models.Model):
     )
     billable_item_domain = fields.Char(
         string="Pre-filter on billable items",
-        help="Domain applied to billable items before selection. Use the standard domain editor.",
+        help="Domain applied to billable items before selection."
+        " Use the standard domain editor.",
         tracking=True,
     )
 
@@ -207,9 +174,11 @@ class ProductCategory(models.Model):
         column2="tax_id",
         string="Customer Taxes (override)",
         domain="[('type_tax_use', '=', 'sale')]",
-        help="Optional. If set, these taxes are applied to invoice lines instead of the product's taxes.",
+        help="Optional. If set, these taxes are applied to invoice"
+        " lines instead of the product's taxes.",
     )
-    # Map billable item fields → account.move.line fields (e.g. analytic_account_id, ter_parcel_id)
+    # Map billable item fields -> account.move.line fields
+    # (e.g. analytic_account_id, ter_parcel_id)
     move_line_field_map_ids = fields.One2many(
         comodel_name="product.category.invoice.line.field.map",
         inverse_name="category_id",
@@ -235,6 +204,46 @@ class ProductCategory(models.Model):
     # -------------------------------------------------------------------------
     # Helpers
     # -------------------------------------------------------------------------
+
+    @api.model
+    def get_jinja2_template_context(self, billable_item, **kwargs):
+        """Build context dict for Jinja2 templates.
+
+        Used by billable_item_detail_desc and aux_desc rendering.
+
+        Args:
+            billable_item: recordset of the billable item
+            **kwargs: invoiceset, productlink, product, partner, quantity,
+                      invoice_index, groupvalue.
+        """
+        invoiceset = kwargs.get("invoiceset")
+        partner = kwargs.get("partner")
+        ctx = {"billable_item": billable_item}
+        dt = invoiceset.invoice_date if invoiceset else None
+        lang = partner.lang if partner else None
+        ctx.update(_quarter_labels_from_date(self.env, dt, lang=lang))
+        ctx["invoice_date"] = dt
+        ctx["groupvalue"] = kwargs.get("groupvalue") or ""
+        if kwargs.get("product"):
+            ctx["product"] = kwargs["product"]
+        if partner:
+            ctx["partner"] = partner
+        if kwargs.get("quantity") is not None:
+            ctx["quantity"] = kwargs["quantity"]
+        if invoiceset:
+            ctx["invoiceset_code"] = invoiceset.alphanum_code or ""
+        if kwargs.get("invoice_index") is not None:
+            ctx["invoice_index"] = kwargs["invoice_index"]
+        # n_invoiced: count of invoice lines for this billable item
+        if billable_item:
+            count = self.env["account.move.line"].search_count(
+                [
+                    ("billable_item_model", "=", billable_item._name),
+                    ("billable_item_res_id", "=", billable_item.id),
+                ]
+            )
+            ctx["n_invoiced"] = count
+        return ctx
 
     @api.model
     def _get_billable_item_model_domain(self):
@@ -294,7 +303,9 @@ class ProductCategory(models.Model):
         except (ValueError, SyntaxError):
             return []
 
-    def _ensure_billable_model_indexes(self, category):  # noqa: C901
+    def _ensure_billable_model_indexes(
+        self, category
+    ):  # noqa: C901  # pylint: disable=R0912,R0914,R0915
         """
         Ensure indexes exist on the billable model table for fields used in
         search, grouping and domain. Improves invoice generation performance.
@@ -375,19 +386,20 @@ class ProductCategory(models.Model):
                 # Char -> varchar_pattern_ops; Text -> text_pattern_ops
                 ftype = getattr(field, "type", None) or ""
                 if ftype == "char":
-                    cr.execute(
+                    cr.execute(  # pylint: disable=E8103
                         f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" '
                         f'("{col}" varchar_pattern_ops)'
                     )
                 elif ftype == "text":
-                    cr.execute(
+                    cr.execute(  # pylint: disable=E8103
                         f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" '
                         f'("{col}" text_pattern_ops)'
                     )
                 else:
-                    # many2one, integer, float, date, datetime, boolean: standard B-tree
-                    cr.execute(
-                        f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" ("{col}")'
+                    # many2one, integer, float, date, datetime, boolean
+                    cr.execute(  # pylint: disable=E8103
+                        f'CREATE INDEX IF NOT EXISTS "{idx_name}"'
+                        f' ON "{table}" ("{col}")'
                     )
                 _logger.info(
                     "[base_invoicing] Created index %s on %s(%s) type=%s",
@@ -396,7 +408,7 @@ class ProductCategory(models.Model):
                     col,
                     ftype,
                 )
-            except Exception as err:
+            except Exception as err:  # pylint: disable=W0718
                 _logger.warning(
                     "[base_invoicing] Could not create index on %s.%s: %s",
                     table,
@@ -456,7 +468,8 @@ class ProductCategory(models.Model):
                 else "billable_item"
             )
             return self.env._(
-                "The attribute '%(attr)s' does not exist in the billable item model (%(model)s).",
+                "The attribute '%(attr)s' does not exist in the "
+                "billable item model (%(model)s).",
                 attr=attr,
                 model=model_name,
             )
@@ -468,7 +481,9 @@ class ProductCategory(models.Model):
             )
         return str(err_msg)
 
-    def _validate_jinja2_template(self, template_str, lang_code=None):
+    def _validate_jinja2_template(
+        self, template_str, lang_code=None
+    ):  # pylint: disable=W0613
         """Validate Jinja2 template. Returns (True, None) or (False, error_msg).
         Uses StrictUndefined to catch non-existent attributes (e.g. billable_item.asx).
         """
@@ -495,11 +510,11 @@ class ProductCategory(models.Model):
                         "__str__": lambda s: "",
                     },
                 )()
-            mock_ctx = get_jinja2_template_context(self.env, mock_item, quantity=0)
+            mock_ctx = self.get_jinja2_template_context(mock_item, quantity=0)
             template.render(**mock_ctx)
         except TemplateError as err:
             return False, self._humanize_template_error(err)
-        except Exception as err:
+        except Exception as err:  # pylint: disable=W0718
             return False, self._humanize_template_error(err)
         return True, None
 
@@ -520,9 +535,9 @@ class ProductCategory(models.Model):
 
     @api.onchange("billable_item_detail_desc")
     def _onchange_billable_item_detail_desc(self):
-        """Validate Jinja2 template on change. Checks current language value."""
+        """Validate Jinja2 template on change."""
         if not self.billable_item_detail_desc:
-            return
+            return None
         ok, err = self._validate_jinja2_template(self.billable_item_detail_desc)
         if not ok:
             return {
@@ -531,12 +546,13 @@ class ProductCategory(models.Model):
                     "message": self.env._("Template error: %s", err),
                 }
             }
+        return None
 
     @api.onchange("aux_desc")
     def _onchange_aux_desc(self):
-        """Validate Jinja2 template for selection lines on change."""
+        """Validate Jinja2 template for selection lines."""
         if not self.aux_desc:
-            return
+            return None
         ok, err = self._validate_jinja2_template(self.aux_desc)
         if not ok:
             return {
@@ -545,6 +561,7 @@ class ProductCategory(models.Model):
                     "message": self.env._("Template error: %s", err),
                 }
             }
+        return None
 
     def _sync_billable_item_quantity_label_translations(self):
         """Copy translations from ir.model.fields.field_description to label."""
@@ -681,7 +698,7 @@ class ProductCategory(models.Model):
                         (
                             name
                             for code, name in self.env["res.lang"].get_installed()
-                            if code == lang_code or f"_{code}" == lang_code
+                            if lang_code in (code, f"_{code}")
                         ),
                         lang_code or self.env.lang,
                     )
@@ -717,7 +734,7 @@ class ProductCategory(models.Model):
                         (
                             name
                             for code, name in self.env["res.lang"].get_installed()
-                            if code == lang_code or f"_{code}" == lang_code
+                            if lang_code in (code, f"_{code}")
                         ),
                         lang_code or self.env.lang,
                     )

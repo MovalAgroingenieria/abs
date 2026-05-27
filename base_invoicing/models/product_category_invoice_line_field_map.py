@@ -1,9 +1,8 @@
 # 2025-2026 Moval Agroingeniería
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 # pylint: disable=protected-access
-# pylint: disable=translation-not-lazy
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -57,25 +56,27 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
         comodel_name="ir.model.fields",
         relation="product_category_invoice_line_field_map_compatible_fields_rel",
         string="Compatible billable fields",
-        help="Technical: updated by onchange when move_line_field_id changes. Used for domain.",
+        help="Technical: updated by onchange when "
+        "move_line_field_id changes. Used for domain.",
     )
     billable_item_field_id = fields.Many2one(
         comodel_name="ir.model.fields",
-        string="Billable Item Field",
         ondelete="cascade",
         domain="[('id', 'in', compatible_billable_field_ids)]",
-        help="Only fields compatible with the invoice line field are shown (e.g. Many2one→Many2one same relation).",
+        help="Only compatible fields are shown " "(e.g. Many2one with same relation).",
     )
     default_record_ref = fields.Reference(
         selection="_selection_default_record_models",
         string="Default record",
-        help="Fixed record for many2one/analytic fields when value source is 'Fixed'. "
-        "Must match the invoice line field's model (e.g. analytic account for analytic_distribution).",
+        help="Fixed record for many2one/analytic fields "
+        "when value source is 'Fixed'. Must match the "
+        "invoice line field's model.",
     )
     fixed_value = fields.Char(
         string="Fixed value",
-        help="Fixed value for selection/char/text/integer/etc when value source is 'Fixed'. "
-        "For selection: enter the key (e.g. 'asset_receivable'). For char/text: the string.",
+        help="Fixed value for selection/char/text/integer/etc"
+        " when value source is 'Fixed'. "
+        "For selection: enter the key.",
     )
     move_line_field_ttype = fields.Selection(
         related="move_line_field_id.ttype",
@@ -97,9 +98,13 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
 
     @api.model
     def _selection_default_record_models(self):
-        """Models valid as default records. When move_line_field_id is set, restrict to that field's model."""
-        IrModel = self.env["ir.model"]
-        IrModelFields = self.env["ir.model.fields"]
+        """Models valid as default records.
+
+        When move_line_field_id is set, restrict to that
+        field's model.
+        """
+        ir_model = self.env["ir.model"]
+        ir_fields = self.env["ir.model.fields"]
         relations = None
         if len(self) == 1 and self.move_line_field_id:
             ml = self.move_line_field_id
@@ -112,21 +117,24 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
                 ("model", "=", "account.move.line"),
                 ("ttype", "=", "many2one"),
             ]
-            relations = IrModelFields.search(domain).mapped("relation") + [
+            relations = ir_fields.search(domain).mapped("relation") + [
                 "account.analytic.account"
             ]
             relations = sorted(set(r for r in relations if r and self.env.get(r)))
-        model_recs = IrModel.search([("model", "in", relations)], order="name")
+        model_recs = ir_model.search([("model", "in", relations)], order="name")
         return [(m.model, m.name) for m in model_recs]
 
     def _update_compatible_billable_field_ids(self):
-        """Set compatible_billable_field_ids from domain (called by onchange so client receives updated value)."""
-        IrModelFields = self.env["ir.model.fields"]
+        """Set compatible_billable_field_ids from domain.
+
+        Called by onchange so client receives updated value.
+        """
+        ir_fields = self.env["ir.model.fields"]
         if self.value_source == "fixed":
-            self.compatible_billable_field_ids = IrModelFields
+            self.compatible_billable_field_ids = ir_fields
         else:
             domain = self._get_billable_field_compatible_domain()
-            self.compatible_billable_field_ids = IrModelFields.search(domain)
+            self.compatible_billable_field_ids = ir_fields.search(domain)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -160,7 +168,10 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
         self._update_compatible_billable_field_ids()
 
     def _move_line_field_expects_record(self):
-        """True if move_line_field expects a record (many2one/analytic), else expects a simple value."""
+        """True if move_line_field expects a record.
+
+        Applies to many2one or analytic_distribution.
+        """
         self.ensure_one()
         ml = self.move_line_field_id
         if not ml:
@@ -205,7 +216,10 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
         self._update_compatible_billable_field_ids()
 
     def _get_billable_field_compatible_domain(self):
-        """Return domain for billable_item_field_id so only compatible fields are shown."""
+        """Return domain for billable_item_field_id.
+
+        Only compatible fields are shown.
+        """
         if not self.billable_model_id:
             return [("id", "=", 0)]
         base = [("model_id", "=", self.billable_model_id.id)]
@@ -238,7 +252,10 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
 
     @api.onchange("move_line_field_id")
     def _onchange_move_line_field_id(self):
-        """Apply domain to billable field, clear incompatible selections and default_record_ref."""
+        """Apply domain to billable field.
+
+        Clear incompatible selections and default_record_ref.
+        """
         if self.default_record_ref and self.move_line_field_id:
             expected = (
                 "account.analytic.account"
@@ -275,122 +292,141 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
         "default_record_ref",
         "fixed_value",
     )
-    def _check_field_compatibility(self):  # noqa: C901
+    def _check_field_compatibility(self):
         """Ensure field types are compatible for copying."""
         for rec in self:
             if not rec.move_line_field_id or not rec.category_id:
                 continue
             ml_field = rec.move_line_field_id
-            ml_ttype = ml_field.ttype
-
             # Value source requirements
-            if rec.value_source == "fixed":
-                expects_record = rec._move_line_field_expects_record()
-                if expects_record:
-                    if not rec.default_record_ref:
-                        raise ValidationError(
-                            _(
-                                "When value source is 'Fixed' and invoice line field is Many2one, a default record must be set."
-                            )
-                        )
-                    rec._check_default_record_model(ml_field)
-                else:
-                    if not rec.fixed_value or not rec.fixed_value.strip():
-                        raise ValidationError(
-                            _(
-                                "When value source is 'Fixed' and invoice line field is Selection/Char/etc, a fixed value must be set."
-                            )
-                        )
+            if rec._check_value_source_requirements(ml_field):
                 continue
-            if rec.value_source == "from_billable" and not rec.billable_item_field_id:
-                raise ValidationError(
-                    _(
-                        "When value source is 'From billable field', a billable item field must be set."
-                    )
-                )
-            if rec.value_source == "billable_or_fixed":
-                expects_record = rec._move_line_field_expects_record()
-                has_fallback = (
-                    rec.default_record_ref
-                    if expects_record
-                    else (rec.fixed_value and rec.fixed_value.strip())
-                )
-                if not rec.billable_item_field_id and not has_fallback:
-                    raise ValidationError(
-                        _(
-                            "When value source is 'Billable or fixed', set a billable item field and/or a default record/value."
-                        )
-                    )
-
             bi_field = rec.billable_item_field_id
             if not bi_field:
                 continue
-            bi_ttype = bi_field.ttype
 
-            # Same simple type: direct copy (including selection)
-            if ml_ttype == bi_ttype and ml_ttype in (
-                "char",
-                "text",
-                "integer",
-                "float",
-                "boolean",
-                "date",
-                "datetime",
-                "selection",
-            ):
-                continue
-
-            # Many2one cases
-            if ml_ttype == "many2one" and bi_ttype == "many2one":
-                if ml_field.relation == bi_field.relation:
-                    continue
-                # Billable field points to the billable model itself: use record id
-                billable_model = rec.category_id.billable_item_model_id.model
-                if (
-                    ml_field.relation == billable_model
-                    and bi_field.relation == billable_model
-                ):
-                    continue  # Same model, OK
-                raise ValidationError(
-                    _(
-                        "Many2one fields must have the same relation "
-                        "(invoice line: %(ml)s → %(ml_rel)s, billable: %(bi)s → %(bi_rel)s)."
-                    )
-                    % {
-                        "ml": ml_field.name,
-                        "ml_rel": ml_field.relation,
-                        "bi": bi_field.name,
-                        "bi_rel": bi_field.relation,
-                    }
-                )
-
-            # Analytic: billable has analytic_account_id (many2one) → move line has analytic_distribution (json)
-            if (
-                ml_field.name == "analytic_distribution"
-                and bi_ttype == "many2one"
-                and bi_field.relation == "account.analytic.account"
-            ):
-                continue
-
-            if ml_ttype != bi_ttype:
-                raise ValidationError(
-                    _(
-                        "Incompatible field types: invoice line field '%(ml)s' (%(ml_t)s) "
-                        "vs billable field '%(bi)s' (%(bi_t)s)."
-                    )
-                    % {
-                        "ml": ml_field.name,
-                        "ml_t": ml_ttype,
-                        "bi": bi_field.name,
-                        "bi_t": bi_ttype,
-                    }
-                )
+            rec._check_type_compatibility(ml_field, bi_field)
 
             if rec.default_record_ref:
                 rec._check_default_record_model(ml_field)
 
+    def _check_value_source_requirements(self, ml_field):
+        """Validate value_source constraints. Return True to skip type check."""
+        self.ensure_one()
+        if self.value_source == "fixed":
+            expects_record = self._move_line_field_expects_record()
+            if expects_record:
+                if not self.default_record_ref:
+                    raise ValidationError(
+                        self.env._(
+                            "When value source is 'Fixed' and "
+                            "invoice line field is Many2one, "
+                            "a default record must be set."
+                        )
+                    )
+                self._check_default_record_model(ml_field)
+            else:
+                if not self.fixed_value or not self.fixed_value.strip():
+                    raise ValidationError(
+                        self.env._(
+                            "When value source is 'Fixed' and "
+                            "invoice line field is "
+                            "Selection/Char/etc, "
+                            "a fixed value must be set."
+                        )
+                    )
+            return True
+        if self.value_source == "from_billable" and not self.billable_item_field_id:
+            raise ValidationError(
+                self.env._(
+                    "When value source is 'From billable "
+                    "field', a billable item field must "
+                    "be set."
+                )
+            )
+        if self.value_source == "billable_or_fixed":
+            expects_record = self._move_line_field_expects_record()
+            has_fallback = (
+                self.default_record_ref
+                if expects_record
+                else (self.fixed_value and self.fixed_value.strip())
+            )
+            if not self.billable_item_field_id and not has_fallback:
+                raise ValidationError(
+                    self.env._(
+                        "When value source is 'Billable or "
+                        "fixed', set a billable item field "
+                        "and/or a default record/value."
+                    )
+                )
+        return False
+
+    def _check_type_compatibility(self, ml_field, bi_field):
+        """Check that ml_field and bi_field types are compatible."""
+        self.ensure_one()
+        ml_ttype = ml_field.ttype
+        bi_ttype = bi_field.ttype
+
+        # Same simple type: direct copy (including selection)
+        simple_types = (
+            "char",
+            "text",
+            "integer",
+            "float",
+            "boolean",
+            "date",
+            "datetime",
+            "selection",
+        )
+        if ml_ttype == bi_ttype and ml_ttype in simple_types:
+            return
+
+        # Many2one cases
+        if ml_ttype == "many2one" and bi_ttype == "many2one":
+            if ml_field.relation == bi_field.relation:
+                return
+            billable_model = self.category_id.billable_item_model_id.model
+            if (
+                ml_field.relation == billable_model
+                and bi_field.relation == billable_model
+            ):
+                return
+            raise ValidationError(
+                self.env._(
+                    "Many2one fields must have the same "
+                    "relation (invoice line: %(ml)s -> "
+                    "%(ml_rel)s, billable: %(bi)s -> "
+                    "%(bi_rel)s).",
+                    ml=ml_field.name,
+                    ml_rel=ml_field.relation,
+                    bi=bi_field.name,
+                    bi_rel=bi_field.relation,
+                )
+            )
+
+        # Analytic: many2one -> analytic_distribution (json)
+        if (
+            ml_field.name == "analytic_distribution"
+            and bi_ttype == "many2one"
+            and bi_field.relation == "account.analytic.account"
+        ):
+            return
+
+        if ml_ttype != bi_ttype:
+            raise ValidationError(
+                self.env._(
+                    "Incompatible field types: invoice "
+                    "line field '%(ml)s' (%(ml_t)s) vs "
+                    "billable field '%(bi)s' (%(bi_t)s).",
+                    ml=ml_field.name,
+                    ml_t=ml_ttype,
+                    bi=bi_field.name,
+                    bi_t=bi_ttype,
+                )
+            )
+
     def _check_default_record_model(self, ml_field):
-        """Ensure default_record_ref model matches move line field's expected type."""
+        """Ensure default_record_ref model matches expected type."""
         self.ensure_one()
         if not self.default_record_ref:
             return
@@ -400,13 +436,12 @@ class ProductCategoryInvoiceLineFieldMap(models.Model):
             expected = "account.analytic.account"
         if expected and ref_model != expected:
             raise ValidationError(
-                _(
-                    "Default record must be of type %(expected)s (matching invoice line field %(field)s), "
-                    "got %(got)s."
+                self.env._(
+                    "Default record must be of type "
+                    "%(expected)s (matching invoice line "
+                    "field %(field)s), got %(got)s.",
+                    expected=expected,
+                    field=ml_field.name,
+                    got=ref_model,
                 )
-                % {
-                    "expected": expected,
-                    "field": ml_field.name,
-                    "got": ref_model,
-                }
             )
