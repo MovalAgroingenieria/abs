@@ -88,7 +88,7 @@ class AccountMoveLine(models.Model):
                        with_abstract_model):
                         my_billable_item = \
                             self.env[billable_item_model].sudo().browse(
-                                billable_item_res_id)
+                                billable_item_res_id).exists()
                         if my_billable_item:
                             my_billable_item.number_of_invoices = \
                                 my_billable_item.number_of_invoices + 1
@@ -96,17 +96,32 @@ class AccountMoveLine(models.Model):
         return move_lines
 
     def unlink(self):
+        self.env.cr.execute(
+            """
+            SELECT id, billable_item_model, billable_item_res_id
+              FROM account_move_line
+             WHERE id IN %s
+            """,
+            (tuple(self.ids),)
+        )
+        move_line_data = {
+            row['id']: row for row in self.env.cr.dictfetchall()
+        }
         for record in self:
-            billable_item_model = record.billable_item_model
-            billable_item_res_id = record.billable_item_res_id
+            line_data = move_line_data.get(record.id, {})
+            billable_item_model = line_data.get('billable_item_model')
+            billable_item_res_id = line_data.get('billable_item_res_id')
             if billable_item_model and billable_item_res_id:
                 with_abstract_model = \
                     (self.env['account.billable.item'].
                      inherits_from_account_billable_item(billable_item_model))
                 if with_abstract_model:
+                    # Ensure that the billable item still exists, as it could
+                    # have been deleted after the move line was created
+                    # (partnerlink)
                     my_billable_item = \
                         self.env[billable_item_model].sudo().browse(
-                            billable_item_res_id)
+                            billable_item_res_id).exists()
                     if my_billable_item:
                         my_billable_item.number_of_invoices = \
                             max(my_billable_item.number_of_invoices - 1, 0)
