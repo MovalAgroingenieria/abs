@@ -400,6 +400,7 @@ class AccountInvoiceset(models.Model):
                     tmp_cr.commit()
                     tmp_cr.close()
         except Exception as e:
+            self.env.cr.rollback()
             self.env['common.log'].register_in_log(
                 'Calculation Process: ERROR... ' + str(e),
                 source=self._name, message_type='INFO')

@@ -96,6 +96,8 @@ class AccountMoveLine(models.Model):
         return move_lines
 
     def unlink(self):
+        if not self.ids:
+            return super(AccountMoveLine, self).unlink()
         self.env.cr.execute(
             """
             SELECT id, billable_item_model, billable_item_res_id
