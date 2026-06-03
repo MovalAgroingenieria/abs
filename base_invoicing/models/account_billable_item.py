@@ -98,8 +98,17 @@ class AccountBillableItem(models.AbstractModel):
         resp = False
         active_field = self.env['common.metadata'].get_field(
             model_name, 'active', exclude_related=True)
-        if active_field and active_field['ttype'] == 'boolean':
+        if active_field and active_field.get('ttype') == 'boolean':
             resp = True
+        else:
+            # Accept related active fields only when stored in DB,
+            # because SQL filters need a physical column.
+            active_field = self.env['common.metadata'].get_field(
+                model_name, 'active', exclude_related=False)
+            if (active_field and
+               active_field.get('ttype') == 'boolean' and
+               active_field.get('store')):
+                resp = True
         return resp
 
     @api.model
