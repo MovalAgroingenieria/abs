@@ -230,12 +230,13 @@
                 decoration-danger="state == 'error'"
             >
                 <field name="alphanum_code" string="Code" decoration-bf="1" />
+                <field name="invoice_type" string="Lot Type" optional="show" />
                 <field name="invoice_date" string="Invoicing Date" />
                 <field name="description" string="Description" />
                 <field name="invoice_date_due" string="Due Date" widget="remaining_days" />
-                <field name="invoice_user_id" string="Sales Person" widget="many2one_avatar_user" optional="show" />
+                <field name="invoice_user_id" string="Sales Person" widget="many2one_avatar_user" optional="hide" />
                 <field name="payment_term_id" string="Payment Term" optional="hide" />
-                <field name="journal_id" string="Journal" optional="hide" />
+                <field name="journal_id" string="Journal" optional="show" />
                 <field name="number_of_invoices" string="No. of invoices" optional="show" />
                 <field
                     name="state"
