@@ -45,6 +45,22 @@ class AccountBillableItem(models.AbstractModel):
         compute="_compute_move_line_ids",
         string="Invoice lines",
     )
+    invoice_ids = fields.Many2many(
+        comodel_name="account.move",
+        string="Invoices",
+        copy=False,
+        help="Invoices this item was billed in. Stored so consolidated "
+        "lines (several items merged into one invoice line) keep the "
+        "link to every source item, not just the first one.",
+    )
+    invoice_count = fields.Integer(
+        compute="_compute_invoice_count",
+        string="No. of invoices",
+    )
+    is_invoiced = fields.Boolean(
+        compute="_compute_invoice_count",
+        string="Invoiced",
+    )
 
     def _compute_billing_partner_id(self):
         for record in self:
@@ -85,6 +101,42 @@ class AccountBillableItem(models.AbstractModel):
             record.move_line_ids = by_res_id.get(
                 record.id, self.env["account.move.line"]
             )
+
+    @api.depends("move_line_ids", "invoice_ids", "invoice_ids.state")
+    def _compute_invoice_count(self):
+        for record in self:
+            moves = record._get_active_invoices()
+            record.invoice_count = len(moves)
+            record.is_invoiced = bool(moves)
+
+    def _get_active_invoices(self):
+        """Return non-cancelled invoices linked to this item.
+
+        Combines the forward reference stored on invoice lines
+        (``billable_item_res_id``) with the stored ``invoice_ids`` link,
+        so both detailed (1:1) and consolidated (n:1) lines are covered.
+        """
+        self.ensure_one()
+        moves = self.move_line_ids.move_id | self.invoice_ids
+        return moves.filtered(lambda move: move.state != "cancel")
+
+    def action_view_invoices(self):
+        """Open the invoices billed against this billable item."""
+        self.ensure_one()
+        moves = self._get_active_invoices()
+        action = {
+            "type": "ir.actions.act_window",
+            "name": self.env._("Invoices"),
+            "res_model": "account.move",
+            "domain": [("id", "in", moves.ids)],
+            "context": {"create": False},
+        }
+        if len(moves) == 1:
+            action["view_mode"] = "form"
+            action["res_id"] = moves.id
+        else:
+            action["view_mode"] = "list,form"
+        return action
 
     # -------------------------------------------------------------------------
     # Helper API (safe, no runtime class mutation)

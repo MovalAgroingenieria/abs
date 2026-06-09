@@ -1458,7 +1458,7 @@ class AccountInvoiceset(models.Model):  # pylint: disable=R0904
                     job.uuid,
                     self.id,
                 )
-        self.move_ids.unlink()
+        self.move_ids.with_context(cancelling_invoiceset=True).unlink()
         self.write(
             {
                 "state": "configured",
