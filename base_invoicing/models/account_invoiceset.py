@@ -17,6 +17,7 @@ from collections import defaultdict
 from jinja2 import Template, TemplateError
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.osv import expression
 from odoo.tools.safe_eval import safe_eval
 from odoo.tools.sql import SQL
 
@@ -1915,10 +1916,8 @@ class AccountInvoicesetProductlink(models.Model):
                 productlink.id,
             )
             return
-
         model_name = category.billable_item_model_id.sudo().model
         billable_model = self.env[model_name]
-
         partner_field = getattr(
             billable_model, "_billing_partner_id_name", "partner_id"
         )
@@ -1927,20 +1926,18 @@ class AccountInvoicesetProductlink(models.Model):
             if category.billable_item_quantity_field_id
             else None
         )
-
         domain = (
             [("active", "=", True)]
             if self.env["account.billable.item"].exists_active_field(model_name)
             else []
         )
         domain.append((partner_field, "!=", False))
-
         # Apply optional domain stored as python-domain string
         if productlink.billable_item_domain:
             try:
                 extra_domain = safe_eval(productlink.billable_item_domain, {})
                 if isinstance(extra_domain, list):
-                    domain += extra_domain
+                    domain = expression.AND([domain, extra_domain])
                     _logger.info(
                         "[base_invoicing] populate_selectable_items: applied "
                         "billable_item_domain from productlink/category: %s",
@@ -1957,16 +1954,19 @@ class AccountInvoicesetProductlink(models.Model):
                 productlink.id,
                 category.id,
             )
-
-        if productlink.product_id.product_tmpl_id.link_with_billable_items:
+        link_with_billable_items = (
+            productlink.product_id.product_tmpl_id.link_with_billable_items
+        )
+        if link_with_billable_items:
             # Keep legacy behavior
-            domain.append(("product_id", "=", productlink.product_id.id))
+            domain = expression.AND(
+                [domain, [("product_id", "=", productlink.product_id.id)]]
+            )
             _logger.info(
                 "[base_invoicing] populate_selectable_items: added product_id=%s "
                 "(link_with_billable_items=True)",
                 productlink.product_id.id,
             )
-
         _logger.info(
             "[base_invoicing] populate_selectable_items: model=%s domain=%s "
             "productlink_id=%s categ_id=%s product=%s",
@@ -1976,18 +1976,14 @@ class AccountInvoicesetProductlink(models.Model):
             category.id,
             productlink.product_id.display_name,
         )
-
         fields_to_read = [partner_field]
         if quantity_field:
             fields_to_read.append(quantity_field)
-
         aux_map = self._get_aux_fields_map(category)
         fields_to_read += list(aux_map.values())
-
         # Avoid duplicates: delete existing selectable items first for this link
         selectable_model = self.env["account.selectable.item"]
         selectable_model.search([("productlink_id", "=", productlink.id)]).unlink()
-
         items = billable_model.search(domain)
         count = len(items)
         _logger.info(
@@ -1999,9 +1995,7 @@ class AccountInvoicesetProductlink(models.Model):
         )
         if not items:
             return
-
         rows = items.read(fields_to_read)
-
         create_vals = []
         for row in rows:
             partner_val = row.get(partner_field)
@@ -2012,7 +2006,6 @@ class AccountInvoicesetProductlink(models.Model):
             )
             if not partner_id:
                 continue
-
             qty = 1.0
             if quantity_field:
                 qty = float(row.get(quantity_field) or 0.0)

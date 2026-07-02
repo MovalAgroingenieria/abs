@@ -367,47 +367,49 @@ class ProductCategory(models.Model):
                 continue
             seen.add(col)
             try:
-                cr.execute(
-                    "SELECT 1 FROM information_schema.columns "
-                    "WHERE table_schema='public' AND table_name=%s AND column_name=%s",
-                    (table, col),
-                )
-                if not cr.fetchone():
-                    continue
-                cr.execute(
-                    "SELECT 1 FROM pg_indexes WHERE schemaname='public' "
-                    "AND tablename=%s AND indexdef ILIKE %s",
-                    (table, f"%{col}%"),
-                )
-                if cr.fetchone():
-                    continue
-                idx_name = f"base_invoicing_idx_{table}_{col}"[:63]
-                # Type-aware index: Many2one/Int/Date/Datetime -> B-tree;
-                # Char -> varchar_pattern_ops; Text -> text_pattern_ops
-                ftype = getattr(field, "type", None) or ""
-                if ftype == "char":
-                    cr.execute(  # pylint: disable=E8103
-                        f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" '
-                        f'("{col}" varchar_pattern_ops)'
+                with cr.savepoint():
+                    cr.execute(
+                        "SELECT 1 FROM information_schema.columns "
+                        "WHERE table_schema='public' "
+                        "AND table_name=%s AND column_name=%s",
+                        (table, col),
                     )
-                elif ftype == "text":
-                    cr.execute(  # pylint: disable=E8103
-                        f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" '
-                        f'("{col}" text_pattern_ops)'
+                    if not cr.fetchone():
+                        continue
+                    cr.execute(
+                        "SELECT 1 FROM pg_indexes WHERE schemaname='public' "
+                        "AND tablename=%s AND indexdef ILIKE %s",
+                        (table, f"%{col}%"),
                     )
-                else:
-                    # many2one, integer, float, date, datetime, boolean
-                    cr.execute(  # pylint: disable=E8103
-                        f'CREATE INDEX IF NOT EXISTS "{idx_name}"'
-                        f' ON "{table}" ("{col}")'
+                    if cr.fetchone():
+                        continue
+                    idx_name = f"base_invoicing_idx_{table}_{col}"[:63]
+                    # Type-aware index: Many2one/Int/Date/Datetime -> B-tree;
+                    # Char -> varchar_pattern_ops; Text -> text_pattern_ops
+                    ftype = getattr(field, "type", None) or ""
+                    if ftype == "char":
+                        cr.execute(  # pylint: disable=E8103
+                            f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" '
+                            f'("{col}" varchar_pattern_ops)'
+                        )
+                    elif ftype == "text":
+                        cr.execute(  # pylint: disable=E8103
+                            f'CREATE INDEX IF NOT EXISTS "{idx_name}" ON "{table}" '
+                            f'("{col}" text_pattern_ops)'
+                        )
+                    else:
+                        # many2one, integer, float, date, datetime, boolean
+                        cr.execute(  # pylint: disable=E8103
+                            f'CREATE INDEX IF NOT EXISTS "{idx_name}"'
+                            f' ON "{table}" ("{col}")'
+                        )
+                    _logger.info(
+                        "[base_invoicing] Created index %s on %s(%s) type=%s",
+                        idx_name,
+                        table,
+                        col,
+                        ftype,
                     )
-                _logger.info(
-                    "[base_invoicing] Created index %s on %s(%s) type=%s",
-                    idx_name,
-                    table,
-                    col,
-                    ftype,
-                )
             except Exception as err:  # pylint: disable=W0718
                 _logger.warning(
                     "[base_invoicing] Could not create index on %s.%s: %s",

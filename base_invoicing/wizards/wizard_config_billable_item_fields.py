@@ -61,6 +61,20 @@ class WizardConfigBillableItemFields(models.TransientModel):
         model = productlink.billable_item_model_id
         quantity_field = productlink.billable_item_quantity_field
 
+        # Resolve the group field from the productlink's own stored value (which
+        # may have been manually overridden) rather than from the category, so
+        # that the wizard always reflects the per-productlink configuration.
+        group_field_id = False
+        if productlink.billable_item_group_field and model:
+            field_rec = self.env["ir.model.fields"].search(
+                [
+                    ("model_id", "=", model.id),
+                    ("name", "=", productlink.billable_item_group_field),
+                ],
+                limit=1,
+            )
+            group_field_id = field_rec.id if field_rec else False
+
         res.update(
             {
                 "info_billable_item_model_id": (
@@ -72,12 +86,7 @@ class WizardConfigBillableItemFields(models.TransientModel):
                     if quantity_field
                     else False
                 ),
-                "billable_item_group_field_id": (
-                    productlink.categ_id.billable_item_group_field_id.id
-                    if productlink.categ_id
-                    and productlink.categ_id.billable_item_group_field_id
-                    else False
-                ),
+                "billable_item_group_field_id": group_field_id,
                 "billable_item_detail_desc": productlink.billable_item_detail_desc,
                 "billable_item_domain": productlink.billable_item_domain,
                 "category_code": productlink.categ_id.category_code,
@@ -97,14 +106,17 @@ class WizardConfigBillableItemFields(models.TransientModel):
         if not productlink.exists():
             return {"type": "ir.actions.act_window_close"}
 
-        productlink.categ_id.write(
+        # Write directly to the productlink, NOT to the shared product category.
+        # billable_item_group_field and billable_item_domain are stored computed
+        # fields with readonly=False on the productlink, so they support per-line
+        # overrides without polluting the category used by other invoice sets.
+        productlink.write(
             {
-                "billable_item_group_field_id": (
-                    self.billable_item_group_field_id.id
+                "billable_item_group_field": (
+                    self.billable_item_group_field_id.name
                     if self.billable_item_group_field_id
                     else False
                 ),
-                "billable_item_detail_desc": self.billable_item_detail_desc,
                 "billable_item_domain": self.billable_item_domain,
             }
         )
