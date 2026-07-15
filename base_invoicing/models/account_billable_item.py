@@ -6,6 +6,9 @@ from collections import defaultdict
 
 from odoo import api, fields, models
 
+SALE_MOVE_TYPES = ("out_invoice", "out_refund")
+PURCHASE_MOVE_TYPES = ("in_invoice", "in_refund")
+
 
 class AccountBillableItem(models.AbstractModel):
     _name = "account.billable.item"
@@ -61,6 +64,18 @@ class AccountBillableItem(models.AbstractModel):
         compute="_compute_invoice_count",
         string="Invoiced",
     )
+    invoiced_sale = fields.Boolean(
+        compute="_compute_invoiced_sides",
+        search="_search_invoiced_sale",
+        string="Sale invoiced",
+        help="The item has a non-cancelled customer invoice or refund.",
+    )
+    invoiced_purchase = fields.Boolean(
+        compute="_compute_invoiced_sides",
+        search="_search_invoiced_purchase",
+        string="Purchase invoiced",
+        help="The item has a non-cancelled vendor bill or refund.",
+    )
 
     def _compute_billing_partner_id(self):
         for record in self:
@@ -108,6 +123,62 @@ class AccountBillableItem(models.AbstractModel):
             moves = record._get_active_invoices()
             record.invoice_count = len(moves)
             record.is_invoiced = bool(moves)
+
+    @api.depends(
+        "move_line_ids",
+        "invoice_ids",
+        "invoice_ids.state",
+        "invoice_ids.move_type",
+    )
+    def _compute_invoiced_sides(self):
+        for record in self:
+            moves = record._get_active_invoices()
+            record.invoiced_sale = bool(
+                moves.filtered(lambda move: move.move_type in SALE_MOVE_TYPES)
+            )
+            record.invoiced_purchase = bool(
+                moves.filtered(lambda move: move.move_type in PURCHASE_MOVE_TYPES)
+            )
+
+    def _search_invoiced_sale(self, operator, value):
+        return self._search_invoiced_side(operator, value, SALE_MOVE_TYPES)
+
+    def _search_invoiced_purchase(self, operator, value):
+        return self._search_invoiced_side(operator, value, PURCHASE_MOVE_TYPES)
+
+    def _search_invoiced_side(self, operator, value, move_types):
+        """Domain for records invoiced (non-cancelled) on the given side."""
+        if operator not in ("=", "!="):
+            raise NotImplementedError(
+                self.env._("Unsupported operator for invoiced search.")
+            )
+        item_ids = list(self._get_side_invoiced_ids(move_types))
+        want_invoiced = (operator == "=") == bool(value)
+        return [("id", "in" if want_invoiced else "not in", item_ids)]
+
+    def _get_side_invoiced_ids(self, move_types):
+        """Return ids of records with a non-cancelled invoice of ``move_types``.
+
+        Combines the forward reference stored on invoice lines
+        (``billable_item_res_id``) with the stored ``invoice_ids`` link, so
+        both detailed (1:1) and consolidated (n:1) lines are covered.
+        """
+        move_lines = self.env["account.move.line"].search(
+            [
+                ("billable_item_model", "=", self._name),
+                ("move_id.move_type", "in", list(move_types)),
+                ("move_id.state", "!=", "cancel"),
+            ]
+        )
+        item_ids = set(move_lines.mapped("billable_item_res_id"))
+        linked = self.search([("invoice_ids", "!=", False)])
+        for record in linked:
+            active = record.invoice_ids.filtered(
+                lambda move: move.state != "cancel" and move.move_type in move_types
+            )
+            if active:
+                item_ids.add(record.id)
+        return item_ids
 
     def _get_active_invoices(self):
         """Return non-cancelled invoices linked to this item.
