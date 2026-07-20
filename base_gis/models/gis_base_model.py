@@ -122,20 +122,26 @@ class GisBaseModel(models.AbstractModel):
     def _fetch_wms_bytes(self, session, url: str, *, timeout, verify_ssl: bool):
         resp = session.get(url, timeout=timeout, verify=verify_ssl)
         if resp.status_code != 200:
+            _logger.warning("WMS request failed (HTTP %s): %s", resp.status_code, url)
             return None
 
         ctype = (resp.headers.get("Content-Type") or "").lower()
         if "image/" not in ctype:
+            _logger.warning(
+                "WMS response is not an image (Content-Type: %s): %s", ctype, url
+            )
             return None
 
         payload = resp.content
         if not payload:
+            _logger.warning("WMS response has empty body: %s", url)
             return None
 
         try:
             img = Image.open(io.BytesIO(payload))
             img.verify()
-        except (UnidentifiedImageError, OSError):
+        except (UnidentifiedImageError, OSError) as exc:
+            _logger.warning("WMS response is not a valid image (%s): %s", exc, url)
             return None
 
         return payload
@@ -364,7 +370,7 @@ class GisBaseModel(models.AbstractModel):
         downloaded = {}
         if not pending:
             return downloaded
-        timeout = (2, self.OGC_TIMEOUT)
+        timeout = (10, self.OGC_TIMEOUT)
         verify_ssl = opts["verify_ssl"]
         session = self._build_session()
         try:

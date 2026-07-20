@@ -125,11 +125,9 @@ class GisUtilsMixin(models.AbstractModel):
         opts = params["opts"]
         cql_filter = ""
         if opts.get("apply_filter"):
-            n_layers = max(0, len(opts.get("layers", "").split(",")) - 1)
             cql_filter = (
                 "&FILTER="
-                + "()" * n_layers
-                + '<(<Filter><PropertyIsLike wildCard="*"'
+                + '(<Filter><PropertyIsLike wildCard="*"'
                 + ' singleChar="." escape="!">'
                 + "<PropertyName>"
                 + f"{params['link_field']}"
