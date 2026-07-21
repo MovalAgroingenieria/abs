@@ -149,6 +149,28 @@ class TestGisUtils(unittest.TestCase):
         self.assertEqual(w_px, 300)
         self.assertEqual(h_px, 400)
 
+    def test_pixel_dimensions_degenerate_height_meters(self):
+        """A sliver geometry rounded to 0m tall must not raise ZeroDivisionError."""
+        w_px, h_px = GisUtilsMixin.compute_pixel_dimensions(
+            {
+                "width_m": 5,
+                "height_m": 0,
+                "normal_size": 512,
+            }
+        )
+        self.assertEqual((w_px, h_px), (512, 512))
+
+    def test_pixel_dimensions_degenerate_width_meters(self):
+        """A sliver geometry rounded to 0m wide must not return a 0px side."""
+        w_px, h_px = GisUtilsMixin.compute_pixel_dimensions(
+            {
+                "width_m": 0,
+                "height_m": 5,
+                "normal_size": 512,
+            }
+        )
+        self.assertEqual((w_px, h_px), (512, 512))
+
     # ------------------------------------------------------------------
     # build_wms_url
     # ------------------------------------------------------------------

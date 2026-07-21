@@ -42,7 +42,7 @@ class GisBaseModel(models.AbstractModel):
     _description = "GIS Base Model"
 
     NORMAL_SIZE = 512
-    OGC_TIMEOUT = 5
+    OGC_TIMEOUT = 20
     WITH_DECIMAL_COORDINATES = False
 
     _gis_table = ""
@@ -120,7 +120,20 @@ class GisBaseModel(models.AbstractModel):
         return sess
 
     def _fetch_wms_bytes(self, session, url: str, *, timeout, verify_ssl: bool):
-        resp = session.get(url, timeout=timeout, verify=verify_ssl)
+        try:
+            resp = session.get(url, timeout=timeout, verify=verify_ssl)
+        except requests.exceptions.Timeout as exc:
+            _logger.warning(
+                "WMS request timeout (timeout=%s): %s (%s)",
+                timeout,
+                url,
+                exc,
+            )
+            return None
+        except requests.exceptions.RequestException as exc:
+            _logger.warning("WMS request error: %s (%s)", url, exc)
+            return None
+
         if resp.status_code != 200:
             _logger.warning("WMS request failed (HTTP %s): %s", resp.status_code, url)
             return None
@@ -425,7 +438,11 @@ class GisBaseModel(models.AbstractModel):
             }
             for fut in as_completed(futures):
                 rid, key = futures[fut]
-                payload = fut.result()
+                try:
+                    payload = fut.result()
+                except Exception as exc:  # noqa: BLE001  # pylint: disable=W0718
+                    _logger.warning("WMS worker failed for record %s: %s", rid, exc)
+                    continue
                 if payload:
                     _WMS_LRU[key] = payload
                     downloaded[rid] = payload

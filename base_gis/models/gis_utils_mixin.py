@@ -99,10 +99,15 @@ class GisUtilsMixin(models.AbstractModel):
         if w_px == 0 and h_px == 0:
             h_px = normal_size
         if w_px == 0 or h_px == 0:
+            # Degenerate/near-zero geometry (e.g. a sliver polygon rounded
+            # down to 0 meters wide or tall): fall back to a square image
+            # instead of dividing by zero or returning a 0-pixel side.
             if w_px == 0:
-                w_px = int(round((width_m * h_px) / height_m))
+                w_px = int(round((width_m * h_px) / height_m)) if height_m else h_px
+                w_px = w_px or h_px
             else:
-                h_px = int(round((height_m * w_px) / width_m))
+                h_px = int(round((height_m * w_px) / width_m)) if width_m else w_px
+                h_px = h_px or w_px
         return w_px, h_px
 
     # ------------------------------------------------------------------
