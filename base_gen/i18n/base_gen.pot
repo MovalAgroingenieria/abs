@@ -16,6 +16,14 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/common_background_job.py:0
+msgid ""
+"A background generation is already in progress. Please wait for it to finish"
+" before launching another one."
+msgstr ""
+
+#. module: base_gen
 #: model:ir.model.constraint,message:base_gen.constraint_simple_model_name_not_null
 msgid "A valid code is required."
 msgstr ""
@@ -63,6 +71,18 @@ msgid "Existing Code."
 msgstr ""
 
 #. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/common_background_job.py:0
+msgid "Generation already in progress"
+msgstr ""
+
+#. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/common_background_job.py:0
+msgid "Generation queued"
+msgstr ""
+
+#. module: base_gen
 #: model:ir.model.fields,field_description:base_gen.field_simple_model__notes
 msgid "Internal Notes"
 msgstr ""
@@ -98,4 +118,13 @@ msgstr ""
 #. module: base_gen
 #: model:ir.model.constraint,message:base_gen.constraint_simple_model_description_not_null
 msgid "The description is required."
+msgstr ""
+
+#. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/common_background_job.py:0
+msgid ""
+"The generation has been queued and will run in the background. You can "
+"follow its progress in the Job Queue Batches menu (or the progress icon in "
+"the top bar)."
 msgstr ""

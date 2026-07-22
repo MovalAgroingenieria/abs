@@ -16,6 +16,16 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/common_background_job.py:0
+msgid ""
+"A background generation is already in progress. Please wait for it to finish"
+" before launching another one."
+msgstr ""
+"Ja hi ha una generació en segon pla en curs. Espera que acabi abans de "
+"llançar-ne una altra."
+
+#. module: base_gen
 #: model:ir.model.constraint,message:base_gen.constraint_simple_model_name_not_null
 msgid "A valid code is required."
 msgstr "Cal assignar un codi vàlid."
@@ -63,6 +73,18 @@ msgid "Existing Code."
 msgstr "Codi repetit."
 
 #. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/common_background_job.py:0
+msgid "Generation already in progress"
+msgstr "Generació ja en curs"
+
+#. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/common_background_job.py:0
+msgid "Generation queued"
+msgstr "Generació en cua"
+
+#. module: base_gen
 #: model:ir.model.fields,field_description:base_gen.field_simple_model__notes
 msgid "Internal Notes"
 msgstr "Notes internes"
@@ -99,3 +121,15 @@ msgstr ""
 #: model:ir.model.constraint,message:base_gen.constraint_simple_model_description_not_null
 msgid "The description is required."
 msgstr "Cal assignar una descripció."
+
+#. module: base_gen
+#. odoo-python
+#: code:addons/base_gen/models/common_background_job.py:0
+msgid ""
+"The generation has been queued and will run in the background. You can "
+"follow its progress in the Job Queue Batches menu (or the progress icon in "
+"the top bar)."
+msgstr ""
+"La generació s'ha posat en cua i s'executarà en segon pla. Pots seguir-ne el"
+" progrés al menú de lots de la cua de treballs (o a la icona de progrés de "
+"la barra superior)."

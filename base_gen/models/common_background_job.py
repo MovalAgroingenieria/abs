@@ -40,16 +40,22 @@ class CommonBackgroundJob(models.AbstractModel):
         ``completeness`` field, while still preventing a duplicate batch
         from being launched while a previous one is still running.
         """
-        return bool(
+        batches = (
             self.env["queue.job.batch"]
             .sudo()
-            .search_count(
+            .search(
                 [
                     ("name", "=", batch_name),
                     ("state", "!=", "finished"),
                 ]
             )
         )
+        if batches:
+            # queue_job_batch can occasionally remain in "progress"
+            # even when all linked jobs are already terminal.
+            # Recompute state defensively to avoid a stale lock.
+            batches.check_state()
+        return bool(batches.filtered(lambda batch: batch.state != "finished"))
 
     def _new_background_batch(self, batch_name):
         """Create and return a new ``queue.job.batch`` named ``batch_name``."""
