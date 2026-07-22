@@ -82,7 +82,7 @@ class ResAdmregion(models.Model):
     def action_show_provinces(self):
         self.ensure_one()
         tree_view = self.env.ref(
-            "base_adi.res_province_view_tree", raise_if_not_found=False
+            "base_adi.res_province_view_list", raise_if_not_found=False
         )
         form_view = self.env.ref(
             "base_adi.res_province_view_form", raise_if_not_found=False

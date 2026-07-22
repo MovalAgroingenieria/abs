@@ -29,7 +29,6 @@ class ResPlace(models.Model):
     )
 
     municipality_id = fields.Many2one(
-        string="Municipality",
         comodel_name="res.municipality",
         required=True,
         index=True,

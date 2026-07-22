@@ -30,7 +30,6 @@ class ResProvince(models.Model):
     )
 
     region_id = fields.Many2one(
-        string="Region",
         comodel_name="res.admregion",
         required=True,
         index=True,
@@ -65,7 +64,7 @@ class ResProvince(models.Model):
     def action_show_municipalities(self):
         self.ensure_one()
         tree_view = self.env.ref(
-            "base_adi.res_municipality_view_tree", raise_if_not_found=False
+            "base_adi.res_municipality_view_list", raise_if_not_found=False
         )
         form_view = self.env.ref(
             "base_adi.res_municipality_view_form", raise_if_not_found=False

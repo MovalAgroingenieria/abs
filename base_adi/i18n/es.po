@@ -233,10 +233,10 @@ msgstr "Municipios"
 #: model:ir.model.fields,field_description:base_adi.field_res_place__municipality_id
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_tree
+#: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_list
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_tree
+#: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_list
 msgid "Municipality"
 msgstr "Municipio"
 
@@ -268,7 +268,7 @@ msgstr "Nº provincias"
 #: model:ir.model.fields,field_description:base_adi.field_res_place__alphanum_code
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_tree
+#: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_list
 msgid "Place"
 msgstr "Localidad"
 
@@ -288,13 +288,13 @@ msgstr "Localidades"
 #: model:ir.model.fields,field_description:base_adi.field_res_province__alphanum_code
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_tree
+#: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_list
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_tree
+#: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_list
 #: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_tree
+#: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_list
 msgid "Province"
 msgstr "Provincia"
 
@@ -315,7 +315,7 @@ msgstr "Provincias"
 #: model:ir.model.fields,field_description:base_adi.field_res_province__region_id
 #: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_form
 #: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_search
-#: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_tree
+#: model_terms:ir.ui.view,arch_db:base_adi.res_admregion_view_list
 #: model_terms:ir.ui.view,arch_db:base_adi.res_municipality_view_search
 #: model_terms:ir.ui.view,arch_db:base_adi.res_place_view_search
 #: model_terms:ir.ui.view,arch_db:base_adi.res_province_view_form
