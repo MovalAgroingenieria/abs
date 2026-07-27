@@ -12,6 +12,7 @@
     "category": "Hidden",
     "depends": [
         "base",
+        "web_ir_actions_act_window_message",
     ],
     "data": [
         "security/ir.model.access.csv",

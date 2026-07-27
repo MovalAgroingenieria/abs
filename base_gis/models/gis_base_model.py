@@ -405,11 +405,18 @@ class GisBaseModel(models.AbstractModel):
             geom_sql,
             target_geom_type,
         )
-        self.env.cr.execute(
-            f"SELECT postgis.ST_AsEWKT({normalized_geom_sql})",
-            params,
-        )
-        row = self.env.cr.fetchone()
+        try:
+            self.env.cr.execute(
+                f"SELECT postgis.ST_AsEWKT({normalized_geom_sql})",
+                params,
+            )
+            row = self.env.cr.fetchone()
+        except psycopg2.Error as exc:
+            raise ValueError(
+                self.env._(
+                    "Invalid GML geometry or unsupported spatial reference system."
+                )
+            ) from exc
         ewkt = row[0] if row else ""
         if not ewkt:
             return False
@@ -429,17 +436,48 @@ class GisBaseModel(models.AbstractModel):
             hidden=hidden,
         )
 
-    def _build_display_notification(self, title, lines, message_type, sticky=False):
+    def _build_display_notification(
+        self,
+        title,
+        lines,
+        message_type,
+        options=None,
+    ):
+        options = options or {}
+        params = {
+            "title": title,
+            "message": "\n".join(lines),
+            "type": message_type,
+            "sticky": bool(options.get("sticky", False)),
+        }
+        if options.get("autoreload", False):
+            params["next"] = {"type": "ir.actions.client", "tag": "reload"}
+
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
-            "params": {
-                "title": title,
-                "message": "\n".join(lines),
-                "type": message_type,
-                "sticky": bool(sticky),
-                "next": {"type": "ir.actions.client", "tag": "reload"},
-            },
+            "params": params,
+        }
+
+    def _build_result_message_action(self, title, lines, message_type):
+        button_classes = {
+            "success": "btn btn-primary",
+            "warning": "btn btn-warning",
+            "danger": "btn btn-danger",
+        }
+        button_class = button_classes.get(message_type, "btn btn-secondary")
+        return {
+            "type": "ir.actions.act_window.message",
+            "title": title,
+            "message": "\n".join(lines),
+            "buttons": [
+                {
+                    "name": self.env._("Close and Reload"),
+                    "type": "ir.actions.client",
+                    "tag": "reload",
+                    "classes": button_class,
+                }
+            ],
         }
 
     def _get_notification_type(self, has_errors, has_success):
@@ -590,11 +628,10 @@ class GisBaseModel(models.AbstractModel):
             errors,
         )
         message_type = self._get_notification_type(bool(errors), bool(deleted))
-        return self._build_display_notification(
+        return self._build_result_message_action(
             self.env._("GIS geometry deletion"),
             lines,
             message_type,
-            sticky=bool(errors),
         )
 
     @api.depends("name")
