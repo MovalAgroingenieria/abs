@@ -170,12 +170,14 @@ class PointModel(models.AbstractModel):
     # ------------------------------------------------------------------
 
     @api.model  # pylint: disable=unused-argument
-    def extract_bounding_box(self, geom_ewkt):
+    def extract_bounding_box(self, geom_ewkt, force_square_shape=False):
         """Return bounding box around a point geometry.
 
         For points the bbox is generated using a symmetric buffer
         around the coordinate.
         """
+
+        _ = force_square_shape
 
         srid, coordinates = self.extract_coordinates(geom_ewkt)
 

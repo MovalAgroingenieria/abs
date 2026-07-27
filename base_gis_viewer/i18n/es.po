@@ -1,0 +1,266 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* base_gis_viewer
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-27 10:02+0000\n"
+"PO-Revision-Date: 2026-07-27 10:02+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "<span class=\"oe_inline\">EPSG:</span>"
+msgstr "<span class=\"oe_inline\">EPSG:</span>"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "AES key for encrypting technical credentials (16, 24 or 32 bytes)."
+msgstr "Clave AES para cifrar las credenciales tecnicas (16, 24 o 32 bytes)."
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Aerial Images"
+msgstr "Imagenes aereas"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Base WMS URL"
+msgstr "URL WMS base"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Base WMS layers"
+msgstr "Capas WMS base"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Cipher key"
+msgstr "Clave de cifrado"
+
+#. module: base_gis_viewer
+#: model:ir.model,name:base_gis_viewer.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "EPSG"
+msgstr "EPSG"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "For the integrated preview, arguments to add to the GIS viewer URL."
+msgstr ""
+"Para la vista previa integrada, argumentos para anadir a la URL del visor "
+"GIS."
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "GIS & Cartography"
+msgstr "GIS y Cartografia"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_gis_viewer__gis_code
+msgid "GIS Code"
+msgstr "Código GIS"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_gis_viewer__gis_link_minimal
+msgid "GIS Link (minimal version)"
+msgstr "Enlace GIS (modo mínimo)"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_gis_viewer__gis_link_public
+msgid "GIS Link (public)"
+msgstr "Enlace GIS (público)"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_gis_viewer__gis_link_technical
+msgid "GIS Link (technical)"
+msgstr "Enlace GIS (técnico)"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__gis_viewer_previs_additional_args
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__gis_viewer_previs_additional_args
+msgid "GIS Preview: Additional URL arguments"
+msgstr "Previsualización GIS: argumentos adicionales"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "GIS Viewer"
+msgstr "Visor GIS"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__gis_viewer_cipher_key
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__gis_viewer_cipher_key
+msgid "GIS Viewer: Cipher key for technical mode"
+msgstr "Visor GIS: clave de cifrado para el modo técnico"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__gis_viewer_password
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__gis_viewer_password
+msgid "GIS Viewer: Password for the technical mode"
+msgstr "Visor GIS: contraseña para el modo técnico"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__gis_viewer_epsg
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__gis_viewer_epsg
+msgid "GIS Viewer: Spatial Reference"
+msgstr "Visor GIS: sistema de referencia espacial"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__gis_viewer_url
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__gis_viewer_url
+msgid "GIS Viewer: URL"
+msgstr "Visor GIS: URL"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__gis_viewer_username
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__gis_viewer_username
+msgid "GIS Viewer: User name for the technical mode"
+msgstr "Visor GIS: nombre de usuario para el modo técnico"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid ""
+"Height, in pixels, of images captured from WMS services (the width will be "
+"calculated automatically to preserve the original proportions)."
+msgstr ""
+"Altura, en pixeles, de las imagenes capturadas desde servicios WMS (la "
+"anchura se calculara automaticamente para preservar las proporciones "
+"originales)."
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Image height (px)"
+msgstr "Altura de imagen (px)"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Image zoom"
+msgstr "Zoom de imagen"
+
+#. module: base_gis_viewer
+#: model:ir.model.constraint,message:base_gis_viewer.constraint_res_company_gis_viewer_epsg_ok
+msgid "Incorrect value of \"GIS Viewer: Spatial Reference\"."
+msgstr "Valor incorrecto de \"Visor GIS: Referencia espacial\"."
+
+#. module: base_gis_viewer
+#: model:ir.model.constraint,message:base_gis_viewer.constraint_res_company_aerial_image_height_ok
+msgid "Incorrect value of \"WMS Services: Height of the images\"."
+msgstr "Valor incorrecto de \"Servicios WMS: Altura de las imagenes\"."
+
+#. module: base_gis_viewer
+#: model:ir.model.constraint,message:base_gis_viewer.constraint_res_company_aerial_image_zoom_ok
+msgid "Incorrect value of \"WMS Services: Zoom\"."
+msgstr "Valor incorrecto de \"Servicios WMS: Zoom\"."
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Name of the technical user."
+msgstr "Nombre del usuario tecnico."
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Password of the technical user."
+msgstr "Contrasena del usuario tecnico."
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Preview URL arguments"
+msgstr "Argumentos de URL de vista previa"
+
+#. module: base_gis_viewer
+#: model:ir.actions.act_window,name:base_gis_viewer.res_config_settings_action
+msgid "Settings"
+msgstr "Ajustes"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid ""
+"Spatial reference of the layers stored in the database (if changed, layers "
+"will be automatically reprojected)."
+msgstr ""
+"Referencia espacial de las capas almacenadas en la base de datos (si se "
+"cambia, las capas se reproyectaran automaticamente)."
+
+#. module: base_gis_viewer
+#: model:ir.model,name:base_gis_viewer.model_res_config_settings
+msgid "Street type settings"
+msgstr "Ajustes de Configuración"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Technical password"
+msgstr "Contrasena tecnica"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Technical user"
+msgstr "Usuario tecnico"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "URL of the WMS service used to obtain the base image."
+msgstr "URL del servicio WMS utilizado para obtener la imagen base."
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "URL of the integrated GIS viewer."
+msgstr "URL del visor GIS integrado."
+
+#. module: base_gis_viewer
+#: model:ir.model,name:base_gis_viewer.model_gis_viewer
+msgid "Use of GIS viewers"
+msgstr "Uso de visores GIS"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "Viewer URL"
+msgstr "URL del visor"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__aerial_image_height
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__aerial_image_height
+msgid "WMS Services: Height of the images"
+msgstr "Servicios WMS: altura de las imágenes"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__aerial_image_zoom
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__aerial_image_zoom
+msgid "WMS Services: Zoom"
+msgstr "Servicios WMS: zoom"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__aerial_image_wmsbase_layers
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__aerial_image_wmsbase_layers
+msgid "WMS of the base image: Layers"
+msgstr "WMS de la imagen base: capas"
+
+#. module: base_gis_viewer
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_company__aerial_image_wmsbase_url
+#: model:ir.model.fields,field_description:base_gis_viewer.field_res_config_settings__aerial_image_wmsbase_url
+msgid "WMS of the base image: URL"
+msgstr "WMS de la imagen base: URL"
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid "WMS service layers used to obtain the base image."
+msgstr "Capas del servicio WMS utilizadas para obtener la imagen base."
+
+#. module: base_gis_viewer
+#: model_terms:ir.ui.view,arch_db:base_gis_viewer.res_config_settings_view_form
+msgid ""
+"Zoom applied to images obtained from WMS services: 1 means no zoom; > 1 "
+"zoom-out; < 1 zoom-in."
+msgstr ""
+"Zoom aplicado a las imagenes obtenidas desde servicios WMS: 1 significa sin "
+"zoom; > 1 alejar; < 1 acercar."

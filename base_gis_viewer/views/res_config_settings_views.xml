@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.base_gis_viewer</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="10"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app name="base_gis_viewer" string="GIS &amp; Cartography" data-string="GIS &amp; Cartography">
+                    <block title="Aerial Images" name="base_gis_viewer_aerial_images">
+                        <setting id="base_gis_viewer_wmsbase_url" string="Base WMS URL" help="URL of the WMS service used to obtain the base image.">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="aerial_image_wmsbase_url" style="width: 100%;"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting id="base_gis_viewer_wmsbase_layers" string="Base WMS layers" help="WMS service layers used to obtain the base image.">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="aerial_image_wmsbase_layers" style="width: 100%;"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting
+                            id="base_gis_viewer_aerial_image_height"
+                            string="Image height (px)"
+                            help="Height, in pixels, of images captured from WMS services (the width will be calculated automatically to preserve the original proportions)."
+                        >
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="aerial_image_height" style="width: 90px;"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting
+                            id="base_gis_viewer_aerial_image_zoom"
+                            string="Image zoom"
+                            help="Zoom applied to images obtained from WMS services: 1 means no zoom; &gt; 1 zoom-out; &lt; 1 zoom-in."
+                        >
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="aerial_image_zoom" style="width: 90px;"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="GIS Viewer" name="base_gis_viewer_viewer">
+                        <setting id="base_gis_viewer_url" string="Viewer URL" help="URL of the integrated GIS viewer.">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="gis_viewer_url" style="width: 100%;"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting id="base_gis_viewer_username" string="Technical user" help="Name of the technical user.">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="gis_viewer_username" style="width: 90px;"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting id="base_gis_viewer_password" string="Technical password" help="Password of the technical user.">
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="gis_viewer_password" password="True" style="width: 90px;"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting
+                            id="base_gis_viewer_cipher_key"
+                            string="Cipher key"
+                            help="AES key for encrypting technical credentials (16, 24 or 32 bytes)."
+                        >
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="gis_viewer_cipher_key" password="True" style="width: 90px;"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting
+                            id="base_gis_viewer_epsg"
+                            string="EPSG"
+                            help="Spatial reference of the layers stored in the database (if changed, layers will be automatically reprojected)."
+                        >
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <span class="oe_inline">EPSG:</span>
+                                    <field name="gis_viewer_epsg" style="width: 90px;"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting
+                            id="base_gis_viewer_previs_additional_args"
+                            string="Preview URL arguments"
+                            help="For the integrated preview, arguments to add to the GIS viewer URL."
+                        >
+                            <div class="content-group">
+                                <div class="mt16">
+                                    <field name="gis_viewer_previs_additional_args" style="width: 100%;"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="res_config_settings_action" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'base_gis_viewer'}</field>
+    </record>
+
+</odoo>
