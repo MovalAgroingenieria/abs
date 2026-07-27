@@ -48,6 +48,7 @@ class GisBaseModel(models.AbstractModel):
     _gis_table = ""
     _geom_field = "geom"
     _link_field = "name"
+    _default_gis_srid = 25830
 
     geom_ewkt = fields.Char(
         string="EWKT Geometry",
@@ -236,9 +237,365 @@ class GisBaseModel(models.AbstractModel):
         for record in self:
             record[field_name] = results.get(record.name) or ""
 
-    # ------------------------------------------------------------------
-    # Geometry field computes
-    # ------------------------------------------------------------------
+    def _invalidate_gis_geometry_fields(self):
+        """Invalidate common computed GIS fields after table updates."""
+        candidate_fields = [
+            "geom_ewkt",
+            "geom_geojson",
+            "mapped_to_polygon",
+            "mapped_to_point",
+            "area_gis",
+            "perimeter_gis",
+            "centroid_ewkt",
+            "oriented_envelope_ewkt",
+            "bounding_box_str",
+            "coord_x",
+            "coord_y",
+            "srid",
+            "coord_str",
+        ]
+        fields_to_invalidate = [
+            field_name for field_name in candidate_fields if field_name in self._fields
+        ]
+        if fields_to_invalidate:
+            self.invalidate_recordset(fields_to_invalidate)
+
+    def _ensure_ewkt_srid(self, ewkt, default_srid=None):
+        """Ensure EWKT has SRID prefix for PostGIS."""
+        value = (ewkt or "").strip()
+        if not value:
+            return ""
+        if value.upper().startswith("SRID="):
+            return value
+        srid = int(default_srid or self._default_gis_srid)
+        return "SRID=%s;%s" % (srid, value)
+
+    def _gis_table_parts(self):
+        """Return (schema, table) from ``_gis_table``."""
+        parts = [part for part in (self._gis_table or "").split(".") if part]
+        if len(parts) >= 2:
+            return parts[-2], parts[-1]
+        if len(parts) == 1:
+            return "public", parts[0]
+        return "public", ""
+
+    def _get_target_geom_type(self):
+        """Return geometry type declared in destination GIS column."""
+        schema_name, table_name = (
+            self._gis_table_parts()
+        )  # pylint: disable=protected-access
+        if not table_name:
+            return ""
+        self.env.cr.execute(
+            """
+            SELECT UPPER(postgis.postgis_typmod_type(a.atttypmod))
+            FROM pg_attribute a
+            JOIN pg_class c ON c.oid = a.attrelid
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = %s
+              AND c.relname = %s
+              AND a.attname = %s
+              AND a.attnum > 0
+              AND NOT a.attisdropped
+            LIMIT 1
+            """,
+            (schema_name, table_name, self._geom_field),
+        )
+        row = self.env.cr.fetchone()
+        geom_type = (row[0] or "") if row else ""
+        return geom_type.upper()
+
+    def _normalize_geom_expression_for_target(self, geom_expr, target_geom_type):
+        """Build SQL expression that coerces ``geom_expr`` to target type."""
+        target_type = (target_geom_type or "").upper()
+        dim_by_type = {
+            "POINT": 1,
+            "MULTIPOINT": 1,
+            "LINESTRING": 2,
+            "MULTILINESTRING": 2,
+            "POLYGON": 3,
+            "MULTIPOLYGON": 3,
+        }
+        dim = dim_by_type.get(target_type)
+        if not dim:
+            return geom_expr
+        if target_type.startswith("MULTI"):
+            return (
+                "postgis.ST_Multi("
+                "postgis.ST_CollectionExtract(%s, %s)"
+                ")" % (geom_expr, dim)
+            )
+        return (
+            "postgis.ST_GeometryN("
+            "postgis.ST_CollectionExtract(%s, %s), 1"
+            ")" % (geom_expr, dim)
+        )
+
+    def _set_gis_geometry_from_ewkt(self, ewkt, default_srid=None):
+        """Insert or replace geometry for current records in GIS table."""
+        if not self._geom_ok():
+            return False
+        srid = int(default_srid or self._default_gis_srid)
+        target_geom_type = (
+            self._get_target_geom_type()
+        )  # pylint: disable=protected-access
+        normalized_geom_sql = self._normalize_geom_expression_for_target(  # pylint: disable=protected-access
+            "postgis.ST_GeomFromEWKT(%s)::geometry",
+            target_geom_type,
+        )
+        written = False
+        for record in self:
+            link_value = getattr(record, self._link_field, False)
+            if not link_value:
+                continue
+            value = record._ensure_ewkt_srid(  # pylint: disable=protected-access
+                ewkt,
+                default_srid=srid,
+            )
+            if not value:
+                continue
+            self.env.cr.execute(
+                sql.SQL("DELETE FROM {table} WHERE {link} = %s").format(
+                    table=self._sql_ident(self._gis_table),
+                    link=sql.Identifier(self._link_field),
+                ),
+                (link_value,),
+            )
+            self.env.cr.execute(
+                sql.SQL(
+                    "INSERT INTO {table} ({link}, {geom}) "
+                    "VALUES (%s, " + normalized_geom_sql + ")"
+                ).format(
+                    table=self._sql_ident(self._gis_table),
+                    link=sql.Identifier(self._link_field),
+                    geom=sql.Identifier(self._geom_field),
+                ),
+                (link_value, value),
+            )
+            written = True
+        if not written:
+            return False
+        self._invalidate_gis_geometry_fields()
+        return True
+
+    def _set_gis_geometry_from_gml(
+        self,
+        gml_geometry,
+        source_srid=None,
+        target_srid=None,
+    ):
+        """Convert GML geometry to EWKT and persist it in GIS table."""
+        source = int(source_srid or self._default_gis_srid)
+        target = int(target_srid or self._default_gis_srid)
+        target_geom_type = (
+            self._get_target_geom_type()
+        )  # pylint: disable=protected-access
+        gml = (gml_geometry or "").strip()
+        if not gml:
+            return False
+        base_geom_sql = "postgis.ST_SetSRID(postgis.ST_GeomFromGML(%s), %s)"
+        if source == target:
+            geom_sql = base_geom_sql
+            params = (gml, source)
+        else:
+            geom_sql = "postgis.ST_Transform(%s, %%s)" % base_geom_sql
+            params = (gml, source, target)
+
+        normalized_geom_sql = self._normalize_geom_expression_for_target(  # pylint: disable=protected-access
+            geom_sql,
+            target_geom_type,
+        )
+        self.env.cr.execute(
+            f"SELECT postgis.ST_AsEWKT({normalized_geom_sql})",
+            params,
+        )
+        row = self.env.cr.fetchone()
+        ewkt = row[0] if row else ""
+        if not ewkt:
+            return False
+        return self._set_gis_geometry_from_ewkt(ewkt, default_srid=target)
+
+    def _format_summary_names(self, names, max_names=8):
+        if not names:
+            return ""
+        ordered_names = [str(name) for name in names if name]
+        if len(ordered_names) <= max_names:
+            return ", ".join(ordered_names)
+        visible = ", ".join(ordered_names[:max_names])
+        hidden = len(ordered_names) - max_names
+        return self.env._(
+            "%(visible)s (+%(hidden)s more)",
+            visible=visible,
+            hidden=hidden,
+        )
+
+    def _build_display_notification(self, title, lines, message_type, sticky=False):
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": title,
+                "message": "\n".join(lines),
+                "type": message_type,
+                "sticky": bool(sticky),
+                "next": {"type": "ir.actions.client", "tag": "reload"},
+            },
+        }
+
+    def _get_notification_type(self, has_errors, has_success):
+        message_type = "success"
+        if has_errors and has_success:
+            message_type = "warning"
+        elif has_errors and not has_success:
+            message_type = "danger"
+        return message_type
+
+    def _split_records_by_gis_link(self):
+        links = []
+        by_link = {}
+        without_link = []
+        for record in self:
+            link_value = getattr(record, self._link_field, False)
+            if not link_value:
+                without_link.append(record.display_name)
+                continue
+            links.append(link_value)
+            by_link[link_value] = record
+        return links, by_link, without_link
+
+    def _fetch_existing_gis_links(self, links):
+        if not links:
+            return set()
+        self.env.cr.execute(
+            sql.SQL("SELECT {link} FROM {table} WHERE {link} = ANY(%s)").format(
+                table=self._sql_ident(self._gis_table),
+                link=sql.Identifier(self._link_field),
+            ),
+            (links,),
+        )
+        return {row[0] for row in self.env.cr.fetchall()}
+
+    def _delete_existing_gis_links(self, existing_links):
+        if not existing_links:
+            return []
+        errors = []
+        try:
+            self.env.cr.execute(
+                sql.SQL("DELETE FROM {table} WHERE {link} = ANY(%s)").format(
+                    table=self._sql_ident(self._gis_table),
+                    link=sql.Identifier(self._link_field),
+                ),
+                (list(existing_links),),
+            )
+            self._invalidate_gis_geometry_fields()
+        except psycopg2.Error as exc:
+            errors.append(str(exc))
+        return errors
+
+    def _build_delete_gis_geometry_lines(
+        self,
+        deleted,
+        without_geometry,
+        without_link,
+        errors,
+    ):
+        lines = [self.env._("Summary:")]
+        lines.append(self.env._("- Deleted geometries: %(count)s", count=len(deleted)))
+        lines.append(
+            self.env._(
+                "- Already without geometry: %(count)s",
+                count=len(without_geometry),
+            )
+        )
+        lines.append(
+            self.env._(
+                "- Without GIS identifier: %(count)s",
+                count=len(without_link),
+            )
+        )
+        lines.append(self.env._("- Errors: %(count)s", count=len(errors)))
+        if deleted:
+            lines.append(
+                self.env._(
+                    "Deleted geometry names: %(names)s",
+                    names=self._format_summary_names(deleted),
+                )
+            )
+        if without_geometry:
+            lines.append(
+                self.env._(
+                    "Already without geometry names: %(names)s",
+                    names=self._format_summary_names(without_geometry),
+                )
+            )
+        if without_link:
+            lines.append(
+                self.env._(
+                    "Without GIS identifier names: %(names)s",
+                    names=self._format_summary_names(without_link),
+                )
+            )
+        self._append_error_names_line(lines, errors)  # pylint: disable=protected-access
+        return lines
+
+    def _append_error_names_line(self, lines, errors):
+        if not errors:
+            return
+        lines.append(
+            self.env._(
+                "Errors: %(names)s",
+                names=self._format_summary_names(errors),
+            )
+        )
+
+    def _delete_gis_geometry(self):
+        """Delete geometry rows from GIS table for current records."""
+        if not self._geom_ok():
+            return
+        link_values = [getattr(record, self._link_field, False) for record in self]
+        link_values = [value for value in link_values if value]
+        if not link_values:
+            return
+        self.env.cr.execute(
+            sql.SQL("DELETE FROM {table} WHERE {link} = ANY(%s)").format(
+                table=self._sql_ident(self._gis_table),
+                link=sql.Identifier(self._link_field),
+            ),
+            (link_values,),
+        )
+        self._invalidate_gis_geometry_fields()
+
+    def action_delete_gis_geometry(self):
+        """Object action wrapper to remove GIS geometry for selected records."""
+        deleted = []
+        without_geometry = []
+        without_link = []
+        errors = []
+        if not self._geom_ok():
+            errors.append(self.env._("GIS table is not available for this model."))
+        else:
+            links, by_link, without_link = self._split_records_by_gis_link()
+            existing_links = self._fetch_existing_gis_links(links)
+            for link_value in links:
+                record = by_link.get(link_value)
+                if link_value in existing_links:
+                    deleted.append(record.display_name)
+                else:
+                    without_geometry.append(record.display_name)
+            errors.extend(self._delete_existing_gis_links(existing_links))
+        lines = self._build_delete_gis_geometry_lines(
+            deleted,
+            without_geometry,
+            without_link,
+            errors,
+        )
+        message_type = self._get_notification_type(bool(errors), bool(deleted))
+        return self._build_display_notification(
+            self.env._("GIS geometry deletion"),
+            lines,
+            message_type,
+            sticky=bool(errors),
+        )
 
     @api.depends("name")
     def _compute_geom_ewkt(self):

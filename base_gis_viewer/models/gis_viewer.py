@@ -78,7 +78,7 @@ class GisViewer(models.AbstractModel):
 
     def _get_cipher_key(self):
         company = self.env.company
-        key = (company.gis_viewer_cipher_key or "").strip() or "z%C*F-JaNdRgUkXp"
+        key = (company.gis_viewer_cipher_key or "").strip() or "0123456789abcdef"
         raw = key.encode("utf-8")
 
         if len(raw) in (16, 24, 32):
