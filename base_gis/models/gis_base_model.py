@@ -378,6 +378,39 @@ class GisBaseModel(models.AbstractModel):
         self._invalidate_gis_geometry_fields()
         return True
 
+    def _rename_gis_link(self, old_link, new_link):
+        """Rename this record's GIS-table row from ``old_link`` to ``new_link``.
+
+        Geometry lives in an external table keyed by ``_link_field`` (e.g. the
+        record name). When that key changes (e.g. a parcel is re-coded) the GIS
+        row must follow or the geometry link is lost. It is a no-op when the
+        target key already exists, to avoid breaking the unique key.
+        """
+        if not self._geom_ok():
+            return False
+        if not old_link or not new_link or old_link == new_link:
+            return False
+        self.env.cr.execute(
+            sql.SQL(
+                "UPDATE {table} SET {link} = %s WHERE {link} = %s "
+                "AND NOT EXISTS (SELECT 1 FROM {table} WHERE {link} = %s)"
+            ).format(
+                table=self._sql_ident(self._gis_table),
+                link=sql.Identifier(self._link_field),
+            ),
+            (new_link, old_link, new_link),
+        )
+        self._invalidate_gis_geometry_fields()
+        # The stored "mapped to GIS" flag may have been recomputed as False
+        # while the GIS row still had the old key; force it to recompute now
+        # that the row follows the new key.
+        mapped_field = getattr(self, "_gis_mapped_field", "")
+        if mapped_field and mapped_field in self._fields:
+            field = self._fields[mapped_field]
+            if field.compute:
+                self.env.add_to_compute(field, self)
+        return True
+
     def _set_gis_geometry_from_gml(
         self,
         gml_geometry,
