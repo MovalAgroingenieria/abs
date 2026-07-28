@@ -9,6 +9,7 @@
     "license": "AGPL-3",
     "website": "https://moval.es",
     "category": "Hidden",
+    "installable": True,
     "depends": [
         "base_setup",
         "base_gis",
@@ -19,5 +20,15 @@
     "external_dependencies": {
         "python": ["pycryptodome"],
     },
-    "installable": True,
+    "assets": {
+        "web.assets_backend": [
+            "base_gis_viewer/static/lib/gis_iconset/iconset.css",
+        ],
+        "web.assets_frontend": [
+            "base_gis_viewer/static/lib/gis_iconset/iconset.css",
+        ],
+        "web.report_assets_common": [
+            "base_gis_viewer/static/lib/gis_iconset/iconset.css",
+        ],
+    },
 }

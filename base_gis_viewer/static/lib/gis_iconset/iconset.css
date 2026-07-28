@@ -1,0 +1,51 @@
+@font-face {
+  font-family: 'gis_iconset';
+  src:  url('fonts/gis_iconset.eot?51d1kg');
+  src:  url('fonts/gis_iconset.eot?51d1kg#iefix') format('embedded-opentype'),
+    url('fonts/gis_iconset.ttf?51d1kg') format('truetype'),
+    url('fonts/gis_iconset.woff?51d1kg') format('woff'),
+    url('fonts/gis_iconset.svg?51d1kg#gis_iconset') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Simplified fa-gis class (inspired by the native Base Fontawesome module) */
+[class^="fa-gis-"], [class*=" fa-gis-"] {
+   display: inline-block;
+   font-family: gis_iconset;
+   font-style: normal;
+   font-weight: normal;
+   font-variant: normal;
+   text-rendering: auto;
+}
+
+/* Render duotone icons */
+[class*="-duotone"]::before {
+   opacity: 1;
+}
+[class*="-duotone"]::after {
+   opacity: 0.4;
+   margin-left: -1em;
+}
+
+/* Print duotone */
+.duotone-print-white::after {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.6);
+}
+.duotone-print-color::after {
+  opacity: 1;
+  /* Overwritten by js */
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Icons */
+.fa-gis-viewer:before {
+  content: "\e900";
+}
+.fa-gis-viewer-duotone::before {
+  content: "\e901";
+}
+.fa-gis-viewer-duotone::after {
+  content: "\e902";
+}
