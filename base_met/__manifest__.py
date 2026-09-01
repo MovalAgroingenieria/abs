@@ -16,4 +16,15 @@
         "security/ir.model.access.csv",
     ],
     "installable": True,
+    "assets": {
+        "web.assets_backend": [
+            "base_met/static/lib/met_iconset/iconset.css",
+        ],
+        "web.assets_frontend": [
+            "base_met/static/lib/met_invoicing_iconset/iconset.css",
+        ],
+        "web.report_assets_common": [
+            "base_met/static/lib/met_iconset/iconset.css",
+        ],
+    },
 }

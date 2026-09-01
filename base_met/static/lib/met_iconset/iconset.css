@@ -1,0 +1,74 @@
+/* Base icon class */
+[class^="fa-met-"], [class*=" fa-met-"] {
+  display: inline-block;
+  font-family: 'met_iconset' !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  --fa-entity-duotone-offset: 1em;
+}
+
+/* Define pseudo-elements */
+[class^="fa-met-"]::before,
+[class^="fa-met-"]::after,
+[class*=" fa-met-"]::before,
+[class*=" fa-met-"]::after {
+  font-family: 'met_iconset' !important;
+  font-style: normal;
+  font-weight: normal;
+}
+
+/* Render duotone icons */
+[class*="-duotone"]::before {
+  opacity: 1;
+}
+
+[class*="-duotone"]::after {
+  opacity: 0.4;
+  position: relative;
+  right: var(--fa-entity-duotone-offset);
+}
+
+/* Context overrides */
+.btn  [class*="-duotone"] {
+    --fa-entity-duotone-offset: 1em;
+}
+.oe_stat_button  [class*="-duotone"] {
+    --fa-entity-duotone-offset: 1.25em;
+}
+
+/* Print duotone */
+.duotone-print-white::after {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.duotone-print-color::after {
+  opacity: 1;
+  /* Overwritten by js */
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Icons */
+@font-face {
+  font-family: 'met_iconset';
+  src:  url('fonts/met_iconset.eot?q0shwb');
+  src:  url('fonts/met_iconset.eot?q0shwb#iefix') format('embedded-opentype'),
+    url('fonts/met_iconset.ttf?q0shwb') format('truetype'),
+    url('fonts/met_iconset.woff?q0shwb') format('woff'),
+    url('fonts/met_iconset.svg?q0shwb#met_iconset') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+.fa-met-generic-sensor:before {
+  content: "\e900";
+}
+.fa-met-generic-sensor-duotone::before {
+  content: "\e901";
+  color: rgb(26, 26, 26);
+}
+.fa-met-generic-sensor-duotone::after {
+  content: "\e902";
+  color: rgb(26, 26, 26);
+}
