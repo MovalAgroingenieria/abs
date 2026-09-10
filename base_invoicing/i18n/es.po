@@ -845,7 +845,7 @@ msgstr "Entidad comercial"
 #: model:ir.model.fields.selection,name:base_invoicing.selection__account_invoiceset__state__committed
 #: model_terms:ir.ui.view,arch_db:base_invoicing.account_invoiceset_view_search
 msgid "Committed"
-msgstr "Consolidado"
+msgstr "Validado"
 
 #. module: base_invoicing
 #: model:ir.model,name:base_invoicing.model_res_company

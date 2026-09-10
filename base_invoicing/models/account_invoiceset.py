@@ -207,11 +207,11 @@ class AccountInvoiceset(models.Model):  # pylint: disable=R0904
         required=True,
         readonly=True,
     )
-    some_posted_invoice = fields.Boolean(
-        string="Some posted invoice",
+    all_invoices_posted = fields.Boolean(
+        string="All invoices posted",
         default=False,
         store=True,
-        compute="_compute_some_posted_invoice",
+        compute="_compute_all_invoices_posted",
     )
 
     partner_id = fields.Many2one(
@@ -266,7 +266,7 @@ class AccountInvoiceset(models.Model):  # pylint: disable=R0904
     # Computes
     # -------------------------------------------------------------------------
 
-    @api.depends("all_productlinks_configured", "some_posted_invoice")
+    @api.depends("all_productlinks_configured", "all_invoices_posted")
     def _compute_state(self):
         """Auto-transition draft<->configured and calculated<->committed.
 
@@ -283,9 +283,9 @@ class AccountInvoiceset(models.Model):  # pylint: disable=R0904
                 state = "configured"
             elif state == "configured" and not record.all_productlinks_configured:
                 state = "draft"
-            elif state == "calculated" and record.some_posted_invoice:
+            elif state == "calculated" and record.all_invoices_posted:
                 state = "committed"
-            elif state == "committed" and not record.some_posted_invoice:
+            elif state == "committed" and not record.all_invoices_posted:
                 state = "calculated"
             record.state = state
 
@@ -357,10 +357,10 @@ class AccountInvoiceset(models.Model):  # pylint: disable=R0904
             )
 
     @api.depends("move_ids", "move_ids.state")
-    def _compute_some_posted_invoice(self):
+    def _compute_all_invoices_posted(self):
         for record in self:
-            record.some_posted_invoice = any(
-                m.state == "posted" for m in record.move_ids
+            record.all_invoices_posted = bool(record.move_ids) and all(
+                move.state == "posted" for move in record.move_ids
             )
 
     @api.depends("move_ids", "move_ids.amount_total_signed", "move_ids.state")
