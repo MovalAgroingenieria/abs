@@ -34,6 +34,35 @@ class GisViewer(models.AbstractModel):
         string="GIS Link (minimal version)", compute="_compute_gis_link_minimal"
     )
 
+    def _gis_link_cache_fields(self):
+        fields_to_invalidate = ["gis_code"]
+        if "gis_link_public" in self._fields:
+            fields_to_invalidate.append("gis_link_public")
+        if "gis_link_technical" in self._fields:
+            fields_to_invalidate.append("gis_link_technical")
+        if "gis_link_minimal" in self._fields:
+            fields_to_invalidate.append("gis_link_minimal")
+        return fields_to_invalidate
+
+    def _invalidate_gis_links(self):
+        self.invalidate_recordset(self._gis_link_cache_fields())
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        if any(
+            {"name", "geom_ewkt", self._gis_mapped_field} & set(vals)
+            for vals in vals_list
+        ):
+            records._invalidate_gis_links()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if {"name", "geom_ewkt", self._gis_mapped_field} & set(vals):
+            self._invalidate_gis_links()
+        return res
+
     def _compute_gis_code(self):
         for record in self:
             record.gis_code = record.name or ""

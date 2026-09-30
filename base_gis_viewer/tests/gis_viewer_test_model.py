@@ -16,5 +16,6 @@ class GisViewerTestModel(models.Model):
 
     def extract_bounding_box(self, _ewkt, force_square_shape=False):
         _ = force_square_shape  # required by gis.viewer API, unused in this test stub
-        bbox = (0.0, 0.0, 10.0, 10.0)
+        bbox_size = 20.0 if _ewkt and "2" in _ewkt else 10.0
+        bbox = (0.0, 0.0, bbox_size, bbox_size)
         return 4326, bbox

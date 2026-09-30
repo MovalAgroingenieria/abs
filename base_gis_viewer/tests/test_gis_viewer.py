@@ -34,6 +34,36 @@ class TestGisViewer(TransactionCase):
         rec = self._new_record(name="P-001")
         self.assertEqual(rec.gis_code, "P-001")
 
+    def test_gis_link_recomputes_after_geometry_write(self):
+        rec = self.env["gis.viewer.test.model"].create(
+            {
+                "name": "P-001",
+                "mapped_to_polygon": True,
+                "geom_ewkt": "GEOM-1",
+            }
+        )
+        initial_link = rec.gis_link_public
+
+        rec.write({"geom_ewkt": "GEOM-2"})
+
+        self.assertNotEqual(initial_link, rec.gis_link_public)
+        self.assertIn("20.0,20.0", rec.gis_link_public)
+
+    def test_gis_link_recomputes_after_gis_mapping_refresh(self):
+        rec = self.env["gis.viewer.test.model"].create(
+            {
+                "name": "P-001",
+                "mapped_to_polygon": True,
+                "geom_ewkt": "GEOM-1",
+            }
+        )
+        self.assertTrue(rec.gis_link_public)
+
+        rec.mapped_to_polygon = False
+        rec._refresh_gis_mapped_field()
+
+        self.assertEqual(rec.gis_link_public, "")
+
     def test_get_gis_link_empty_when_not_mapped(self):
         rec = self._new_record(name="P-001", mapped_to_polygon=False)
         self.assertEqual(rec._get_gis_link(public=True), "")

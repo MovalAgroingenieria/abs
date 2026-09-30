@@ -260,6 +260,15 @@ class GisBaseModel(models.AbstractModel):
         if fields_to_invalidate:
             self.invalidate_recordset(fields_to_invalidate)
 
+    def _refresh_gis_mapped_field(self):
+        """Force recomputation of the GIS-mapped boolean when the GIS row moves."""
+        mapped_field = getattr(self, "_gis_mapped_field", "")
+        if not mapped_field or mapped_field not in self._fields:
+            return
+        field = self._fields[mapped_field]
+        if field.compute:
+            self.env.add_to_compute(field, self)
+
     def _ensure_ewkt_srid(self, ewkt, default_srid=None):
         """Ensure EWKT has SRID prefix for PostGIS."""
         value = (ewkt or "").strip()
@@ -376,6 +385,7 @@ class GisBaseModel(models.AbstractModel):
         if not written:
             return False
         self._invalidate_gis_geometry_fields()
+        self._refresh_gis_mapped_field()
         return True
 
     def _rename_gis_link(self, old_link, new_link):
@@ -404,11 +414,7 @@ class GisBaseModel(models.AbstractModel):
         # The stored "mapped to GIS" flag may have been recomputed as False
         # while the GIS row still had the old key; force it to recompute now
         # that the row follows the new key.
-        mapped_field = getattr(self, "_gis_mapped_field", "")
-        if mapped_field and mapped_field in self._fields:
-            field = self._fields[mapped_field]
-            if field.compute:
-                self.env.add_to_compute(field, self)
+        self._refresh_gis_mapped_field()
         return True
 
     def _set_gis_geometry_from_gml(
