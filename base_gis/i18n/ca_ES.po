@@ -16,10 +16,46 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "- Already without geometry: %(count)s"
+msgstr "- Ja sense geometria: %(count)s"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "- Deleted geometries: %(count)s"
+msgstr "- Geometries eliminades: %(count)s"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "- Errors: %(count)s"
+msgstr ""
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "- Without GIS identifier: %(count)s"
+msgstr "- Sense identificador GIS: %(count)s"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "Already without geometry names: %(names)s"
+msgstr "Registres que ja estaven sense geometria: %(names)s"
+
+#. module: base_gis
 #: model:ir.model.fields,field_description:base_gis.field_base_gis_polygon_test__bounding_box_str
 #: model:ir.model.fields,field_description:base_gis.field_polygon_model__bounding_box_str
 msgid "Bounding box as string"
 msgstr "Caixa delimitadora"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "Close and Reload"
+msgstr "Tancar i recarregar"
 
 #. module: base_gis
 #: model:ir.model.fields,field_description:base_gis.field_base_gis_polygon_test__create_uid
@@ -30,6 +66,12 @@ msgstr "Creat per"
 #: model:ir.model.fields,field_description:base_gis.field_base_gis_polygon_test__create_date
 msgid "Created on"
 msgstr "Creat el"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "Deleted geometry names: %(names)s"
+msgstr "Noms de les geometries eliminades: %(names)s"
 
 #. module: base_gis
 #: model:ir.model.fields,field_description:base_gis.field_base_gis_polygon_test__display_name
@@ -55,6 +97,12 @@ msgid "EWKT Geometry for oriented envelope"
 msgstr "Envolupant orientada (EWKT)"
 
 #. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "Errors: %(names)s"
+msgstr ""
+
+#. module: base_gis
 #: model:ir.model.fields,field_description:base_gis.field_base_gis_polygon_test__area_gis
 #: model:ir.model.fields,field_description:base_gis.field_polygon_model__area_gis
 msgid "GIS Area (m²)"
@@ -65,6 +113,18 @@ msgstr "Àrea GIS (m²)"
 #: model:ir.model.fields,field_description:base_gis.field_polygon_model__perimeter_gis
 msgid "GIS Perimeter (m)"
 msgstr "Perímetre GIS (m)"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "GIS geometry deletion"
+msgstr "Esborrament de geometria GIS"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "GIS table is not available for this model."
+msgstr "La taula GIS no està disponible per a aquest model."
 
 #. module: base_gis
 #: model:ir.model.fields,field_description:base_gis.field_base_gis_polygon_test__geom_geojson
@@ -107,3 +167,15 @@ msgstr "Model de polígon"
 #: model:ir.model,name:base_gis.model_base_gis_polygon_test
 msgid "Polygon model test helper"
 msgstr "Assistent de proves del model de polígon"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "Summary:"
+msgstr "Resum:"
+
+#. module: base_gis
+#. odoo-python
+#: code:addons/base_gis/models/gis_base_model.py:0
+msgid "Without GIS identifier names: %(names)s"
+msgstr "Registres sense identificador GIS: %(names)s"
